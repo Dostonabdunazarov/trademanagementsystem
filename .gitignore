@@ -55,3 +55,20 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Claude Code / AI tooling
+.claude/
+.agents/
+skills-lock.json
+synthetic-orbiting-sutton.md
+
+# Node.js / Frontend
+node_modules/
+trade-ms-ui/node_modules/
+trade-ms-ui/.next/
+trade-ms-ui/out/
+trade-ms-ui/dist/
+
+# IDE
+.vscode/
+.idea/
