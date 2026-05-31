@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="TradeMS.Api/TradeMS.Api.csproj" />
+  <Project Path="TradeMS.Application/TradeMS.Application.csproj" />
+  <Project Path="TradeMS.Domain/TradeMS.Domain.csproj" />
+  <Project Path="TradeMS.Infrastructure/TradeMS.Infrastructure.csproj" />
+  <Project Path="TradeMS.IntegrationTests/TradeMS.IntegrationTests.csproj" />
+</Solution>

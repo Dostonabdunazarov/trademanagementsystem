@@ -1,0 +1,209 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-surface: hsl(var(--surface));
+  --color-surface-2: hsl(var(--surface-2));
+  --color-accent: hsl(var(--accent));
+  --color-success: hsl(var(--success));
+  --color-warning: hsl(var(--warning));
+  --color-danger: hsl(var(--danger));
+  --color-text-primary: hsl(var(--text-primary));
+  --color-text-muted: hsl(var(--text-muted));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: 240 10% 4%;
+    --foreground: 214 32% 91%;
+    --surface: 240 10% 7%;
+    --surface-2: 240 10% 12%;
+    --border: 240 10% 100% / 0.08;
+    --accent: 239 84% 67%;
+    --accent-glow: 239 84% 67% / 0.15;
+    --success: 160 84% 39%;
+    --warning: 38 92% 50%;
+    --danger: 0 84% 60%;
+    --text-primary: 214 32% 91%;
+    --text-muted: 215 16% 47%;
+
+    --card: 240 10% 7%;
+    --card-foreground: 214 32% 91%;
+    --popover: 240 10% 7%;
+    --popover-foreground: 214 32% 91%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 10% 12%;
+    --secondary-foreground: 214 32% 91%;
+    --muted: 240 10% 12%;
+    --muted-foreground: 215 16% 47%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --input: 240 10% 12%;
+    --ring: 239 84% 67%;
+    --radius: 0.5rem;
+  }
+
+  html.light {
+    /* sidebar/header bg */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+    /* main content area = white */
+    --surface: 0 0% 100%;
+    --surface-2: 0 0% 96%;
+    --border: 228 20% 0% / 0.08;
+    --accent: 239 84% 60%;
+    --accent-glow: 239 84% 60% / 0.15;
+    --success: 152 76% 36%;
+    --warning: 38 92% 44%;
+    --danger: 0 84% 55%;
+    --text-primary: 222 47% 11%;
+    --text-muted: 215 20% 42%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 239 84% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 228 25% 88%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 228 25% 88%;
+    --muted-foreground: 215 20% 42%;
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --input: 228 25% 88%;
+    --ring: 239 84% 60%;
+  }
+
+  html {
+    color-scheme: dark;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  html.light {
+    color-scheme: light;
+  }
+
+  body {
+    margin: 0;
+    background-color: hsl(var(--background));
+    color: hsl(var(--text-primary));
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100svh;
+  }
+
+  /* Light theme body */
+  html.light body {
+    background-color: #ffffff;
+    background-image: none;
+  }
+
+  #root {
+    min-height: 100svh;
+  }
+}
+
+/* ── Light theme component overrides ─────────────────────────────────────── */
+
+/* Sidebar — white */
+html.light aside {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  border-right-color: rgba(99, 102, 241, 0.12) !important;
+  box-shadow: none !important;
+}
+
+/* Topbar — white */
+html.light header {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom-color: rgba(99, 102, 241, 0.12) !important;
+  box-shadow: 0 1px 0 rgba(99, 102, 241, 0.1) !important;
+}
+
+/* Table header row */
+html.light thead tr {
+  background-image: linear-gradient(90deg, #f0eeff 0%, #eef4ff 100%);
+}
+
+/* Table row hover */
+html.light tbody tr:hover {
+  background-color: rgba(99, 102, 241, 0.04) !important;
+}
+
+/* Toolbar / card areas */
+html.light .bg-card {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 1px 10px rgba(99, 102, 241, 0.07);
+}
+
+/* Primary gradient button */
+html.light .btn-primary-gradient {
+  background-image: linear-gradient(135deg, #6366f1 0%, #8b5cf6 60%, #a855f7 100%) !important;
+  background-color: #6366f1 !important;
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.40) !important;
+  border: none !important;
+}
+html.light .btn-primary-gradient:hover {
+  background-image: linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #9333ea 100%) !important;
+  box-shadow: 0 6px 22px rgba(99, 102, 241, 0.50) !important;
+  transform: translateY(-1px);
+}
+
+/* Inputs */
+html.light input[type="text"],
+html.light input[type="number"],
+html.light input[type="email"],
+html.light input[type="password"],
+html.light input:not([type]) {
+  background-color: rgba(238, 240, 255, 0.75) !important;
+  border-color: rgba(99, 102, 241, 0.18) !important;
+}
+html.light input:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15) !important;
+  outline: none !important;
+}
+
+/* Scrollbar */
+html.light ::-webkit-scrollbar { width: 6px; height: 6px; }
+html.light ::-webkit-scrollbar-track { background: transparent; }
+html.light ::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.22);
+  border-radius: 3px;
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.38);
+}
+
+/* Selection */
+html.light ::selection {
+  background: rgba(99, 102, 241, 0.2);
+  color: #3730a3;
+}
