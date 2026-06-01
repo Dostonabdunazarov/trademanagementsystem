@@ -106,6 +106,39 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db)
             }
         }
 
+        // ── касса ─────────────────────────────────────────────────────────────
+        // PayIn  → деньги приходят в кассу (+)
+        // PayOut → деньги уходят из кассы (-)
+        if (doc.Type is DocumentType.PayIn or DocumentType.PayOut && doc.AccountId.HasValue)
+        {
+            var account = await db.Accounts
+                .FirstOrDefaultAsync(a => a.Id == doc.AccountId.Value, cancellationToken);
+
+            if (account is not null)
+            {
+                var accountDelta = doc.Type == DocumentType.PayIn
+                    ? +doc.TotalAmountBase
+                    : -doc.TotalAmountBase;
+
+                account.Balance += accountDelta;
+            }
+
+            if (doc.CounterpartyId.HasValue)
+            {
+                db.Payments.Add(new Payment
+                {
+                    DocumentId    = doc.Id,
+                    CounterpartyId = doc.CounterpartyId.Value,
+                    Amount        = doc.TotalAmount,
+                    CurrencyId    = doc.CurrencyId,
+                    ExchangeRate  = doc.ExchangeRate,
+                    AmountBase    = doc.TotalAmountBase,
+                    PaymentMethod = doc.PaymentMethod ?? PaymentMethod.Cash,
+                    AccountId     = doc.AccountId,
+                });
+            }
+        }
+
         doc.Status      = DocumentStatus.Confirmed;
         doc.ConfirmedAt = DateTime.UtcNow;
 

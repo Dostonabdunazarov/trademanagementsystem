@@ -134,12 +134,15 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.TotalAmountBase).HasPrecision(18, 2);
             e.Property(x => x.DiscountPercent).HasPrecision(5, 2);
             e.Property(x => x.DiscountAmount).HasPrecision(18, 2);
+            e.Property(x => x.Amount).HasPrecision(18, 2);
+            e.Property(x => x.PaymentMethod).HasConversion<string>().HasMaxLength(20);
             e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
             e.HasOne(x => x.Company).WithMany(x => x.Documents).HasForeignKey(x => x.CompanyId);
             e.HasOne(x => x.Branch).WithMany(x => x.Documents).HasForeignKey(x => x.BranchId);
             e.HasOne(x => x.Counterparty).WithMany(x => x.Documents).HasForeignKey(x => x.CounterpartyId).IsRequired(false);
             e.HasOne(x => x.Currency).WithMany(x => x.Documents).HasForeignKey(x => x.CurrencyId);
             e.HasOne(x => x.Creator).WithMany().HasForeignKey(x => x.CreatedBy).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Account).WithMany().HasForeignKey(x => x.AccountId).IsRequired(false);
         });
 
         modelBuilder.Entity<DocumentLine>(e =>
