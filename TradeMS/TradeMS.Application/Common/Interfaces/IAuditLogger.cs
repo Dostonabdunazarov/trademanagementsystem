@@ -12,5 +12,6 @@ public interface IAuditLogger
         Guid? overrideUserId = null,
         string? overrideEmail = null,
         string? overrideIp = null,
+        Guid? overrideCompanyId = null,
         CancellationToken cancellationToken = default);
 }

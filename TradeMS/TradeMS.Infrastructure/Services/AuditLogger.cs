@@ -17,6 +17,7 @@ public class AuditLogger(IDbContextFactory<AppDbContext> factory, ICurrentUserSe
         Guid? overrideUserId = null,
         string? overrideEmail = null,
         string? overrideIp = null,
+        Guid? overrideCompanyId = null,
         CancellationToken cancellationToken = default)
     {
         var log = new AuditLog
@@ -27,7 +28,7 @@ public class AuditLogger(IDbContextFactory<AppDbContext> factory, ICurrentUserSe
             EntityId     = entityId,
             Details      = details,
             ErrorMessage = errorMessage,
-            CompanyId    = currentUser.CompanyId ?? Guid.Empty,
+            CompanyId    = overrideCompanyId ?? currentUser.CompanyId ?? Guid.Empty,
             UserId       = overrideUserId ?? currentUser.UserId,
             UserEmail    = overrideEmail  ?? currentUser.UserEmail,
             IpAddress    = overrideIp     ?? currentUser.IpAddress,

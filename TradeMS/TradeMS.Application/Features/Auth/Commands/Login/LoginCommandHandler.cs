@@ -31,6 +31,7 @@ public class LoginCommandHandler(IAppDbContext db, IJwtService jwtService, IAudi
         {
             await auditLogger.LogAsync(AuditActions.LoginInactive, success: false,
                 overrideUserId: user.Id, overrideEmail: user.Email,
+                overrideCompanyId: user.CompanyId,
                 errorMessage: "Account is inactive",
                 cancellationToken: cancellationToken);
             throw new UnauthorizedAccessException("Invalid credentials");
@@ -40,6 +41,7 @@ public class LoginCommandHandler(IAppDbContext db, IJwtService jwtService, IAudi
         {
             await auditLogger.LogAsync(AuditActions.LoginLocked, success: false,
                 overrideUserId: user.Id, overrideEmail: user.Email,
+                overrideCompanyId: user.CompanyId,
                 errorMessage: $"Locked until {user.LockoutUntil:u}",
                 cancellationToken: cancellationToken);
             throw new UnauthorizedAccessException($"Account is locked. Try again after {user.LockoutUntil:HH:mm} UTC");
@@ -55,6 +57,7 @@ public class LoginCommandHandler(IAppDbContext db, IJwtService jwtService, IAudi
 
             await auditLogger.LogAsync(AuditActions.LoginFail, success: false,
                 overrideUserId: user.Id, overrideEmail: user.Email,
+                overrideCompanyId: user.CompanyId,
                 errorMessage: $"Invalid password (attempt {user.FailedLoginCount})",
                 cancellationToken: cancellationToken);
             throw new UnauthorizedAccessException("Invalid credentials");
@@ -70,6 +73,7 @@ public class LoginCommandHandler(IAppDbContext db, IJwtService jwtService, IAudi
 
         await auditLogger.LogAsync(AuditActions.LoginSuccess,
             overrideUserId: user.Id, overrideEmail: user.Email,
+            overrideCompanyId: user.CompanyId,
             cancellationToken: cancellationToken);
 
         var userDto = new AuthUserDto(user.Id, user.FullName, user.Email, user.Role.ToString(), user.CompanyId, user.Company.Name, user.BranchId);
