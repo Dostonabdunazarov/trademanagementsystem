@@ -7,6 +7,8 @@ import { useCounterparties } from '@/api/hooks/useCounterparties'
 import { useCurrencies } from '@/api/hooks/useCurrencies'
 import { useAccounts } from '@/api/hooks/useAccounts'
 import { useCreateDocument, useConfirmDocument } from '@/api/hooks/useDocumentMutations'
+import { useAuthStore } from '@/store/auth.store'
+import { useUiStore } from '@/store/ui.store'
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
 
@@ -51,6 +53,11 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
 
   const createDoc = useCreateDocument()
   const confirmDoc = useConfirmDocument()
+
+  const { user } = useAuthStore()
+  const { activeBranch } = useUiStore()
+  const isAdmin = user?.role === 'Admin'
+  const adminNoBranch = isAdmin && !activeBranch
 
   const cpType = counterpartyTypeFor(type)
 
@@ -123,6 +130,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
   const buildPayload = () => ({
     type,
     date,
+    ...(isAdmin ? { branchId: activeBranch?.id ?? null } : {}),
     counterpartyId: counterpartyId || null,
     currencyId,
     exchangeRate,
@@ -146,6 +154,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
   }
 
   const isBusy = createDoc.isPending || confirmDoc.isPending
+  const isBlocked = adminNoBranch
 
   if (isLoading) return <PaymentFormSkeleton />
 
@@ -171,7 +180,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
         <div className="flex items-center gap-2">
           <button
             onClick={handleSaveDraft}
-            disabled={isBusy}
+            disabled={isBusy || isBlocked}
             className={cn(
               'flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 h-8 text-xs text-[hsl(var(--text-muted))]',
               'hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))] transition-colors',
@@ -182,7 +191,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
           </button>
           <button
             onClick={handleConfirm}
-            disabled={isBusy || !counterpartyId || !amount}
+            disabled={isBusy || isBlocked || !counterpartyId || !amount}
             className={cn(
               'flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 h-8 text-xs text-white font-medium',
               'hover:bg-indigo-500 active:bg-indigo-700 transition-colors',
