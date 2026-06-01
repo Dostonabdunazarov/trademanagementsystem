@@ -15,5 +15,8 @@ public record CreateDocumentCommand(
     decimal ExchangeRate,
     decimal DiscountPercent,
     string? Note,
-    IReadOnlyList<CreateDocumentLineRequest> Lines
+    IReadOnlyList<CreateDocumentLineRequest> Lines,
+    decimal? Amount = null,
+    string? PaymentMethod = null,
+    Guid? AccountId = null
 ) : IRequest<DocumentDto>;

@@ -17,6 +17,9 @@ export interface CreateDocumentPayload {
   discountPercent: number
   note: string | null
   lines: CreateDocumentLinePayload[]
+  amount?: number | null
+  paymentMethod?: string | null
+  accountId?: string | null
 }
 
 export interface UpdateDocumentPayload extends Omit<CreateDocumentPayload, 'type'> {}

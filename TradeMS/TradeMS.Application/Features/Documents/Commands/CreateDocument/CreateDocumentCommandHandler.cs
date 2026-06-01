@@ -32,10 +32,25 @@ public class CreateDocumentCommandHandler(IAppDbContext db)
 
         var number = $"{prefix}-{year}-{(count + 1):D5}";
 
-        var lines = BuildLines(request.Lines, request.ExchangeRate);
-        var subtotal = lines.Sum(l => l.Total);
-        var discountAmount = subtotal * (request.DiscountPercent / 100m);
-        var totalAmount = subtotal - discountAmount;
+        bool isPayment = request.Type is DocumentType.PayOut or DocumentType.PayIn;
+
+        decimal totalAmount;
+        List<DocumentLine> lines;
+        decimal discountAmount;
+
+        if (isPayment)
+        {
+            totalAmount = request.Amount ?? 0m;
+            discountAmount = 0m;
+            lines = [];
+        }
+        else
+        {
+            lines = BuildLines(request.Lines, request.ExchangeRate);
+            var subtotal = lines.Sum(l => l.Total);
+            discountAmount = subtotal * (request.DiscountPercent / 100m);
+            totalAmount = subtotal - discountAmount;
+        }
 
         var doc = new Document
         {
@@ -47,7 +62,7 @@ public class CreateDocumentCommandHandler(IAppDbContext db)
             CounterpartyId = request.CounterpartyId,
             CurrencyId    = request.CurrencyId,
             ExchangeRate  = request.ExchangeRate,
-            DiscountPercent = request.DiscountPercent,
+            DiscountPercent = isPayment ? 0m : request.DiscountPercent,
             DiscountAmount  = discountAmount,
             TotalAmount     = totalAmount,
             TotalAmountBase = totalAmount * request.ExchangeRate,

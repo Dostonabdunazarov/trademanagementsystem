@@ -67,7 +67,10 @@ public record CreateDocumentRequest(
     decimal ExchangeRate,
     decimal DiscountPercent,
     string? Note,
-    IReadOnlyList<CreateDocumentLineRequest> Lines
+    IReadOnlyList<CreateDocumentLineRequest> Lines,
+    decimal? Amount = null,
+    string? PaymentMethod = null,
+    Guid? AccountId = null
 );
 
 public record UpdateDocumentRequest(

@@ -83,7 +83,7 @@ public static class DocumentEndpoints
                 companyId, branchId, userId,
                 docType, req.Date, req.CounterpartyId,
                 req.CurrencyId, req.ExchangeRate, req.DiscountPercent,
-                req.Note, req.Lines));
+                req.Note, req.Lines, req.Amount, req.PaymentMethod, req.AccountId));
 
             return Results.Created($"/documents/{result.Id}", result);
         })

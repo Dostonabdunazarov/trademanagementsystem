@@ -1,10 +1,12 @@
 ﻿import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Save, CheckCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { DocumentType, PaymentMethod } from '@/types/document'
 import { useCounterparties } from '@/api/hooks/useCounterparties'
 import { useCurrencies } from '@/api/hooks/useCurrencies'
 import { useAccounts } from '@/api/hooks/useAccounts'
+import { useCreateDocument, useConfirmDocument } from '@/api/hooks/useDocumentMutations'
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
 
@@ -45,6 +47,10 @@ interface PaymentFormProps {
 
 export function PaymentForm({ type, title, className, isLoading = false }: PaymentFormProps) {
   const today = new Date().toISOString().slice(0, 10)
+  const navigate = useNavigate()
+
+  const createDoc = useCreateDocument()
+  const confirmDoc = useConfirmDocument()
 
   const cpType = counterpartyTypeFor(type)
 
@@ -112,6 +118,35 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
     setExchangeRate(1)
   }, [currencies])
 
+  const listRoute = type === 'PayOut' ? '/pay-outs' : '/pay-ins'
+
+  const buildPayload = () => ({
+    type,
+    date,
+    counterpartyId: counterpartyId || null,
+    currencyId,
+    exchangeRate,
+    discountPercent: 0,
+    note: note || null,
+    lines: [],
+    amount: parseFloat(amount) || 0,
+    paymentMethod,
+    accountId: accountId || null,
+  })
+
+  const handleSaveDraft = async () => {
+    await createDoc.mutateAsync(buildPayload())
+    navigate(listRoute)
+  }
+
+  const handleConfirm = async () => {
+    const doc = await createDoc.mutateAsync(buildPayload())
+    await confirmDoc.mutateAsync(doc.id)
+    navigate(listRoute)
+  }
+
+  const isBusy = createDoc.isPending || confirmDoc.isPending
+
   if (isLoading) return <PaymentFormSkeleton />
 
   const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
@@ -134,17 +169,25 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
       <div className="flex items-center justify-between px-6 pt-5 pb-4">
         <h1 className="text-base font-semibold text-[hsl(var(--text-primary))]">{title}</h1>
         <div className="flex items-center gap-2">
-          <button className={cn(
-            'flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 h-8 text-xs text-[hsl(var(--text-muted))]',
-            'hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))] transition-colors',
-          )}>
+          <button
+            onClick={handleSaveDraft}
+            disabled={isBusy}
+            className={cn(
+              'flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 h-8 text-xs text-[hsl(var(--text-muted))]',
+              'hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))] transition-colors',
+              'disabled:opacity-50 disabled:cursor-not-allowed',
+            )}>
             <Save className="h-3.5 w-3.5" />
             Сохранить черновик
           </button>
-          <button className={cn(
-            'flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 h-8 text-xs text-white font-medium',
-            'hover:bg-indigo-500 active:bg-indigo-700 transition-colors',
-          )}>
+          <button
+            onClick={handleConfirm}
+            disabled={isBusy || !counterpartyId || !amount}
+            className={cn(
+              'flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 h-8 text-xs text-white font-medium',
+              'hover:bg-indigo-500 active:bg-indigo-700 transition-colors',
+              'disabled:opacity-50 disabled:cursor-not-allowed',
+            )}>
             <CheckCircle className="h-3.5 w-3.5" />
             Провести
           </button>
