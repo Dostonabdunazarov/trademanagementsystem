@@ -271,7 +271,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
           {!isBaseCurrency && amountInBase > 0 && (
             <p className="text-xs text-[hsl(var(--text-muted))] -mt-2">
               В базовой валюте:{' '}
-              <span className="font-mono text-[hsl(var(--text-primary))]">{fmt(amountInBase)} {baseCurrency.code}</span>
+              <span className="font-mono text-[hsl(var(--text-primary))]">{fmt(amountInBase)} {baseCurrency?.code ?? ''}</span>
             </p>
           )}
 
@@ -330,7 +330,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
           <div className="rounded-lg border border-[hsl(var(--border))] bg-background p-3 flex items-center justify-between">
             <span className="text-xs text-[hsl(var(--text-muted))]">Итого к {type === 'PayOut' ? 'оплате' : 'получению'}:</span>
             <span className="font-mono font-semibold text-indigo-400">
-              {amount ? fmt(parseFloat(amount) || 0) : '0'} {selectedCurrency.code}
+              {amount ? fmt(parseFloat(amount) || 0) : '0'} {selectedCurrency?.code ?? ''}
             </span>
           </div>
         </div>

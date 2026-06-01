@@ -1,5 +1,6 @@
 ﻿import { useState } from 'react'
 import { AlertTriangle, RefreshCw, Search } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useStockBalance } from '@/api/hooks/useReports'
 import { formatNumber } from '@/utils/format'
 import { cn } from '@/lib/utils'
@@ -8,6 +9,7 @@ import { useUiStore } from '@/store/ui.store'
 const LOW_STOCK_THRESHOLD = 5
 
 export function StockBalanceReport() {
+  const { t } = useTranslation()
   const [search, setSearch] = useState('')
   const [showLowOnly, setShowLowOnly] = useState(false)
   const { activeBranch } = useUiStore()
@@ -119,7 +121,7 @@ export function StockBalanceReport() {
                   <td className="px-4 py-3 text-right">
                     <span className={cn('inline-flex items-center gap-1 font-mono tabular-nums', isLow ? 'text-amber-400' : 'text-[hsl(var(--text-primary))]')}>
                       {isLow && <AlertTriangle className="h-3 w-3" />}
-                      {formatNumber(row.quantity)} {row.unit}
+                      {formatNumber(row.quantity)} {t(`products.units.${row.unit}`, row.unit)}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right font-mono tabular-nums text-[hsl(var(--text-primary))]">{formatNumber(row.priceSell)}</td>

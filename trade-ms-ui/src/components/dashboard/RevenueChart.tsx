@@ -86,7 +86,7 @@ export function RevenueChart({ className, loading, monthlySales }: Props) {
           const y = toY(val, maxVal)
           return (
             <g key={val}>
-              <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="hsl(215 20% 88%)" strokeWidth="0.5" strokeDasharray="3 3" />
+              <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="hsl(215 20% 88%)" strokeWidth="0.4" />
               <text x={PAD.left - 6} y={y} textAnchor="end" dominantBaseline="middle" fontSize="5.5" fill="#64748b">
                 {val.toLocaleString()}
               </text>

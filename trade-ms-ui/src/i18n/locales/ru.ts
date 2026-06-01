@@ -41,6 +41,7 @@ export const ru = {
       page: 'Страница',
       of: 'из',
       rows: 'строк',
+      confirmDelete: 'Вы уверены, что хотите удалить?',
     },
     // Auth
     auth: {
@@ -143,6 +144,14 @@ export const ru = {
       productName: 'Наименование товара',
       sku: 'Артикул',
       unit: 'Единица',
+      units: {
+        Pcs: 'шт',
+        Kg: 'кг',
+        M: 'м',
+        M2: 'м²',
+        M3: 'м³',
+        Litre: 'л',
+      },
       priceSell: 'Цена продажи',
       priceBuy: 'Цена покупки',
       stock: 'Остаток',
@@ -153,6 +162,13 @@ export const ru = {
       deleteProduct: 'Удалить товар?',
       deleteProductDesc: 'Это действие нельзя отменить.',
       noProducts: 'Нет товаров в этой группе',
+      createdSuccess: 'Товар создан',
+      updatedSuccess: 'Товар обновлён',
+      deletedSuccess: 'Товар удалён',
+      groupCreatedSuccess: 'Группа создана',
+      createError: 'Ошибка при создании',
+      updateError: 'Ошибка при обновлении',
+      deleteError: 'Ошибка при удалении',
     },
     // Counterparties
     counterparties: {
@@ -173,6 +189,12 @@ export const ru = {
       editCounterparty: 'Редактировать контрагента',
       fullName: 'ФИО / Название',
       noCounterparties: 'Контрагентов не найдено',
+      createdSuccess: 'Контрагент создан',
+      updatedSuccess: 'Контрагент обновлён',
+      deletedSuccess: 'Контрагент удалён',
+      createError: 'Ошибка при создании',
+      updateError: 'Ошибка при обновлении',
+      deleteError: 'Ошибка при удалении',
     },
     // Reports
     reports: {

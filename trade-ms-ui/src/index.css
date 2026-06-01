@@ -126,24 +126,30 @@
   }
 }
 
-/* ── Light theme component overrides ─────────────────────────────────────── */
+/* ── Accent Border Glow (Вариант 4) ───────────────────────────────────────── */
 
-/* Sidebar — white */
-html.light aside {
-  background-color: #ffffff !important;
-  background-image: none !important;
-  border-right-color: rgba(99, 102, 241, 0.12) !important;
-  box-shadow: none !important;
+aside {
+  border-right: 1px solid rgba(99, 102, 241, 0.30);
+  box-shadow: 4px 0 20px rgba(99, 102, 241, 0.18);
 }
 
-/* Topbar — white */
+header {
+  border-bottom: 1px solid rgba(99, 102, 241, 0.25);
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.14);
+}
+
+/* ── Light theme component overrides ─────────────────────────────────────── */
+
+/* Sidebar */
+html.light aside {
+  border-right-color: rgba(99, 102, 241, 0.35) !important;
+  box-shadow: 4px 0 20px rgba(99, 102, 241, 0.18) !important;
+}
+
+/* Topbar */
 html.light header {
-  background-color: #ffffff !important;
-  background-image: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border-bottom-color: rgba(99, 102, 241, 0.12) !important;
-  box-shadow: 0 1px 0 rgba(99, 102, 241, 0.1) !important;
+  border-bottom-color: rgba(99, 102, 241, 0.30) !important;
+  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.14) !important;
 }
 
 /* Table header row */

@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect } from 'react'
+import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/store/auth.store'
 import { useProducts } from '@/api/hooks/useProducts'
@@ -38,7 +39,7 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 
-const UNITS = ['pcs', 'kg', 'm', 'm2', 'm3', 'litre']
+const UNIT_KEYS = ['Pcs', 'Kg', 'M', 'M2', 'M3', 'Litre'] as const
 
 // ── Group tree ────────────────────────────────────────────────────────────────
 
@@ -114,7 +115,7 @@ function ProductFormDialog({ open, onClose, initial, groupId, groups, currencyId
   const buildForm = (): CreateProductDto => ({
     name: initial?.name ?? '',
     sku: initial?.sku ?? '',
-    unit: initial?.unit || 'pcs',
+    unit: initial?.unit || 'Pcs',
     priceSell: initial?.priceSell ?? 0,
     priceBuy: initial?.priceBuy ?? 0,
     currencyId: initial?.currencyId ?? currencyId,
@@ -137,10 +138,18 @@ function ProductFormDialog({ open, onClose, initial, groupId, groups, currencyId
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     try {
-      if (isEdit) await update.mutateAsync({ id: initial!.id, data: form })
-      else await create.mutateAsync(form)
+      if (isEdit) {
+        await update.mutateAsync({ id: initial!.id, data: form })
+        toast.success(t('products.updatedSuccess'))
+      } else {
+        await create.mutateAsync(form)
+        toast.success(t('products.createdSuccess'))
+      }
       onClose()
-    } catch { /* toast handled globally */ }
+    } catch (err) {
+      console.error('Product save error:', err)
+      toast.error(isEdit ? t('products.updateError') : t('products.createError'))
+    }
   }
 
   const busy = create.isPending || update.isPending
@@ -172,13 +181,13 @@ function ProductFormDialog({ open, onClose, initial, groupId, groups, currencyId
             </div>
             <div className="space-y-1">
               <Label>{t('products.unit')}</Label>
-              <Select value={form.unit || ''} onValueChange={(v) => set('unit', v)}>
+              <Select value={form.unit || 'Pcs'} onValueChange={(v) => set('unit', v)}>
                 <SelectTrigger className="bg-white/5 border-white/10 text-[hsl(var(--text-primary))]">
-                  <SelectValue placeholder={t('products.unit')} />
+                  <SelectValue className="text-[hsl(var(--text-primary))]" placeholder={t('products.unit')} />
                 </SelectTrigger>
                 <SelectContent className="bg-secondary border-white/10 text-[hsl(var(--text-primary))]">
-                  {UNITS.map((u) => (
-                    <SelectItem key={u} value={u}>{u}</SelectItem>
+                  {UNIT_KEYS.map((u) => (
+                    <SelectItem key={u} value={u}>{t(`products.units.${u}`)}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -281,10 +290,15 @@ function GroupFormDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    await create.mutateAsync({ name, parentId })
-    setName('')
-    setParentId(null)
-    onClose()
+    try {
+      await create.mutateAsync({ name, parentId })
+      toast.success(t('products.groupCreatedSuccess'))
+      setName('')
+      setParentId(null)
+      onClose()
+    } catch {
+      toast.error(t('products.createError'))
+    }
   }
 
   return (
@@ -421,8 +435,14 @@ export function ProductsPage() {
 
   async function handleDelete() {
     if (!deleteDialog.item) return
-    await deleteProduct.mutateAsync(deleteDialog.item.id)
-    setDeleteDialog({ open: false })
+    try {
+      await deleteProduct.mutateAsync(deleteDialog.item.id)
+      toast.success(t('products.deletedSuccess'))
+    } catch {
+      toast.error(t('products.deleteError'))
+    } finally {
+      setDeleteDialog({ open: false })
+    }
   }
 
   return (
@@ -528,7 +548,7 @@ export function ProductsPage() {
                 data?.items.map((p, idx) => (
                   <TableRow key={p.id} className="border-[hsl(var(--border))] hover:bg-white/4 group transition-colors">
                     <TableCell className="py-2 text-[hsl(var(--text-muted))] text-xs tabular-nums font-medium">{(page - 1) * PAGE_SIZE + idx + 1}</TableCell>
-                    <TableCell className="py-2 font-semibold text-[hsl(var(--text-primary))]">{p.name}</TableCell>
+                    <TableCell className="py-2 text-[hsl(var(--text-primary))]">{p.name}</TableCell>
                     <TableCell className="py-2 font-mono text-xs">
                       <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-500 dark:text-indigo-400">
                         {p.sku || '—'}
@@ -536,10 +556,10 @@ export function ProductsPage() {
                     </TableCell>
                     <TableCell className="py-2">
                       <span className="px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-600 dark:text-violet-400 text-xs font-medium">
-                        {p.unit}
+                        {t(`products.units.${p.unit}`, p.unit)}
                       </span>
                     </TableCell>
-                    <TableCell className="py-2 text-right font-mono font-semibold text-[hsl(var(--text-primary))]">{fmt(p.priceSell)}</TableCell>
+                    <TableCell className="py-2 text-right font-mono text-[hsl(var(--text-primary))]">{fmt(p.priceSell)}</TableCell>
                     <TableCell className="py-2 text-right font-mono text-[hsl(var(--text-muted))]">{fmt(p.priceBuy)}</TableCell>
                     <TableCell className="py-2">
                       <span className="px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 text-xs font-semibold">

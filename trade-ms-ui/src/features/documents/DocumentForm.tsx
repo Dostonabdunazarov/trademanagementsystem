@@ -163,6 +163,7 @@ export function DocumentForm({ type, title, className }: DocumentFormProps) {
   const { data: productsData, isLoading: productsLoading } = useProducts({
     groupId: activeGroupId,
     search: productSearch || undefined,
+    pageSize: 1000,
   })
 
   const cpType = counterpartyTypeFor(type)
@@ -179,15 +180,12 @@ export function DocumentForm({ type, title, className }: DocumentFormProps) {
   const isAdmin = user?.role === 'Admin'
   const adminNoBranch = isAdmin && !activeBranch
 
-  // Stock check for outbound document types
-  const needsStockCheck = type === 'Expense' || type === 'ReturnToSupplier'
-  const { data: stockData } = useStockBalance(activeBranch?.id)
-  const stockByProductId = needsStockCheck
-    ? (stockData?.lines ?? []).reduce<Map<string, number>>((map, l) => {
-        map.set(l.productId, (map.get(l.productId) ?? 0) + l.quantity)
-        return map
-      }, new Map())
-    : null
+  // Stock check for outbound document types; also show stock for Income
+const { data: stockData } = useStockBalance(activeBranch?.id)
+  const stockByProductId = (stockData?.lines ?? []).reduce<Map<string, number>>((map, l) => {
+    map.set(l.productId, (map.get(l.productId) ?? 0) + l.quantity)
+    return map
+  }, new Map())
 
   // Mutations
   const createDoc = useCreateDocument()
@@ -349,10 +347,10 @@ export function DocumentForm({ type, title, className }: DocumentFormProps) {
       {toast && (
         <div className={cn(
           'absolute top-4 right-4 z-50 flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs shadow-xl',
-          'backdrop-blur-xl transition-all animate-in fade-in slide-in-from-top-2',
+          'transition-all animate-in fade-in slide-in-from-top-2',
           toast.type === 'success'
-            ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-300'
-            : 'border-red-500/30 bg-red-500/15 text-red-300',
+            ? 'border-emerald-600 bg-emerald-700 text-white'
+            : 'border-red-600 bg-red-700 text-white',
         )}>
           {toast.type === 'error'
             ? <AlertCircle className="h-3.5 w-3.5 shrink-0" />
@@ -647,7 +645,7 @@ export function DocumentForm({ type, title, className }: DocumentFormProps) {
                     >
                       <td className="px-2 py-1.5 text-[hsl(var(--text-primary))]">
                         <span>{p.name}</span>
-                        <span className="text-[9px] text-[hsl(var(--text-muted))]">{p.unit}</span>
+                        <span className="text-[9px] text-[hsl(var(--text-muted))]">{t(`products.units.${p.unit}`, p.unit)}</span>
                       </td>
                       <td className="px-2 py-1.5 text-right font-mono tabular-nums text-[hsl(var(--text-muted))]">
                         {stockByProductId != null
@@ -702,7 +700,7 @@ export function DocumentForm({ type, title, className }: DocumentFormProps) {
                         )}
                       />
                     </td>
-                    <td className="px-2 py-1.5 text-center text-[hsl(var(--text-muted))]">{line.unit}</td>
+                    <td className="px-2 py-1.5 text-center text-[hsl(var(--text-muted))]">{t(`products.units.${line.unit}`, line.unit)}</td>
                     <td className="px-2 py-1.5">
                       <input
                         type="number" min="0" step="100"

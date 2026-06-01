@@ -23,6 +23,7 @@ import {
   Languages,
   Sun,
   Moon,
+  Building2,
 } from 'lucide-react'
 import { AppLogoIcon } from '@/components/ui/AppLogo'
 import { useAuthStore } from '@/store/auth.store'
@@ -97,7 +98,7 @@ export function MainLayout() {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-40 flex flex-col border-r border-[hsl(var(--border))] bg-[hsl(var(--background))] transition-all duration-300 md:relative md:z-auto',
+          'fixed inset-y-0 left-0 z-40 flex flex-col transition-all duration-300 md:relative md:z-auto bg-[hsl(var(--background))]',
           sidebarOpen ? 'w-60' : 'w-16',
           mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
         )}
@@ -196,7 +197,7 @@ export function MainLayout() {
       {/* Main */}
       <div className="flex flex-1 flex-col min-h-0">
         {/* Topbar */}
-        <header className="flex h-14 shrink-0 items-center gap-4 border-b border-[hsl(var(--border))] bg-[hsl(var(--background))] px-4 overflow-visible relative z-20">
+        <header className="flex h-14 shrink-0 items-center gap-4 px-4 overflow-visible relative z-20 bg-[hsl(var(--background))]">
           <button
             onClick={() => setMobileOpen((v) => !v)}
             className="rounded-md p-1.5 text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))] transition-colors md:hidden"
@@ -245,6 +246,13 @@ export function MainLayout() {
             </div>
 
             <CurrencyRateTicker />
+
+            {user?.companyName && (
+              <div className="flex items-center gap-1.5 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface-2))] px-3 py-1.5">
+                <Building2 className="h-3.5 w-3.5 shrink-0 text-indigo-400" />
+                <span className="text-xs font-medium text-[hsl(var(--text-primary))] max-w-[160px] truncate">{user.companyName}</span>
+              </div>
+            )}
 
           </div>
         </header>

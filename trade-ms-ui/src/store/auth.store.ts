@@ -7,6 +7,7 @@ interface User {
   email: string
   role: string
   companyId: string
+  companyName: string
   branchId: string | null
 }
 

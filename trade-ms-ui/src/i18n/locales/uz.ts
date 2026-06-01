@@ -41,6 +41,7 @@ export const uz = {
       page: 'Sahifa',
       of: 'dan',
       rows: 'qator',
+      confirmDelete: "O'chirishni tasdiqlaysizmi?",
     },
     // Auth
     auth: {
@@ -143,6 +144,14 @@ export const uz = {
       productName: 'Mahsulot nomi',
       sku: 'Artikul',
       unit: 'Birlik',
+      units: {
+        Pcs: 'dona',
+        Kg: 'kg',
+        M: 'm',
+        M2: 'm²',
+        M3: 'm³',
+        Litre: 'litr',
+      },
       priceSell: 'Sotish narxi',
       priceBuy: 'Sotib olish narxi',
       stock: 'Qoldiq',
@@ -153,6 +162,13 @@ export const uz = {
       deleteProduct: 'Mahsulotni o\'chirish?',
       deleteProductDesc: 'Bu amalni bekor qilib bo\'lmaydi.',
       noProducts: 'Bu guruhda mahsulot yo\'q',
+      createdSuccess: 'Mahsulot yaratildi',
+      updatedSuccess: 'Mahsulot yangilandi',
+      deletedSuccess: 'Mahsulot o\'chirildi',
+      groupCreatedSuccess: 'Guruh yaratildi',
+      createError: 'Yaratishda xatolik',
+      updateError: 'Yangilashda xatolik',
+      deleteError: 'O\'chirishda xatolik',
     },
     // Counterparties
     counterparties: {
@@ -173,6 +189,12 @@ export const uz = {
       editCounterparty: 'Kontragentni tahrirlash',
       fullName: 'F.I.O. / Nomi',
       noCounterparties: 'Kontragentlar topilmadi',
+      createdSuccess: 'Kontragent yaratildi',
+      updatedSuccess: 'Kontragent yangilandi',
+      deletedSuccess: 'Kontragent o\'chirildi',
+      createError: 'Yaratishda xatolik',
+      updateError: 'Yangilashda xatolik',
+      deleteError: 'O\'chirishda xatolik',
     },
     // Reports
     reports: {

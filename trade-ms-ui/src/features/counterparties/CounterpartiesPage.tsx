@@ -36,6 +36,42 @@ import {
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
 
+// ── Delete confirm dialog ──────────────────────────────────────────────────────
+
+function DeleteCounterpartyDialog({
+  open,
+  name,
+  onConfirm,
+  onClose,
+  busy,
+}: {
+  open: boolean
+  name: string
+  onConfirm: () => void
+  onClose: () => void
+  busy: boolean
+}) {
+  const { t } = useTranslation()
+  return (
+    <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="bg-card border border-white/10 text-[hsl(var(--text-primary))] max-w-sm">
+        <DialogHeader>
+          <DialogTitle>{t('common.delete')}</DialogTitle>
+        </DialogHeader>
+        <p className="text-[hsl(var(--text-muted))] text-sm mt-1">
+          «{name}» — {t('common.confirmDelete')}
+        </p>
+        <div className="flex justify-end gap-2 pt-4">
+          <Button variant="ghost" onClick={onClose} disabled={busy}>{t('common.cancel')}</Button>
+          <Button onClick={onConfirm} disabled={busy} className="bg-red-600 hover:bg-red-700">
+            {busy ? t('common.loading') : t('common.delete')}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 type FilterType = 'All' | 'Customer' | 'Supplier'
 
 const TYPE_OPTION_KEYS: { value: FilterType; labelKey: string }[] = [
@@ -74,9 +110,19 @@ function CounterpartyFormDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (isEdit) await update.mutateAsync({ id: initial!.id, data: form })
-    else await create.mutateAsync(form)
-    onClose()
+    try {
+      if (isEdit) {
+        await update.mutateAsync({ id: initial!.id, data: form })
+        toast.success(t('counterparties.updatedSuccess'))
+      } else {
+        await create.mutateAsync(form)
+        toast.success(t('counterparties.createdSuccess'))
+      }
+      onClose()
+    } catch (err) {
+      console.error('Counterparty save error:', err)
+      toast.error(isEdit ? t('counterparties.updateError') : t('counterparties.createError'))
+    }
   }
 
   const busy = create.isPending || update.isPending
@@ -184,21 +230,21 @@ export function CounterpartiesPage() {
   const totalPages = data ? Math.ceil(data.totalCount / PAGE_SIZE) : 1
 
   const [formDialog, setFormDialog] = useState<{ open: boolean; item?: CounterpartyDto | null }>({ open: false })
-  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; item?: CounterpartyDto }>({ open: false })
   const deleteMut = useDeleteCounterparty()
 
-  const handleDelete = useCallback(async (id: string) => {
-    if (!window.confirm(t('common.confirmDelete'))) return
-    setDeletingId(id)
+  const handleDelete = useCallback(async () => {
+    if (!deleteDialog.item) return
     try {
-      await deleteMut.mutateAsync(id)
-      toast.success(t('common.success'))
-    } catch {
-      toast.error(t('common.error'))
+      await deleteMut.mutateAsync(deleteDialog.item.id)
+      toast.success(t('counterparties.deletedSuccess'))
+    } catch (err) {
+      console.error('Counterparty delete error:', err)
+      toast.error(t('counterparties.deleteError'))
     } finally {
-      setDeletingId(null)
+      setDeleteDialog({ open: false })
     }
-  }, [deleteMut, t])
+  }, [deleteMut, deleteDialog.item, t])
 
   const items = data?.items ?? []
 
@@ -325,9 +371,8 @@ export function CounterpartiesPage() {
                           {t('common.edit')}
                         </button>
                         <button
-                          onClick={() => handleDelete(c.id)}
-                          disabled={deletingId === c.id}
-                          className="p-1.5 text-red-500 hover:bg-red-500/10 rounded transition-colors disabled:opacity-40"
+                          onClick={() => setDeleteDialog({ open: true, item: c })}
+                          className="p-1.5 text-red-500 hover:bg-red-500/10 rounded transition-colors"
                           title={t('common.delete')}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -379,6 +424,14 @@ export function CounterpartiesPage() {
           initial={formDialog.item}
         />
       )}
+
+      <DeleteCounterpartyDialog
+        open={deleteDialog.open}
+        name={deleteDialog.item?.name ?? ''}
+        onConfirm={handleDelete}
+        onClose={() => setDeleteDialog({ open: false })}
+        busy={deleteMut.isPending}
+      />
     </div>
   )
 }

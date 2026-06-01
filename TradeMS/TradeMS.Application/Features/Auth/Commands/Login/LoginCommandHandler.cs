@@ -24,7 +24,7 @@ public class LoginCommandHandler(IAppDbContext db, IJwtService jwtService) : IRe
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
         await db.SaveChangesAsync(cancellationToken);
 
-        var userDto = new AuthUserDto(user.Id, user.FullName, user.Email, user.Role.ToString(), user.CompanyId, user.BranchId);
+        var userDto = new AuthUserDto(user.Id, user.FullName, user.Email, user.Role.ToString(), user.CompanyId, user.Company.Name, user.BranchId);
         return new LoginResponse(accessToken, refreshToken, userDto);
     }
 }

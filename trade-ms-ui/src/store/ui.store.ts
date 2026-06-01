@@ -42,7 +42,9 @@ function applyTheme(theme: Theme) {
     if (raw) {
       const parsed = JSON.parse(raw)
       const theme: Theme = parsed?.state?.theme
-      if (theme) applyTheme(theme)
+      applyTheme(theme ?? 'light')
+    } else {
+      applyTheme('light')
     }
   } catch { /* ignore */ }
 })()
@@ -53,7 +55,7 @@ export const useUiStore = create<UiStore>()(
       activeBranch: null,
       sidebarOpen: true,
       language: 'ru',
-      theme: 'dark',
+      theme: 'light',
       setActiveBranch: (branch) => set({ activeBranch: branch }),
       clearActiveBranch: () => set({ activeBranch: null }),
       toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
