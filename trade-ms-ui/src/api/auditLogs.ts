@@ -1,4 +1,4 @@
-import { api } from './axios'
+import { apiClient } from './axios'
 
 export interface AuditLogEntry {
   id: number
@@ -38,6 +38,6 @@ export async function fetchAuditLogs(params: AuditLogsParams): Promise<AuditLogs
   if (params.dateFrom) query.set('dateFrom', params.dateFrom)
   if (params.dateTo) query.set('dateTo', params.dateTo)
   if (params.success !== undefined) query.set('success', String(params.success))
-  const { data } = await api.get<AuditLogsResponse>(`/audit-logs?${query}`)
+  const { data } = await apiClient.get<AuditLogsResponse>(`/audit-logs?${query}`)
   return data
 }
