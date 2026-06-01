@@ -49,6 +49,8 @@ export function useConfirmDocument() {
       qc.invalidateQueries({ queryKey: ['documents'] })
       qc.invalidateQueries({ queryKey: ['counterparties'] })
       qc.invalidateQueries({ queryKey: ['products'] })
+      qc.invalidateQueries({ queryKey: ['accounts'] })
+      qc.invalidateQueries({ queryKey: ['reports'] })
     },
   })
 }
