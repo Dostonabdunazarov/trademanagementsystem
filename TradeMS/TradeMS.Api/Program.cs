@@ -74,8 +74,8 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
-app.UseExceptionHandler();
 app.UseCors();
+app.UseExceptionHandler();
 app.UseAuthentication();
 app.UseAuthorization();
 
