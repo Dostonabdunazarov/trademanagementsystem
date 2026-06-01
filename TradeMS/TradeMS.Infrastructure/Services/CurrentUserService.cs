@@ -19,7 +19,7 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
     {
         get
         {
-            var value = httpContextAccessor.HttpContext?.User.FindFirstValue("companyId");
+            var value = httpContextAccessor.HttpContext?.User.FindFirstValue("company_id");
             return Guid.TryParse(value, out var id) ? id : null;
         }
     }
