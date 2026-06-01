@@ -16,6 +16,8 @@ public class User
 
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiry { get; set; }
+    public int FailedLoginCount { get; set; }
+    public DateTime? LockoutUntil { get; set; }
 
     public Company Company { get; set; } = null!;
     public Branch? Branch { get; set; }

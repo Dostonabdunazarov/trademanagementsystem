@@ -17,8 +17,15 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(opts =>
             opts.UseNpgsql(config.GetConnectionString("DefaultConnection")));
 
+        services.AddDbContextFactory<AppDbContext>(opts =>
+            opts.UseNpgsql(config.GetConnectionString("DefaultConnection")),
+            ServiceLifetime.Scoped);
+
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddScoped<IJwtService, JwtService>();
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IAuditLogger, AuditLogger>();
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(opts =>
@@ -36,7 +43,11 @@ public static class DependencyInjection
                 };
             });
 
-        services.AddAuthorization();
+        services.AddAuthorization(opts =>
+        {
+            opts.AddPolicy("Admin", policy =>
+                policy.RequireRole("Admin"));
+        });
 
         return services;
     }

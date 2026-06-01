@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
@@ -6,7 +7,7 @@ using TradeMS.Domain.Entities;
 
 namespace TradeMS.Application.Features.Users.Commands.CreateUser;
 
-public class CreateUserCommandHandler(IAppDbContext db)
+public class CreateUserCommandHandler(IAppDbContext db, IAuditLogger auditLogger)
     : IRequestHandler<CreateUserCommand, UserDto>
 {
     public async Task<UserDto> Handle(
@@ -32,6 +33,11 @@ public class CreateUserCommandHandler(IAppDbContext db)
 
         db.Users.Add(user);
         await db.SaveChangesAsync(cancellationToken);
+
+        await auditLogger.LogAsync(AuditActions.UserCreate,
+            entityType: "User", entityId: user.Id.ToString(),
+            details: JsonSerializer.Serialize(new { email = user.Email, role = user.Role.ToString() }),
+            cancellationToken: cancellationToken);
 
         return new UserDto(
             user.Id,

@@ -2,10 +2,11 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Application.Features.Counterparties.DTOs;
+using TradeMS.Domain.Entities;
 
 namespace TradeMS.Application.Features.Counterparties.Commands.UpdateCounterparty;
 
-public class UpdateCounterpartyCommandHandler(IAppDbContext db)
+public class UpdateCounterpartyCommandHandler(IAppDbContext db, IAuditLogger auditLogger)
     : IRequestHandler<UpdateCounterpartyCommand, CounterpartyDto>
 {
     public async Task<CounterpartyDto> Handle(
@@ -24,6 +25,10 @@ public class UpdateCounterpartyCommandHandler(IAppDbContext db)
         counterparty.CreditLimit = request.CreditLimit;
 
         await db.SaveChangesAsync(cancellationToken);
+
+        await auditLogger.LogAsync(AuditActions.CounterpartyUpdate,
+            entityType: "Counterparty", entityId: request.Id.ToString(),
+            cancellationToken: cancellationToken);
 
         return new CounterpartyDto(
             counterparty.Id,

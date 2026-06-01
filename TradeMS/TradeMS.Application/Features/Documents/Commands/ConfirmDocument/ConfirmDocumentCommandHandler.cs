@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
@@ -8,7 +9,7 @@ using TradeMS.Domain.Enums;
 
 namespace TradeMS.Application.Features.Documents.Commands.ConfirmDocument;
 
-public class ConfirmDocumentCommandHandler(IAppDbContext db)
+public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLogger)
     : IRequestHandler<ConfirmDocumentCommand, DocumentDto>
 {
     public async Task<DocumentDto> Handle(
@@ -43,14 +44,15 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db)
 
         if (stockDelta != 0m)
         {
+            var productIds = doc.Lines.Select(l => l.ProductId).ToList();
+            var stocks = await db.Stocks
+                .Where(s => productIds.Contains(s.ProductId) && s.BranchId == doc.BranchId)
+                .ToListAsync(cancellationToken);
+            var stockDict = stocks.ToDictionary(s => s.ProductId);
+
             foreach (var line in doc.Lines)
             {
-                var stock = await db.Stocks
-                    .FirstOrDefaultAsync(s => s.ProductId == line.ProductId
-                                           && s.BranchId  == doc.BranchId,
-                        cancellationToken);
-
-                if (stock is null)
+                if (!stockDict.TryGetValue(line.ProductId, out var stock))
                 {
                     stock = new Stock
                     {
@@ -60,6 +62,7 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db)
                         Quantity  = 0
                     };
                     db.Stocks.Add(stock);
+                    stockDict[line.ProductId] = stock;
                 }
 
                 var newQty = stock.Quantity + stockDelta * line.Quantity;
@@ -86,8 +89,7 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db)
 
         if (doc.CounterpartyId.HasValue)
         {
-            var cp = await db.Counterparties
-                .FirstOrDefaultAsync(c => c.Id == doc.CounterpartyId.Value, cancellationToken);
+            var cp = doc.Counterparty;
 
             if (cp is not null)
             {
@@ -150,6 +152,11 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db)
             .Include(d => d.Currency)
             .Include(d => d.Lines).ThenInclude(l => l.Product)
             .FirstAsync(d => d.Id == request.Id, cancellationToken);
+
+        await auditLogger.LogAsync(AuditActions.DocConfirm,
+            entityType: "Document", entityId: request.Id.ToString(),
+            details: JsonSerializer.Serialize(new { type = doc.Type.ToString(), number = doc.Number, total = doc.TotalAmountBase, counterparty = doc.Counterparty?.Name }),
+            cancellationToken: cancellationToken);
 
         return CreateDocumentCommandHandler.MapToDto(confirmed);
     }

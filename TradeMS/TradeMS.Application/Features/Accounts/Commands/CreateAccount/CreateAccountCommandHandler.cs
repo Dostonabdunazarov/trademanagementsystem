@@ -6,7 +6,7 @@ using TradeMS.Domain.Entities;
 
 namespace TradeMS.Application.Features.Accounts.Commands.CreateAccount;
 
-public class CreateAccountCommandHandler(IAppDbContext db)
+public class CreateAccountCommandHandler(IAppDbContext db, IAuditLogger auditLogger)
     : IRequestHandler<CreateAccountCommand, AccountDto>
 {
     public async Task<AccountDto> Handle(
@@ -29,6 +29,10 @@ public class CreateAccountCommandHandler(IAppDbContext db)
 
         db.Accounts.Add(account);
         await db.SaveChangesAsync(cancellationToken);
+
+        await auditLogger.LogAsync(AuditActions.AccountCreate,
+            entityType: "Account", entityId: account.Id.ToString(),
+            cancellationToken: cancellationToken);
 
         return new AccountDto(
             account.Id,

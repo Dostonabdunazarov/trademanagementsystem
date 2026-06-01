@@ -5,7 +5,7 @@ using TradeMS.Domain.Entities;
 
 namespace TradeMS.Application.Features.Branches.Commands.CreateBranch;
 
-public class CreateBranchCommandHandler(IAppDbContext db)
+public class CreateBranchCommandHandler(IAppDbContext db, IAuditLogger auditLogger)
     : IRequestHandler<CreateBranchCommand, BranchDto>
 {
     public async Task<BranchDto> Handle(
@@ -21,6 +21,10 @@ public class CreateBranchCommandHandler(IAppDbContext db)
 
         db.Branches.Add(branch);
         await db.SaveChangesAsync(cancellationToken);
+
+        await auditLogger.LogAsync(AuditActions.BranchCreate,
+            entityType: "Branch", entityId: branch.Id.ToString(),
+            cancellationToken: cancellationToken);
 
         return new BranchDto(branch.Id, branch.CompanyId, branch.Name, branch.Address);
     }

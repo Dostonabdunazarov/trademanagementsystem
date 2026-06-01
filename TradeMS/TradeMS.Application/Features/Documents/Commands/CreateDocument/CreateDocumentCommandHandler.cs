@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
@@ -7,7 +8,7 @@ using TradeMS.Domain.Enums;
 
 namespace TradeMS.Application.Features.Documents.Commands.CreateDocument;
 
-public class CreateDocumentCommandHandler(IAppDbContext db)
+public class CreateDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLogger)
     : IRequestHandler<CreateDocumentCommand, DocumentDto>
 {
     public async Task<DocumentDto> Handle(
@@ -78,6 +79,11 @@ public class CreateDocumentCommandHandler(IAppDbContext db)
 
         db.Documents.Add(doc);
         await db.SaveChangesAsync(cancellationToken);
+
+        await auditLogger.LogAsync(AuditActions.DocCreate,
+            entityType: "Document", entityId: doc.Id.ToString(),
+            details: JsonSerializer.Serialize(new { type = doc.Type.ToString(), number = doc.Number }),
+            cancellationToken: cancellationToken);
 
         return await BuildDto(doc.Id, request.CompanyId, cancellationToken);
     }

@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Domain.Entities;
-using TradeMS.Domain.Enums;
 
 namespace TradeMS.Infrastructure.Persistence;
 
@@ -20,6 +19,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<DocumentLine> DocumentLines => Set<DocumentLine>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Account> Accounts => Set<Account>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,6 +54,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
             e.HasOne(x => x.Company).WithMany(x => x.Users).HasForeignKey(x => x.CompanyId);
             e.HasOne(x => x.Branch).WithMany(x => x.Users).HasForeignKey(x => x.BranchId).IsRequired(false);
+            e.Property(x => x.FailedLoginCount).HasDefaultValue(0);
         });
 
         modelBuilder.Entity<Counterparty>(e =>
@@ -184,6 +185,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasOne(x => x.Company).WithMany(x => x.Accounts).HasForeignKey(x => x.CompanyId);
             e.HasOne(x => x.Branch).WithMany(x => x.Accounts).HasForeignKey(x => x.BranchId);
             e.HasOne(x => x.Currency).WithMany(x => x.Accounts).HasForeignKey(x => x.CurrencyId);
+        });
+
+        modelBuilder.Entity<AuditLog>(e =>
+        {
+            e.ToTable("audit_logs");
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).UseIdentityAlwaysColumn();
+            e.Property(x => x.CompanyId).IsRequired();
+            e.Property(x => x.Action).HasMaxLength(50).IsRequired();
+            e.Property(x => x.EntityType).HasMaxLength(50);
+            e.Property(x => x.EntityId).HasMaxLength(100);
+            e.Property(x => x.IpAddress).HasMaxLength(50);
+            e.Property(x => x.UserAgent).HasMaxLength(500);
+            e.Property(x => x.UserEmail).HasMaxLength(200);
+            e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId)
+                .IsRequired(false).OnDelete(DeleteBehavior.SetNull);
+            e.HasIndex(x => x.CreatedAt);
+            e.HasIndex(x => x.Action);
+            e.HasIndex(x => new { x.CompanyId, x.CreatedAt });
         });
     }
 }

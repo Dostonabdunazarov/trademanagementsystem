@@ -1,4 +1,3 @@
-using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Api.Endpoints;
 using TradeMS.Api.Infrastructure;
@@ -91,7 +90,8 @@ app.MapGroup("/api")
     .MapDocumentEndpoints()
     .MapReportEndpoints()
     .MapAccountEndpoints()
-    .MapUserEndpoints();
+    .MapUserEndpoints()
+    .MapAuditLogEndpoints();
 
 app.Run();
 

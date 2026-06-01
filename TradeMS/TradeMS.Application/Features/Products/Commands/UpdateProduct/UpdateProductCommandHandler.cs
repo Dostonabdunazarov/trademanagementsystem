@@ -2,10 +2,11 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Application.Features.Products.DTOs;
+using TradeMS.Domain.Entities;
 
 namespace TradeMS.Application.Features.Products.Commands.UpdateProduct;
 
-public class UpdateProductCommandHandler(IAppDbContext db)
+public class UpdateProductCommandHandler(IAppDbContext db, IAuditLogger auditLogger)
     : IRequestHandler<UpdateProductCommand, ProductDto>
 {
     public async Task<ProductDto> Handle(UpdateProductCommand request, CancellationToken cancellationToken)
@@ -37,6 +38,10 @@ public class UpdateProductCommandHandler(IAppDbContext db)
         product.IsActive = request.IsActive;
 
         await db.SaveChangesAsync(cancellationToken);
+
+        await auditLogger.LogAsync(AuditActions.ProductUpdate,
+            entityType: "Product", entityId: request.Id.ToString(),
+            cancellationToken: cancellationToken);
 
         string? groupName = null;
         if (product.GroupId.HasValue)

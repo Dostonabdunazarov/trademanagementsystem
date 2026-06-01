@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MediatR;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Application.Features.Counterparties.DTOs;
@@ -5,7 +6,7 @@ using TradeMS.Domain.Entities;
 
 namespace TradeMS.Application.Features.Counterparties.Commands.CreateCounterparty;
 
-public class CreateCounterpartyCommandHandler(IAppDbContext db)
+public class CreateCounterpartyCommandHandler(IAppDbContext db, IAuditLogger auditLogger)
     : IRequestHandler<CreateCounterpartyCommand, CounterpartyDto>
 {
     public async Task<CounterpartyDto> Handle(
@@ -25,6 +26,11 @@ public class CreateCounterpartyCommandHandler(IAppDbContext db)
 
         db.Counterparties.Add(counterparty);
         await db.SaveChangesAsync(cancellationToken);
+
+        await auditLogger.LogAsync(AuditActions.CounterpartyCreate,
+            entityType: "Counterparty", entityId: counterparty.Id.ToString(),
+            details: JsonSerializer.Serialize(new { name = counterparty.Name }),
+            cancellationToken: cancellationToken);
 
         return new CounterpartyDto(
             counterparty.Id,

@@ -1,11 +1,13 @@
+using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
+using TradeMS.Domain.Entities;
 using TradeMS.Domain.Enums;
 
 namespace TradeMS.Application.Features.Documents.Commands.DeleteDocument;
 
-public class DeleteDocumentCommandHandler(IAppDbContext db)
+public class DeleteDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLogger)
     : IRequestHandler<DeleteDocumentCommand>
 {
     public async Task Handle(DeleteDocumentCommand request, CancellationToken cancellationToken)
@@ -22,8 +24,15 @@ public class DeleteDocumentCommandHandler(IAppDbContext db)
         if (doc.Status != DocumentStatus.Draft)
             throw new InvalidOperationException("Only Draft documents can be deleted");
 
+        var snapshot = JsonSerializer.Serialize(new { number = doc.Number, type = doc.Type.ToString(), total = doc.TotalAmountBase, date = doc.Date });
+
         db.DocumentLines.RemoveRange(doc.Lines);
         db.Documents.Remove(doc);
         await db.SaveChangesAsync(cancellationToken);
+
+        await auditLogger.LogAsync(AuditActions.DocDelete,
+            entityType: "Document", entityId: request.Id.ToString(),
+            details: snapshot,
+            cancellationToken: cancellationToken);
     }
 }

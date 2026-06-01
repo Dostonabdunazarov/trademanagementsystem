@@ -1,10 +1,12 @@
+using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
+using TradeMS.Domain.Entities;
 
 namespace TradeMS.Application.Features.Counterparties.Commands.DeleteCounterparty;
 
-public class DeleteCounterpartyCommandHandler(IAppDbContext db)
+public class DeleteCounterpartyCommandHandler(IAppDbContext db, IAuditLogger auditLogger)
     : IRequestHandler<DeleteCounterpartyCommand>
 {
     public async Task Handle(DeleteCounterpartyCommand request, CancellationToken cancellationToken)
@@ -15,7 +17,14 @@ public class DeleteCounterpartyCommandHandler(IAppDbContext db)
                 cancellationToken)
             ?? throw new KeyNotFoundException($"Counterparty {request.Id} not found");
 
+        var snapshot = JsonSerializer.Serialize(new { name = counterparty.Name });
+
         counterparty.DeletedAt = DateTime.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
+
+        await auditLogger.LogAsync(AuditActions.CounterpartyDelete,
+            entityType: "Counterparty", entityId: request.Id.ToString(),
+            details: snapshot,
+            cancellationToken: cancellationToken);
     }
 }

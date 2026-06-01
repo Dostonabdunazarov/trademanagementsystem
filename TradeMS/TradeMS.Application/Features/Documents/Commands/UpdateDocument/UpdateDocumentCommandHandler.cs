@@ -8,7 +8,7 @@ using TradeMS.Domain.Enums;
 
 namespace TradeMS.Application.Features.Documents.Commands.UpdateDocument;
 
-public class UpdateDocumentCommandHandler(IAppDbContext db)
+public class UpdateDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLogger)
     : IRequestHandler<UpdateDocumentCommand, DocumentDto>
 {
     public async Task<DocumentDto> Handle(
@@ -66,6 +66,10 @@ public class UpdateDocumentCommandHandler(IAppDbContext db)
             .Include(d => d.Currency)
             .Include(d => d.Lines).ThenInclude(l => l.Product)
             .FirstAsync(d => d.Id == request.Id, cancellationToken);
+
+        await auditLogger.LogAsync(AuditActions.DocUpdate,
+            entityType: "Document", entityId: request.Id.ToString(),
+            cancellationToken: cancellationToken);
 
         return CreateDocumentCommandHandler.MapToDto(updated);
     }

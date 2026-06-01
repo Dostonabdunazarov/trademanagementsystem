@@ -18,6 +18,7 @@ public interface IAppDbContext
     DbSet<DocumentLine> DocumentLines { get; }
     DbSet<Payment> Payments { get; }
     DbSet<Account> Accounts { get; }
+    DbSet<AuditLog> AuditLogs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

@@ -1,11 +1,13 @@
+using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Application.Features.Users.DTOs;
+using TradeMS.Domain.Entities;
 
 namespace TradeMS.Application.Features.Users.Commands.UpdateUser;
 
-public class UpdateUserCommandHandler(IAppDbContext db)
+public class UpdateUserCommandHandler(IAppDbContext db, IAuditLogger auditLogger)
     : IRequestHandler<UpdateUserCommand, UserDto>
 {
     public async Task<UserDto> Handle(
@@ -25,6 +27,11 @@ public class UpdateUserCommandHandler(IAppDbContext db)
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
         await db.SaveChangesAsync(cancellationToken);
+
+        await auditLogger.LogAsync(AuditActions.UserUpdate,
+            entityType: "User", entityId: user.Id.ToString(),
+            details: JsonSerializer.Serialize(new { isActive = user.IsActive, role = user.Role.ToString() }),
+            cancellationToken: cancellationToken);
 
         return new UserDto(
             user.Id,

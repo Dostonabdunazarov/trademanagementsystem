@@ -1,10 +1,14 @@
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using TradeMS.Application.Common.Interfaces;
+using TradeMS.Domain.Entities;
 
 namespace TradeMS.Api.Infrastructure;
 
-public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IExceptionHandler
+public class GlobalExceptionHandler(
+    ILogger<GlobalExceptionHandler> logger,
+    IServiceProvider serviceProvider) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext ctx, Exception ex, CancellationToken ct)
     {
@@ -19,6 +23,29 @@ public class GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger) : IE
             KeyNotFoundException => (StatusCodes.Status404NotFound, "Not found"),
             _ => (StatusCodes.Status500InternalServerError, "Internal server error")
         };
+
+        try
+        {
+            using var scope = serviceProvider.CreateScope();
+            var auditLogger = scope.ServiceProvider.GetRequiredService<IAuditLogger>();
+
+            if (status == StatusCodes.Status500InternalServerError)
+            {
+                await auditLogger.LogAsync(AuditActions.ErrorServer, success: false,
+                    errorMessage: ex.Message,
+                    cancellationToken: CancellationToken.None);
+            }
+            else if (status == StatusCodes.Status403Forbidden)
+            {
+                await auditLogger.LogAsync(AuditActions.ErrorForbidden, success: false,
+                    errorMessage: ex.Message,
+                    cancellationToken: CancellationToken.None);
+            }
+        }
+        catch (Exception auditEx)
+        {
+            logger.LogWarning(auditEx, "Audit logging failed for unhandled exception");
+        }
 
         ctx.Response.StatusCode = status;
         await ctx.Response.WriteAsJsonAsync(new ProblemDetails

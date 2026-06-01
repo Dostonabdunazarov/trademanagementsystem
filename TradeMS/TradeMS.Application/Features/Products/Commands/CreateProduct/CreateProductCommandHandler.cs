@@ -1,3 +1,4 @@
+using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
@@ -6,7 +7,7 @@ using TradeMS.Domain.Entities;
 
 namespace TradeMS.Application.Features.Products.Commands.CreateProduct;
 
-public class CreateProductCommandHandler(IAppDbContext db)
+public class CreateProductCommandHandler(IAppDbContext db, IAuditLogger auditLogger)
     : IRequestHandler<CreateProductCommand, ProductDto>
 {
     public async Task<ProductDto> Handle(CreateProductCommand request, CancellationToken cancellationToken)
@@ -39,6 +40,11 @@ public class CreateProductCommandHandler(IAppDbContext db)
 
         db.Products.Add(product);
         await db.SaveChangesAsync(cancellationToken);
+
+        await auditLogger.LogAsync(AuditActions.ProductCreate,
+            entityType: "Product", entityId: product.Id.ToString(),
+            details: JsonSerializer.Serialize(new { name = product.Name }),
+            cancellationToken: cancellationToken);
 
         string? groupName = null;
         if (product.GroupId.HasValue)
