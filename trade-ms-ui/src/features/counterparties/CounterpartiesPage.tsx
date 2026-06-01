@@ -218,7 +218,7 @@ export function CounterpartiesPage() {
   const [typeFilter, setTypeFilter] = useState<FilterType>('All')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const PAGE_SIZE = 20
+  const PAGE_SIZE = 100
 
   const { data, isLoading } = useCounterparties(
     typeFilter === 'All' ? undefined : typeFilter,

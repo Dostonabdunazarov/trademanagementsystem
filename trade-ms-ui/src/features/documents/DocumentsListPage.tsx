@@ -22,7 +22,7 @@ import { useDocuments } from '@/api/hooks/useDocuments'
 import { useDeleteDocument, useConfirmDocument } from '@/api/hooks/useDocumentMutations'
 import { useUiStore } from '@/store/ui.store'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 100
 
 const STATUS_ICONS: Record<string, React.ElementType> = {
   Draft: Clock,

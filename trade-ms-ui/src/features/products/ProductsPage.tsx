@@ -410,7 +410,7 @@ export function ProductsPage() {
     setSelectedGroup(id)
     setPage(1)
   }
-  const PAGE_SIZE = 20
+  const PAGE_SIZE = 500
 
   const { data: groups = [], isLoading: groupsLoading } = useProductGroups()
   const { data, isLoading } = useProducts({
