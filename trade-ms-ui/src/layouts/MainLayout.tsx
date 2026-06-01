@@ -24,6 +24,7 @@ import {
   Sun,
   Moon,
   Building2,
+  ScrollText,
 } from 'lucide-react'
 import { AppLogoIcon } from '@/components/ui/AppLogo'
 import { useAuthStore } from '@/store/auth.store'
@@ -81,6 +82,9 @@ export function MainLayout() {
       items: [
         { to: '/settings', icon: Settings, label: t('nav.settings') },
         { to: '/help', icon: HelpCircle, label: t('nav.help') },
+        ...(user?.role === 'Admin'
+          ? [{ to: '/audit-logs', icon: ScrollText, label: t('nav.auditLogs') }]
+          : []),
       ],
     },
   ]

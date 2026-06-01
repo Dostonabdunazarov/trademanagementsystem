@@ -85,6 +85,7 @@ export const uz = {
       reports: 'Hisobotlar',
       settings: 'Sozlamalar',
       help: 'Yordam',
+      auditLogs: 'Amallar jurnali',
       collapseMenu: 'Menyuni yig\'ish',
       expandMenu: 'Menyuni ochish',
       openMenu: 'Menyuni ochish',
@@ -248,6 +249,20 @@ export const uz = {
       addUser: 'Foydalanuvchi qo\'shish',
       editUser: 'Foydalanuvchini tahrirlash',
       language: 'Til',
+    },
+    // Audit logs
+    auditLogs: {
+      title: 'Amallar jurnali',
+      user: 'Foydalanuvchi',
+      action: 'Amal',
+      actionPlaceholder: 'Masalan: Login',
+      entity: 'Ob\'yekt',
+      details: 'Tafsilotlar',
+      ip: 'IP-manzil',
+      ok: 'OK',
+      fail: 'Xato',
+      successOnly: 'Faqat muvaffaqiyatli',
+      failedOnly: 'Faqat xatolar',
     },
     // Help
     help: {

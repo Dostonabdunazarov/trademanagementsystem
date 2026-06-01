@@ -85,6 +85,7 @@ export const ru = {
       reports: 'Отчёты',
       settings: 'Настройки',
       help: 'Справка',
+      auditLogs: 'Журнал действий',
       collapseMenu: 'Свернуть меню',
       expandMenu: 'Развернуть меню',
       openMenu: 'Открыть меню',
@@ -248,6 +249,20 @@ export const ru = {
       addUser: 'Добавить пользователя',
       editUser: 'Редактировать пользователя',
       language: 'Язык',
+    },
+    // Audit logs
+    auditLogs: {
+      title: 'Журнал действий',
+      user: 'Пользователь',
+      action: 'Действие',
+      actionPlaceholder: 'Например: Login',
+      entity: 'Объект',
+      details: 'Детали',
+      ip: 'IP-адрес',
+      ok: 'OK',
+      fail: 'Ошибка',
+      successOnly: 'Только успешные',
+      failedOnly: 'Только ошибки',
     },
     // Help
     help: {

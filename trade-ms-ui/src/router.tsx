@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuthStore } from '@/store/auth.store'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { MainLayout } from '@/layouts/MainLayout'
+import { AuditLogsPage } from '@/features/audit/AuditLogsPage'
 import { DashboardPage } from '@/features/dashboard/DashboardPage'
 import { ExpensePage } from '@/features/documents/pages/ExpensePage'
 import { IncomePage } from '@/features/documents/pages/IncomePage'
@@ -24,6 +25,13 @@ import { HelpPage } from '@/features/help/HelpPage'
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const token = useAuthStore((s) => s.accessToken)
   if (!token) return <Navigate to="/login" replace />
+  return <>{children}</>
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const user = useAuthStore((s) => s.user)
+  if (!user) return <Navigate to="/login" replace />
+  if (user.role !== 'Admin') return <Navigate to="/" replace />
   return <>{children}</>
 }
 
@@ -62,6 +70,14 @@ export function AppRouter() {
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/help" element={<HelpPage />} />
+        <Route
+          path="/audit-logs"
+          element={
+            <AdminRoute>
+              <AuditLogsPage />
+            </AdminRoute>
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>
