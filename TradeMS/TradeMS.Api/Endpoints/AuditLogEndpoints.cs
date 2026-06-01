@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using TradeMS.Application.Features.AuditLogs.Queries;
@@ -18,10 +19,10 @@ public static class AuditLogEndpoints
             [FromQuery] bool? success,
             [FromQuery] int page,
             [FromQuery] int pageSize,
-            HttpContext ctx,
+            ClaimsPrincipal user,
             IMediator mediator) =>
         {
-            var companyId = Guid.Parse(ctx.User.FindFirst("companyId")!.Value);
+            var companyId = GetCompanyId(user);
             var result = await mediator.Send(new GetAuditLogsQuery(
                 companyId, userId, action, dateFrom, dateTo, success,
                 page < 1 ? 1 : page,
@@ -31,5 +32,12 @@ public static class AuditLogEndpoints
         .WithSummary("Get audit logs (Admin only)");
 
         return app;
+    }
+
+    private static Guid GetCompanyId(ClaimsPrincipal user)
+    {
+        var value = user.FindFirstValue("company_id")
+            ?? throw new UnauthorizedAccessException("company_id claim missing");
+        return Guid.Parse(value);
     }
 }
