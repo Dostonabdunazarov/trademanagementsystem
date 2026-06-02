@@ -19,22 +19,8 @@ public class GetDashboardSummaryQueryHandler(IAppDbContext db)
         var monthStart = new DateOnly(today.Year, today.Month, 1);
         var monthEnd = today;
 
-        // Revenue and profit for current month
-        var monthDocs = await db.Documents
-            .Where(d =>
-                d.CompanyId == request.CompanyId &&
-                d.Status == DocumentStatus.Confirmed &&
-                d.Type == DocumentType.Expense &&
-                d.Date >= monthStart &&
-                d.Date <= monthEnd &&
-                (!request.BranchId.HasValue || d.BranchId == request.BranchId.Value))
-            .Select(d => d.TotalAmountBase)
-            .ToListAsync(cancellationToken);
-
-        var revenueMonth = monthDocs.Sum();
-
-        // Cost for current month via document lines
-        var monthCost = await db.DocumentLines
+        // Revenue and profit for current month — both calculated from document lines for consistency
+        var monthLines = await db.DocumentLines
             .Where(l =>
                 l.Document.CompanyId == request.CompanyId &&
                 l.Document.Status == DocumentStatus.Confirmed &&
@@ -42,14 +28,28 @@ public class GetDashboardSummaryQueryHandler(IAppDbContext db)
                 l.Document.Date >= monthStart &&
                 l.Document.Date <= monthEnd &&
                 (!request.BranchId.HasValue || l.Document.BranchId == request.BranchId.Value))
-            .SumAsync(l => l.Quantity * l.Product.PriceBuy, cancellationToken);
+            .Select(l => new { l.Total, Cost = l.Quantity * l.Product.PriceBuy })
+            .ToListAsync(cancellationToken);
 
-        var profitMonth = revenueMonth - monthCost;
+        var revenueMonth = monthLines.Sum(l => l.Total);
+        var profitMonth = revenueMonth - monthLines.Sum(l => l.Cost);
 
-        // Debtor debt: sum of positive balances for Customer counterparties
-        var debtorDebt = await db.Counterparties
-            .Where(c => c.CompanyId == request.CompanyId && c.Type == CounterpartyType.Customer && c.Balance > 0)
-            .SumAsync(c => c.Balance, cancellationToken);
+        // Debtor debt: Expense − ReturnFromCustomer − PayOut, filtered by branch if set
+        // (mirrors the Balance logic in ConfirmDocumentCommandHandler)
+        var debtorDebt = await db.Documents
+            .Where(d =>
+                d.CompanyId == request.CompanyId &&
+                d.Status == DocumentStatus.Confirmed &&
+                d.Counterparty!.Type == CounterpartyType.Customer &&
+                d.Type != DocumentType.Income &&
+                d.Type != DocumentType.ReturnToSupplier &&
+                d.Type != DocumentType.PayIn &&
+                (!request.BranchId.HasValue || d.BranchId == request.BranchId.Value))
+            .SumAsync(d =>
+                d.Type == DocumentType.Expense
+                    ? d.TotalAmountBase
+                    : -d.TotalAmountBase,
+                cancellationToken);
 
         // Stock item count
         var stockItemCount = await db.Stocks
