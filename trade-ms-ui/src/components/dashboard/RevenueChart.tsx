@@ -102,6 +102,36 @@ export function RevenueChart({ className, loading, monthlySales }: Props) {
         <polyline points={polylinePts(data, 'revenue', maxVal)} fill="none" stroke="#6366F1" strokeWidth="1" strokeLinejoin="round" strokeLinecap="round" />
         <polyline points={polylinePts(data, 'profit', maxVal)} fill="none" stroke="#10B981" strokeWidth="1" strokeLinejoin="round" strokeLinecap="round" />
 
+        {/* Revenue value labels */}
+        {data.map((d, i) => (
+          <text
+            key={`rev-label-${d.year}-${d.month}`}
+            x={toX(i, data.length)}
+            y={toY(d.revenue, maxVal) - 5}
+            textAnchor="middle"
+            fontSize="5.5"
+            fill="#6366F1"
+            fontWeight="600"
+          >
+            {d.revenue.toLocaleString()}
+          </text>
+        ))}
+
+        {/* Profit value labels */}
+        {data.map((d, i) => (
+          <text
+            key={`profit-label-${d.year}-${d.month}`}
+            x={toX(i, data.length)}
+            y={toY(d.profit, maxVal) - 5}
+            textAnchor="middle"
+            fontSize="5.5"
+            fill="#10B981"
+            fontWeight="600"
+          >
+            {d.profit.toLocaleString()}
+          </text>
+        ))}
+
         {/* X labels */}
         {data.map((d, i) => (
           <text
