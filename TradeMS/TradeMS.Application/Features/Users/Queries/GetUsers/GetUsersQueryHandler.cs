@@ -12,7 +12,7 @@ public class GetUsersQueryHandler(IAppDbContext db)
         GetUsersQuery request, CancellationToken cancellationToken)
     {
         return await db.Users
-            .Where(u => u.CompanyId == request.CompanyId)
+            .Where(u => u.CompanyId == request.CompanyId && u.DeletedAt == null)
             .OrderBy(u => u.FullName)
             .Select(u => new UserDto(
                 u.Id,

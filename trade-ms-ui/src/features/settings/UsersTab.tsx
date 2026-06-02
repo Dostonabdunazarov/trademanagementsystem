@@ -1,10 +1,11 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, UserCheck, UserX, Pencil } from 'lucide-react'
+import { Plus, UserCheck, UserX, Pencil, Trash2 } from 'lucide-react'
 import {
   useUsers,
   useCreateUser,
   useUpdateUser,
+  useDeleteUser,
   type UserDto,
   type CreateUserDto,
 } from '@/api/hooks/useUsers'
@@ -30,9 +31,10 @@ type FormData = {
   password: string
   role: CreateUserDto['role']
   branchId: string
+  isActive: boolean
 }
 
-const EMPTY_FORM: FormData = { fullName: '', email: '', password: '', role: 'Manager', branchId: '' }
+const EMPTY_FORM: FormData = { fullName: '', email: '', password: '', role: 'Manager', branchId: '', isActive: true }
 
 function UserDialog({
   open,
@@ -46,7 +48,7 @@ function UserDialog({
   const { t } = useTranslation()
   const [form, setForm] = useState<FormData>(
     editUser
-      ? { fullName: editUser.fullName, email: editUser.email, password: '', role: editUser.role, branchId: editUser.branchId ?? '' }
+      ? { fullName: editUser.fullName, email: editUser.email, password: '', role: editUser.role, branchId: editUser.branchId ?? '', isActive: editUser.isActive }
       : EMPTY_FORM
   )
   const createUser = useCreateUser()
@@ -54,7 +56,6 @@ function UserDialog({
   const { data: branches = [] } = useBranches()
 
   const needsBranch = form.role !== 'Admin'
-
   const isEdit = !!editUser
   const isPending = createUser.isPending || updateUser.isPending
 
@@ -62,7 +63,11 @@ function UserDialog({
     e.preventDefault()
     try {
       if (isEdit) {
-        const payload: Partial<CreateUserDto> = { fullName: form.fullName, role: form.role }
+        const payload: Partial<CreateUserDto> & { isActive?: boolean } = {
+          fullName: form.fullName,
+          role: form.role,
+          isActive: form.isActive,
+        }
         if (form.password) payload.password = form.password
         if (needsBranch) payload.branchId = form.branchId || undefined
         await updateUser.mutateAsync({ id: editUser.id, data: payload })
@@ -161,6 +166,31 @@ function UserDialog({
               </Select>
             </div>
           )}
+          {isEdit && (
+            <div className="flex items-center justify-between rounded-lg border border-border bg-background px-3 py-2.5">
+              <Label className="text-[hsl(var(--text-muted))] text-xs cursor-pointer" htmlFor="isActive">
+                {t('settings.userStatus')}
+              </Label>
+              <button
+                id="isActive"
+                type="button"
+                role="switch"
+                aria-checked={form.isActive}
+                onClick={() => setForm((f) => ({ ...f, isActive: !f.isActive }))}
+                className={cn(
+                  'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
+                  form.isActive ? 'bg-emerald-500' : 'bg-slate-600'
+                )}
+              >
+                <span
+                  className={cn(
+                    'pointer-events-none inline-block h-4 w-4 rounded-full bg-white shadow-lg transition-transform',
+                    form.isActive ? 'translate-x-4' : 'translate-x-0'
+                  )}
+                />
+              </button>
+            </div>
+          )}
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="ghost" onClick={onClose} className="text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]">
               {t('common.cancel')}
@@ -175,17 +205,61 @@ function UserDialog({
   )
 }
 
+function DeleteConfirmDialog({
+  user,
+  onConfirm,
+  onClose,
+  isPending,
+}: {
+  user: UserDto
+  onConfirm: () => void
+  onClose: () => void
+  isPending: boolean
+}) {
+  const { t } = useTranslation()
+  return (
+    <Dialog open onOpenChange={onClose}>
+      <DialogContent className="bg-card border-border text-[hsl(var(--text-primary))] max-w-sm">
+        <DialogHeader>
+          <DialogTitle className="text-base font-semibold text-red-400">{t('common.delete')} пользователя</DialogTitle>
+        </DialogHeader>
+        <p className="text-sm text-[hsl(var(--text-muted))] py-2">
+          Удалить <span className="text-[hsl(var(--text-primary))] font-medium">{user.fullName}</span>? Это действие необратимо.
+        </p>
+        <div className="flex justify-end gap-2 pt-2">
+          <Button type="button" variant="ghost" onClick={onClose} className="text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]">
+            {t('common.cancel')}
+          </Button>
+          <Button onClick={onConfirm} disabled={isPending} className="bg-red-600 hover:bg-red-500">
+            {isPending ? t('common.loading') : t('common.delete')}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export function UsersTab() {
   const { t } = useTranslation()
   const { data: users = [], isLoading } = useUsers()
   const [showDialog, setShowDialog] = useState(false)
   const [editUser, setEditUser] = useState<UserDto | null>(null)
+  const [deleteUser, setDeleteUser] = useState<UserDto | null>(null)
   const currentUser = useAuthStore((s) => s.user)
   const isAdmin = currentUser?.role === 'Admin'
+  const deleteUserMutation = useDeleteUser()
 
   const openCreate = () => { setEditUser(null); setShowDialog(true) }
   const openEdit = (u: UserDto) => { setEditUser(u); setShowDialog(true) }
   const closeDialog = () => { setShowDialog(false); setEditUser(null) }
+
+  const handleDelete = async () => {
+    if (!deleteUser) return
+    try {
+      await deleteUserMutation.mutateAsync(deleteUser.id)
+      setDeleteUser(null)
+    } catch {}
+  }
 
   const activeCount = users.filter((u) => u.isActive).length
 
@@ -231,7 +305,7 @@ export function UsersTab() {
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">{t('settings.userRole')}</th>
                 <th className="px-4 py-2.5 text-center text-xs font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">{t('settings.userStatus')}</th>
                 <th className="px-4 py-2.5 text-center text-xs font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">{t('common.date')}</th>
-                <th className="px-4 py-2.5 w-10" />
+                <th className="px-4 py-2.5 w-16" />
               </tr>
             </thead>
             <tbody>
@@ -246,6 +320,7 @@ export function UsersTab() {
               ) : (
                 users.map((u) => {
                   const roleMeta = ROLE_META[u.role]
+                  const isSelf = u.id === currentUser?.id
                   return (
                     <tr key={u.id} className="border-b border-[hsl(var(--border))] hover:bg-[hsl(var(--surface-2))] transition-colors">
                       <td className="px-4 py-3">
@@ -283,14 +358,24 @@ export function UsersTab() {
                       <td className="px-4 py-3 text-center text-[hsl(var(--text-muted))] text-xs">
                         {new Date(u.createdAt).toLocaleDateString('ru-RU')}
                       </td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-4 py-3">
                         {isAdmin && (
-                          <button
-                            onClick={() => openEdit(u)}
-                            className="rounded p-1 text-[hsl(var(--text-muted))] hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
-                          >
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              onClick={() => openEdit(u)}
+                              className="rounded p-1 text-[hsl(var(--text-muted))] hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
+                            >
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                            {!isSelf && (
+                              <button
+                                onClick={() => setDeleteUser(u)}
+                                className="rounded p-1 text-[hsl(var(--text-muted))] hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -303,6 +388,14 @@ export function UsersTab() {
       </div>
 
       <UserDialog open={showDialog} onClose={closeDialog} editUser={editUser} />
+      {deleteUser && (
+        <DeleteConfirmDialog
+          user={deleteUser}
+          onConfirm={handleDelete}
+          onClose={() => setDeleteUser(null)}
+          isPending={deleteUserMutation.isPending}
+        />
+      )}
     </div>
   )
 }

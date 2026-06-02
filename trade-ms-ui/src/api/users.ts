@@ -9,4 +9,7 @@ export const usersApi = {
 
   update: (id: string, data: unknown) =>
     apiClient.put(`/users/${id}`, data).then((r) => r.data),
+
+  delete: (id: string) =>
+    apiClient.delete(`/users/${id}`).then((r) => r.data),
 }

@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using MediatR;
 using TradeMS.Application.Features.Users.Commands.CreateUser;
+using TradeMS.Application.Features.Users.Commands.DeleteUser;
 using TradeMS.Application.Features.Users.Commands.UpdateUser;
 using TradeMS.Application.Features.Users.DTOs;
 using TradeMS.Application.Features.Users.Queries.GetUsers;
@@ -51,6 +52,15 @@ public static class UserEndpoints
         })
         .RequireAuthorization(p => p.RequireRole("Admin"))
         .WithSummary("Update user");
+
+        group.MapDelete("/{id:guid}", async (Guid id, ClaimsPrincipal user, IMediator mediator) =>
+        {
+            var companyId = GetCompanyId(user);
+            await mediator.Send(new DeleteUserCommand(id, companyId));
+            return Results.NoContent();
+        })
+        .RequireAuthorization(p => p.RequireRole("Admin"))
+        .WithSummary("Delete user (soft delete)");
 
         return app;
     }

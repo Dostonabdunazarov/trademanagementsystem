@@ -14,6 +14,8 @@ public class User
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; }
 
+    public DateTime? DeletedAt { get; set; }
+
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiry { get; set; }
     public int FailedLoginCount { get; set; }

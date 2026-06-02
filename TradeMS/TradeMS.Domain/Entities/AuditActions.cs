@@ -10,6 +10,7 @@ public static class AuditActions
 
     public const string UserCreate      = "USER_CREATE";
     public const string UserUpdate      = "USER_UPDATE";
+    public const string UserDelete      = "USER_DELETE";
 
     public const string DocCreate       = "DOC_CREATE";
     public const string DocUpdate       = "DOC_UPDATE";
