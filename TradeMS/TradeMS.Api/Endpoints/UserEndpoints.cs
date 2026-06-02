@@ -35,6 +35,7 @@ public static class UserEndpoints
                 new CreateUserCommand(companyId, req.FullName, req.Email, req.Password, role, req.BranchId));
             return Results.Created($"/users/{result.Id}", result);
         })
+        .RequireAuthorization(p => p.RequireRole("Admin"))
         .WithSummary("Create a new user");
 
         group.MapPut("/{id:guid}", async (Guid id, UpdateUserRequest req, ClaimsPrincipal user, IMediator mediator) =>
@@ -48,6 +49,7 @@ public static class UserEndpoints
                 new UpdateUserCommand(id, companyId, req.FullName, role, req.Password, req.IsActive));
             return Results.Ok(result);
         })
+        .RequireAuthorization(p => p.RequireRole("Admin"))
         .WithSummary("Update user");
 
         return app;

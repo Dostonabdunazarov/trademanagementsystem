@@ -9,6 +9,7 @@ import {
   type CreateUserDto,
 } from '@/api/hooks/useUsers'
 import { useBranches } from '@/api/hooks/useBranches'
+import { useAuthStore } from '@/store/auth.store'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -179,6 +180,8 @@ export function UsersTab() {
   const { data: users = [], isLoading } = useUsers()
   const [showDialog, setShowDialog] = useState(false)
   const [editUser, setEditUser] = useState<UserDto | null>(null)
+  const currentUser = useAuthStore((s) => s.user)
+  const isAdmin = currentUser?.role === 'Admin'
 
   const openCreate = () => { setEditUser(null); setShowDialog(true) }
   const openEdit = (u: UserDto) => { setEditUser(u); setShowDialog(true) }
@@ -208,14 +211,16 @@ export function UsersTab() {
       <div className="rounded-xl border border-[hsl(var(--border))] bg-card">
         <div className="flex items-center justify-between px-4 py-3 border-b border-[hsl(var(--border))]">
           <h3 className="text-sm font-semibold text-[hsl(var(--text-primary))]">{t('settings.users')}</h3>
-          <Button
-            size="sm"
-            onClick={openCreate}
-            className="h-7 gap-1.5 bg-indigo-600/90 hover:bg-indigo-500 text-xs"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            {t('common.add')}
-          </Button>
+          {isAdmin && (
+            <Button
+              size="sm"
+              onClick={openCreate}
+              className="h-7 gap-1.5 bg-indigo-600/90 hover:bg-indigo-500 text-xs"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {t('common.add')}
+            </Button>
+          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -279,12 +284,14 @@ export function UsersTab() {
                         {new Date(u.createdAt).toLocaleDateString('ru-RU')}
                       </td>
                       <td className="px-4 py-3 text-center">
-                        <button
-                          onClick={() => openEdit(u)}
-                          className="rounded p-1 text-[hsl(var(--text-muted))] hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
+                        {isAdmin && (
+                          <button
+                            onClick={() => openEdit(u)}
+                            className="rounded p-1 text-[hsl(var(--text-muted))] hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                        )}
                       </td>
                     </tr>
                   )
