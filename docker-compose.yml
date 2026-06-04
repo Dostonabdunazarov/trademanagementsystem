@@ -47,9 +47,11 @@ services:
     build:
       context: ./trade-ms-ui
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: "/api"
     restart: unless-stopped
     ports:
-      - "3000:80"
+      - "80:80"
     depends_on:
       api:
         condition: service_healthy
