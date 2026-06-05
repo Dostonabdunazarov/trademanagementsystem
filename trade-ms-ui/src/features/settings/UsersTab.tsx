@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus, UserCheck, UserX, Pencil, Trash2 } from 'lucide-react'
 import {
@@ -46,14 +46,21 @@ function UserDialog({
   editUser: UserDto | null
 }) {
   const { t } = useTranslation()
-  const [form, setForm] = useState<FormData>(
-    editUser
-      ? { fullName: editUser.fullName, email: editUser.email, password: '', role: editUser.role, branchId: editUser.branchId ?? '', isActive: editUser.isActive }
-      : EMPTY_FORM
-  )
+  const [form, setForm] = useState<FormData>(EMPTY_FORM)
   const createUser = useCreateUser()
   const updateUser = useUpdateUser()
   const { data: branches = [] } = useBranches()
+
+  // Reset form whenever dialog opens or editUser changes
+  useEffect(() => {
+    if (open) {
+      setForm(
+        editUser
+          ? { fullName: editUser.fullName, email: editUser.email, password: '', role: editUser.role, branchId: editUser.branchId ?? '', isActive: editUser.isActive }
+          : EMPTY_FORM
+      )
+    }
+  }, [open, editUser?.id])
 
   const needsBranch = form.role !== 'Admin'
   const isEdit = !!editUser
@@ -93,7 +100,7 @@ function UserDialog({
             {isEdit ? t('settings.editUser') : t('settings.addUser')}
           </DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+        <form onSubmit={handleSubmit} className="space-y-4 pt-2" autoComplete="off">
           <div className="space-y-1.5">
             <Label className="text-[hsl(var(--text-muted))] text-xs">{t('settings.userName')}</Label>
             <Input
@@ -113,6 +120,7 @@ function UserDialog({
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
                 className="bg-background border-border text-[hsl(var(--text-primary))]"
+                autoComplete="new-email"
                 required
               />
             </div>
@@ -125,6 +133,7 @@ function UserDialog({
               value={form.password}
               onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
               className="bg-background border-border text-[hsl(var(--text-primary))]"
+              autoComplete="new-password"
               required={!isEdit}
             />
           </div>

@@ -232,8 +232,10 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
 
   /* ── handlers ── */
 
+  const isOutbound = type === 'Expense' || type === 'ReturnToSupplier'
+
   const handleProductDblClick = useCallback((p: ProductDto) => {
-    if (stockByProductId !== null) {
+    if (isOutbound) {
       const qty = stockByProductId.get(p.id) ?? 0
       if (qty <= 0) {
         showToast(`"${p.name}" отсутствует на складе`, 'error')
@@ -242,12 +244,12 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
     }
     setSelectedProduct(p)
     setDialogOpen(true)
-  }, [stockByProductId, showToast])
+  }, [isOutbound, stockByProductId, showToast])
 
   const handleProductKeyDown = useCallback((e: React.KeyboardEvent, p: ProductDto) => {
     if (e.key !== 'Enter') return
     e.preventDefault()
-    if (stockByProductId !== null) {
+    if (isOutbound) {
       const qty = stockByProductId.get(p.id) ?? 0
       if (qty <= 0) {
         showToast(`"${p.name}" отсутствует на складе`, 'error')
@@ -256,7 +258,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
     }
     setSelectedProduct(p)
     setDialogOpen(true)
-  }, [stockByProductId, showToast])
+  }, [isOutbound, stockByProductId, showToast])
 
   const handleDialogConfirm = useCallback(
     (qty: number, price: number, discount: number) => {
