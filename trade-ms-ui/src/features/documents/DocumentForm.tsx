@@ -136,10 +136,10 @@ export function DocumentForm({ type, title, className }: DocumentFormProps) {
   const urlId = searchParams.get('id')
   const editId = urlId ? parseInt(urlId, 10) : null
   const { data: existingDoc, isLoading: docLoading } = useDocument(editId)
-  const [formLoaded, setFormLoaded] = useState(false)
+  const formLoaded = useRef(false)
 
   useEffect(() => {
-    if (!existingDoc || formLoaded) return
+    if (!existingDoc || formLoaded.current) return
     form.setDate(existingDoc.date.slice(0, 10))
     if (existingDoc.counterpartyId) form.setCounterparty(existingDoc.counterpartyId, existingDoc.counterpartyName ?? '')
     form.setCurrency(existingDoc.currencyId, existingDoc.currencyCode, existingDoc.exchangeRate)
@@ -151,7 +151,7 @@ export function DocumentForm({ type, title, className }: DocumentFormProps) {
         l.quantity, l.price, l.discountPercent,
       )
     }
-    setFormLoaded(true)
+    formLoaded.current = true
   }, [existingDoc]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const isReadonly = !!existingDoc && existingDoc.status !== 'Draft'
@@ -295,6 +295,10 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
       showToast(t('common.error'), 'error')
       return
     }
+    if (!state.counterpartyId) {
+      showToast(t('documents.counterpartyRequired'), 'error')
+      return
+    }
     try {
       const payload = buildPayload()
       if (savedDocId) {
@@ -308,11 +312,15 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
     } catch {
       showToast(t('common.error'), 'error')
     }
-  }, [state, savedDocId, buildPayload, createDoc, updateDoc, showToast])
+  }, [state, savedDocId, buildPayload, createDoc, updateDoc, showToast, t])
 
   const handleConfirm = useCallback(async () => {
     if (state.lines.length === 0) {
       showToast(t('common.error'), 'error')
+      return
+    }
+    if (!state.counterpartyId) {
+      showToast(t('documents.counterpartyRequired'), 'error')
       return
     }
     try {

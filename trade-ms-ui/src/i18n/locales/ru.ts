@@ -101,6 +101,7 @@ export const ru = {
       newDocument: 'Новый документ',
       counterparty: 'Контрагент',
       selectCounterparty: 'Выберите контрагента',
+      counterpartyRequired: 'Необходимо выбрать контрагента',
       warehouse: 'Склад',
       currency: 'Валюта',
       rate: 'Курс',

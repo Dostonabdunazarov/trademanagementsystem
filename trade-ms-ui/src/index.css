@@ -142,12 +142,14 @@ header {
 
 /* Sidebar */
 html.light aside {
+  background-color: #eef0ffbf !important;
   border-right-color: rgba(99, 102, 241, 0.35) !important;
   box-shadow: 4px 0 20px rgba(99, 102, 241, 0.18) !important;
 }
 
 /* Topbar */
 html.light header {
+  background-color: #eef0ffbf !important;
   border-bottom-color: rgba(99, 102, 241, 0.30) !important;
   box-shadow: 0 4px 20px rgba(99, 102, 241, 0.14) !important;
 }

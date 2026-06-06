@@ -101,6 +101,7 @@ export const uz = {
       newDocument: 'Yangi hujjat',
       counterparty: 'Kontragent',
       selectCounterparty: 'Kontragentni tanlang',
+      counterpartyRequired: 'Kontragentni tanlash shart',
       warehouse: 'Ombor',
       currency: 'Valyuta',
       rate: 'Kurs',
