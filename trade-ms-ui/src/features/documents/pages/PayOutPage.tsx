@@ -1,5 +1,7 @@
+import { useTranslation } from 'react-i18next'
 import { PaymentForm } from '../PaymentForm'
 
 export function PayOutPage() {
-  return <PaymentForm type="PayOut" title="Оплата деньги (F5)" className="h-full" />
+  const { t } = useTranslation()
+  return <PaymentForm type="PayOut" title={t('nav.payOut')} className="h-full" />
 }

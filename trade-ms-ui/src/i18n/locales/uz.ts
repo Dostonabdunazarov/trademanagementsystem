@@ -136,6 +136,22 @@ export const uz = {
       counterpartyCol: 'Kontragent',
       sumTotal: 'Summa',
     },
+    // Payments (PayIn / PayOut)
+    payments: {
+      confirm: 'Tasdiqlash',
+      selectCustomer: 'Mijozni tanlang...',
+      selectSupplier: 'Ta\'minotchini tanlang...',
+      balance: 'Balans',
+      paymentMethod: 'To\'lov usuli',
+      account: 'Kassa / Hisob',
+      noteOptional: 'Ixtiyoriy...',
+      inBaseCurrency: 'Asosiy valyutada',
+      totalToPay: 'Jami to\'lov',
+      totalToReceive: 'Jami qabul',
+      Cash: 'Naqd',
+      BankTransfer: 'Bank o\'tkazmasi',
+      Card: 'Karta',
+    },
     // Products
     products: {
       title: 'Mahsulotlar',

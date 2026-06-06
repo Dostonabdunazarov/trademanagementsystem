@@ -1,5 +1,6 @@
 ﻿import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Save, CheckCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { DocumentType, PaymentMethod } from '@/types/document'
@@ -48,6 +49,7 @@ interface PaymentFormProps {
 /* ─── Component ───────────────────────────────────────────────────────────── */
 
 export function PaymentForm({ type, title, className, isLoading = false }: PaymentFormProps) {
+  const { t } = useTranslation()
   const today = new Date().toISOString().slice(0, 10)
   const navigate = useNavigate()
 
@@ -159,9 +161,9 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
   if (isLoading) return <PaymentFormSkeleton />
 
   const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
-    { value: 'Cash',          label: 'Наличные'     },
-    { value: 'BankTransfer',  label: 'Банк. перевод' },
-    { value: 'Card',          label: 'Карта'         },
+    { value: 'Cash',          label: t('payments.Cash')         },
+    { value: 'BankTransfer',  label: t('payments.BankTransfer') },
+    { value: 'Card',          label: t('payments.Card')         },
   ]
 
   const inputCls = cn(
@@ -187,7 +189,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
               'disabled:opacity-50 disabled:cursor-not-allowed',
             )}>
             <Save className="h-3.5 w-3.5" />
-            Сохранить черновик
+            {t('documents.saveDraft')}
           </button>
           <button
             onClick={handleConfirm}
@@ -198,7 +200,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
               'disabled:opacity-50 disabled:cursor-not-allowed',
             )}>
             <CheckCircle className="h-3.5 w-3.5" />
-            Провести
+            {t('payments.confirm')}
           </button>
         </div>
       </div>
@@ -212,7 +214,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
 
           {/* Date */}
           <label className="flex flex-col gap-1">
-            <span className={labelCls}>Дата</span>
+            <span className={labelCls}>{t('common.date')}</span>
             <input
               type="date"
               value={date}
@@ -223,11 +225,11 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
 
           {/* Counterparty */}
           <div className="flex flex-col gap-1" ref={cpRef}>
-            <span className={labelCls}>{cpType === 'Customer' ? 'Клиент' : 'Поставщик'}</span>
+            <span className={labelCls}>{cpType === 'Customer' ? t('counterparties.Customer') : t('counterparties.Supplier')}</span>
             <div className="relative">
               <input
                 type="text"
-                placeholder={`Выберите ${cpType === 'Customer' ? 'клиента' : 'поставщика'}...`}
+                placeholder={cpType === 'Customer' ? t('payments.selectCustomer') : t('payments.selectSupplier')}
                 value={cpSearch || counterpartyName}
                 onFocus={() => { setCpSearch(''); setCpOpen(true) }}
                 onChange={(e) => { setCpSearch(e.target.value); setCpOpen(true) }}
@@ -267,7 +269,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
             </div>
             {selectedCp && (
               <p className="text-xs text-[hsl(var(--text-muted))]">
-                Баланс:{' '}
+                {t('payments.balance')}:{' '}
                 <span className={cn(
                   'font-mono',
                   selectedCp.balance > 0 ? 'text-red-400' : selectedCp.balance < 0 ? 'text-emerald-400' : 'text-[hsl(var(--text-muted))]',
@@ -281,7 +283,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
           {/* Amount + Currency row */}
           <div className="flex gap-3">
             <label className="flex flex-1 flex-col gap-1">
-              <span className={labelCls}>Сумма</span>
+              <span className={labelCls}>{t('common.amount')}</span>
               <input
                 type="number"
                 min="0"
@@ -293,7 +295,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
               />
             </label>
             <label className="flex flex-col gap-1 w-24">
-              <span className={labelCls}>Валюта</span>
+              <span className={labelCls}>{t('common.currency')}</span>
               <select
                 value={currencyId}
                 onChange={(e) => handleCurrencyChange(e.target.value)}
@@ -306,7 +308,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
             </label>
             {!isBaseCurrency && (
               <label className="flex flex-col gap-1 w-28">
-                <span className={labelCls}>Курс</span>
+                <span className={labelCls}>{t('documents.rate')}</span>
                 <input
                   type="number"
                   min="0"
@@ -322,14 +324,14 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
           {/* Amount in base */}
           {!isBaseCurrency && amountInBase > 0 && (
             <p className="text-xs text-[hsl(var(--text-muted))] -mt-2">
-              В базовой валюте:{' '}
+              {t('payments.inBaseCurrency')}:{' '}
               <span className="font-mono text-[hsl(var(--text-primary))]">{fmt(amountInBase)} {baseCurrency?.code ?? ''}</span>
             </p>
           )}
 
           {/* Payment method */}
           <label className="flex flex-col gap-1">
-            <span className={labelCls}>Метод оплаты</span>
+            <span className={labelCls}>{t('payments.paymentMethod')}</span>
             <div className="flex gap-2">
               {PAYMENT_METHODS.map(({ value, label }) => (
                 <button
@@ -348,9 +350,9 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
             </div>
           </label>
 
-          {/* Account (Касса) */}
+          {/* Account */}
           <label className="flex flex-col gap-1">
-            <span className={labelCls}>Касса / Счёт</span>
+            <span className={labelCls}>{t('payments.account')}</span>
             <select
               value={accountId}
               onChange={(e) => setAccountId(e.target.value)}
@@ -364,9 +366,9 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
 
           {/* Note */}
           <label className="flex flex-col gap-1">
-            <span className={labelCls}>Примечание</span>
+            <span className={labelCls}>{t('common.note')}</span>
             <textarea
-              placeholder="Необязательно..."
+              placeholder={t('payments.noteOptional')}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               rows={2}
@@ -380,7 +382,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
 
           {/* Summary */}
           <div className="rounded-lg border border-[hsl(var(--border))] bg-background p-3 flex items-center justify-between">
-            <span className="text-xs text-[hsl(var(--text-muted))]">Итого к {type === 'PayOut' ? 'оплате' : 'получению'}:</span>
+            <span className="text-xs text-[hsl(var(--text-muted))]">{type === 'PayOut' ? t('payments.totalToPay') : t('payments.totalToReceive')}:</span>
             <span className="font-mono font-semibold text-indigo-400">
               {amount ? fmt(parseFloat(amount) || 0) : '0'} {selectedCurrency?.code ?? ''}
             </span>

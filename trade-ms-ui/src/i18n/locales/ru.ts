@@ -136,6 +136,22 @@ export const ru = {
       counterpartyCol: 'Контрагент',
       sumTotal: 'Сумма',
     },
+    // Payments (PayIn / PayOut)
+    payments: {
+      confirm: 'Провести',
+      selectCustomer: 'Выберите клиента...',
+      selectSupplier: 'Выберите поставщика...',
+      balance: 'Баланс',
+      paymentMethod: 'Метод оплаты',
+      account: 'Касса / Счёт',
+      noteOptional: 'Необязательно...',
+      inBaseCurrency: 'В базовой валюте',
+      totalToPay: 'Итого к оплате',
+      totalToReceive: 'Итого к получению',
+      Cash: 'Наличные',
+      BankTransfer: 'Банк. перевод',
+      Card: 'Карта',
+    },
     // Products
     products: {
       title: 'Товары',
