@@ -75,3 +75,7 @@ trade-ms-ui/dist/
 # IDE
 .vscode/
 .idea/
+
+# Temporary verification / test artifacts
+playwright-temp/
+verify-toast.mjs
