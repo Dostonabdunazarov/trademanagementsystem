@@ -25,6 +25,10 @@ export interface DocumentDto {
   exchangeRate: number
   discountPercent: number
   note: string | null
+  amount: number | null
+  paymentMethod: string | null
+  accountId: string | null
+  accountName: string | null
   totalAmount: number
   totalAmountBase: number
   lines: DocumentLineDto[]

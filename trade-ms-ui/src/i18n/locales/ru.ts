@@ -151,6 +151,8 @@ export const ru = {
       Cash: 'Наличные',
       BankTransfer: 'Банк. перевод',
       Card: 'Карта',
+      viewPayOut: 'Просмотр оплаты',
+      viewPayIn: 'Просмотр получения',
     },
     // Products
     products: {

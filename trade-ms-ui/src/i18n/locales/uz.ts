@@ -151,6 +151,8 @@ export const uz = {
       Cash: 'Naqd',
       BankTransfer: 'Bank o\'tkazmasi',
       Card: 'Karta',
+      viewPayOut: 'To\'lovni ko\'rish',
+      viewPayIn: 'Qabulni ko\'rish',
     },
     // Products
     products: {

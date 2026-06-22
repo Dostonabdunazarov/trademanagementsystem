@@ -1,5 +1,5 @@
 ﻿import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Save, CheckCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -8,6 +8,7 @@ import { useCounterparties } from '@/api/hooks/useCounterparties'
 import { useCurrencies } from '@/api/hooks/useCurrencies'
 import { useAccounts } from '@/api/hooks/useAccounts'
 import { useCreateDocument, useConfirmDocument } from '@/api/hooks/useDocumentMutations'
+import { useDocument } from '@/api/hooks/useDocument'
 import { useAuthStore } from '@/store/auth.store'
 import { useUiStore } from '@/store/ui.store'
 
@@ -53,6 +54,14 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
   const today = new Date().toISOString().slice(0, 10)
   const navigate = useNavigate()
 
+  // Load existing document from URL ?id=
+  const [searchParams] = useSearchParams()
+  const urlId = searchParams.get('id')
+  const viewId = urlId ? parseInt(urlId, 10) : null
+  const { data: existingDoc, isLoading: docLoading } = useDocument(viewId)
+  const formLoaded = useRef(false)
+  const isReadonly = !!existingDoc && existingDoc.status !== 'Draft'
+
   const createDoc = useCreateDocument()
   const confirmDoc = useConfirmDocument()
 
@@ -96,6 +105,25 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
       setAccountId(accounts[0].id)
     }
   }, [accounts, accountId])
+
+  // Prefill fields from an existing document opened via ?id=
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (!existingDoc || formLoaded.current) return
+    setDate(existingDoc.date.slice(0, 10))
+    if (existingDoc.counterpartyId) {
+      setCounterpartyId(existingDoc.counterpartyId)
+      setCounterpartyName(existingDoc.counterpartyName ?? '')
+    }
+    setAmount(String(existingDoc.amount ?? existingDoc.totalAmount))
+    setCurrencyId(existingDoc.currencyId)
+    setExchangeRate(existingDoc.exchangeRate)
+    if (existingDoc.paymentMethod) setPaymentMethod(existingDoc.paymentMethod as PaymentMethod)
+    if (existingDoc.accountId) setAccountId(existingDoc.accountId)
+    setNote(existingDoc.note ?? '')
+    formLoaded.current = true
+  }, [existingDoc])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const cpRef = useRef<HTMLDivElement>(null)
 
@@ -158,7 +186,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
   const isBusy = createDoc.isPending || confirmDoc.isPending
   const isBlocked = adminNoBranch
 
-  if (isLoading) return <PaymentFormSkeleton />
+  if (isLoading || docLoading) return <PaymentFormSkeleton />
 
   const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
     { value: 'Cash',          label: t('payments.Cash')         },
@@ -178,31 +206,47 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
     <div className={cn('flex flex-col h-full bg-background text-[hsl(var(--text-primary))]', className)}>
       {/* Title bar */}
       <div className="flex items-center justify-between px-6 pt-5 pb-4">
-        <h1 className="text-base font-semibold text-[hsl(var(--text-primary))]">{title}</h1>
         <div className="flex items-center gap-2">
-          <button
-            onClick={handleSaveDraft}
-            disabled={isBusy || isBlocked}
-            className={cn(
-              'flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 h-8 text-xs text-[hsl(var(--text-muted))]',
-              'hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))] transition-colors',
-              'disabled:opacity-50 disabled:cursor-not-allowed',
+          <h1 className="text-base font-semibold text-[hsl(var(--text-primary))]">
+            {existingDoc ? t(type === 'PayOut' ? 'payments.viewPayOut' : 'payments.viewPayIn') : title}
+          </h1>
+          {existingDoc && (
+            <span className={cn(
+              'rounded px-1.5 py-0.5 text-[10px] font-medium border',
+              existingDoc.status === 'Draft' && 'border-amber-500/30 bg-amber-500/10 text-amber-400',
+              existingDoc.status === 'Confirmed' && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400',
+              existingDoc.status === 'Cancelled' && 'border-red-500/30 bg-red-500/10 text-red-400',
             )}>
-            <Save className="h-3.5 w-3.5" />
-            {t('documents.saveDraft')}
-          </button>
-          <button
-            onClick={handleConfirm}
-            disabled={isBusy || isBlocked || !counterpartyId || !amount}
-            className={cn(
-              'flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 h-8 text-xs text-white font-medium',
-              'hover:bg-indigo-500 active:bg-indigo-700 transition-colors',
-              'disabled:opacity-50 disabled:cursor-not-allowed',
-            )}>
-            <CheckCircle className="h-3.5 w-3.5" />
-            {t('payments.confirm')}
-          </button>
+              {existingDoc.number} · {t(`status.${existingDoc.status}`, { defaultValue: existingDoc.status })}
+            </span>
+          )}
         </div>
+        {!isReadonly && (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSaveDraft}
+              disabled={isBusy || isBlocked}
+              className={cn(
+                'flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 h-8 text-xs text-[hsl(var(--text-muted))]',
+                'hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))] transition-colors',
+                'disabled:opacity-50 disabled:cursor-not-allowed',
+              )}>
+              <Save className="h-3.5 w-3.5" />
+              {t('documents.saveDraft')}
+            </button>
+            <button
+              onClick={handleConfirm}
+              disabled={isBusy || isBlocked || !counterpartyId || !amount}
+              className={cn(
+                'flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 h-8 text-xs text-white font-medium',
+                'hover:bg-indigo-500 active:bg-indigo-700 transition-colors',
+                'disabled:opacity-50 disabled:cursor-not-allowed',
+              )}>
+              <CheckCircle className="h-3.5 w-3.5" />
+              {t('payments.confirm')}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Form card */}
@@ -219,7 +263,8 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className={inputCls}
+              readOnly={isReadonly}
+              className={cn(inputCls, isReadonly && 'opacity-70 cursor-default')}
             />
           </label>
 
@@ -230,12 +275,13 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
               <input
                 type="text"
                 placeholder={cpType === 'Customer' ? t('payments.selectCustomer') : t('payments.selectSupplier')}
-                value={cpSearch || counterpartyName}
-                onFocus={() => { setCpSearch(''); setCpOpen(true) }}
-                onChange={(e) => { setCpSearch(e.target.value); setCpOpen(true) }}
-                className={inputCls}
+                value={cpOpen ? cpSearch : counterpartyName}
+                onFocus={() => { if (!isReadonly) { setCpSearch(''); setCpOpen(true) } }}
+                onChange={(e) => { if (!isReadonly) { setCpSearch(e.target.value); setCpOpen(true) } }}
+                readOnly={isReadonly}
+                className={cn(inputCls, isReadonly && 'opacity-70 cursor-default')}
               />
-              {cpOpen && counterparties.length > 0 && (
+              {!isReadonly && cpOpen && counterparties.length > 0 && (
                 <div className={cn(
                   'absolute top-full left-0 right-0 mt-1 z-20 rounded-lg border border-border',
                   'bg-card/95 backdrop-blur-xl shadow-xl max-h-48 overflow-y-auto',
@@ -291,7 +337,8 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
                 placeholder="0"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className={cn(inputCls, 'font-mono')}
+                readOnly={isReadonly}
+                className={cn(inputCls, 'font-mono', isReadonly && 'opacity-70 cursor-default')}
               />
             </label>
             <label className="flex flex-col gap-1 w-24">
@@ -299,7 +346,8 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
               <select
                 value={currencyId}
                 onChange={(e) => handleCurrencyChange(e.target.value)}
-                className={cn(inputCls)}
+                disabled={isReadonly}
+                className={cn(inputCls, isReadonly && 'opacity-70 cursor-default')}
               >
                 {currencies.map((c) => (
                   <option key={c.id} value={c.id}>{c.code}</option>
@@ -315,7 +363,8 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
                   step="1"
                   value={exchangeRate}
                   onChange={(e) => setExchangeRate(parseFloat(e.target.value) || 1)}
-                  className={cn(inputCls, 'font-mono')}
+                  readOnly={isReadonly}
+                  className={cn(inputCls, 'font-mono', isReadonly && 'opacity-70 cursor-default')}
                 />
               </label>
             )}
@@ -336,12 +385,15 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
               {PAYMENT_METHODS.map(({ value, label }) => (
                 <button
                   key={value}
-                  onClick={() => setPaymentMethod(value)}
+                  onClick={() => { if (!isReadonly) setPaymentMethod(value) }}
+                  disabled={isReadonly}
                   className={cn(
                     'flex-1 h-9 rounded-lg border text-xs font-medium transition-colors',
                     paymentMethod === value
                       ? 'border-indigo-500/40 bg-indigo-500/15 text-indigo-400'
-                      : 'border-border bg-secondary text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))]',
+                      : 'border-border bg-secondary text-[hsl(var(--text-muted))]',
+                    !isReadonly && paymentMethod !== value && 'hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))]',
+                    isReadonly && 'cursor-default disabled:opacity-100',
                   )}
                 >
                   {label}
@@ -353,15 +405,21 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
           {/* Account */}
           <label className="flex flex-col gap-1">
             <span className={labelCls}>{t('payments.account')}</span>
-            <select
-              value={accountId}
-              onChange={(e) => setAccountId(e.target.value)}
-              className={inputCls}
-            >
-              {accounts.map((acc) => (
-                <option key={acc.id} value={acc.id}>{acc.name}</option>
-              ))}
-            </select>
+            {isReadonly ? (
+              <div className={cn(inputCls, 'flex items-center opacity-70 cursor-default')}>
+                {existingDoc?.accountName ?? '—'}
+              </div>
+            ) : (
+              <select
+                value={accountId}
+                onChange={(e) => setAccountId(e.target.value)}
+                className={inputCls}
+              >
+                {accounts.map((acc) => (
+                  <option key={acc.id} value={acc.id}>{acc.name}</option>
+                ))}
+              </select>
+            )}
           </label>
 
           {/* Note */}
@@ -371,11 +429,13 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
               placeholder={t('payments.noteOptional')}
               value={note}
               onChange={(e) => setNote(e.target.value)}
+              readOnly={isReadonly}
               rows={2}
               className={cn(
                 'w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-[hsl(var(--text-primary))]',
                 'placeholder:text-[hsl(var(--text-muted))] resize-none',
                 'focus:outline-none focus:ring-1 focus:ring-indigo-500/60 focus:border-indigo-500/40 transition-colors',
+                isReadonly && 'opacity-70 cursor-default',
               )}
             />
           </label>

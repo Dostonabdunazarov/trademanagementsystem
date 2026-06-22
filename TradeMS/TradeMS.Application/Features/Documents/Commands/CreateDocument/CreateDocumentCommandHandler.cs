@@ -112,6 +112,7 @@ public class CreateDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
         var doc = await db.Documents
             .Include(d => d.Counterparty)
             .Include(d => d.Currency)
+            .Include(d => d.Account)
             .Include(d => d.Lines).ThenInclude(l => l.Product)
             .FirstAsync(d => d.Id == docId && d.CompanyId == companyId, ct);
 
@@ -135,6 +136,10 @@ public class CreateDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
         doc.DiscountPercent,
         doc.DiscountAmount,
         doc.Note,
+        doc.Amount,
+        doc.PaymentMethod?.ToString(),
+        doc.AccountId,
+        doc.Account?.Name,
         doc.Status.ToString(),
         doc.CreatedBy,
         doc.CreatedAt,
