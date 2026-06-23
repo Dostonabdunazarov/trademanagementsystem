@@ -16,7 +16,7 @@ services:
       timeout: 5s
       retries: 10
 
-  api:
+  tradems-api:
     build:
       context: ./TradeMS
       dockerfile: TradeMS.Api/Dockerfile
@@ -30,8 +30,6 @@ services:
       Jwt__ExpiryMinutes: "60"
       Seed__AdminEmail: ${ADMIN_EMAIL}
       Seed__AdminPassword: ${ADMIN_PASSWORD}
-    ports:
-      - "5000:8080"
     depends_on:
       db:
         condition: service_healthy
@@ -42,18 +40,25 @@ services:
       retries: 10
       start_period: 30s
 
-  ui:
+  tradems-ui:
     build:
       context: ./trade-ms-ui
       dockerfile: Dockerfile
       args:
         VITE_API_URL: "/api"
     restart: unless-stopped
-    ports:
-      - "80:80"
+    # Порт 80 наружу не публикуется — им владеет Caddy (/root/corpdev/infra).
+    # Caddy проксирует savdo.corpdev.site -> tradems-ui:80 по сети proxy.
+    networks:
+      - default
+      - proxy
     depends_on:
-      api:
+      tradems-api:
         condition: service_healthy
+
+networks:
+  proxy:
+    external: true
 
 volumes:
   postgres_data:
