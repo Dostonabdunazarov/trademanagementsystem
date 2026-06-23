@@ -140,10 +140,10 @@ export function MainLayout() {
                   end={end}
                   className={({ isActive }) =>
                     cn(
-                      'group relative flex items-center gap-3 px-4 py-2 mx-1 rounded-lg text-sm transition-all duration-150',
+                      'group relative flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm transition-all duration-150',
                       isActive
                         ? 'bg-gradient-to-r from-indigo-500/15 to-violet-500/10 text-indigo-600 dark:text-indigo-400 font-semibold shadow-sm shadow-indigo-500/10'
-                        : 'text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))]',
+                        : 'nav-link-idle text-[hsl(var(--text-muted))] hover:font-semibold',
                     )
                   }
                 >
@@ -152,8 +152,8 @@ export function MainLayout() {
                       {isActive && (
                         <span className="absolute inset-y-1 left-0 w-0.5 rounded-r bg-gradient-to-b from-indigo-500 to-violet-500" />
                       )}
-                      <Icon className={cn('h-4 w-4 shrink-0', isActive && 'text-indigo-500')} strokeWidth={1.8} />
-                      {sidebarOpen && <span className="truncate">{label}</span>}
+                      <Icon className={cn('nav-link-icon h-4 w-4 shrink-0 transition-colors', isActive ? 'text-indigo-500' : 'text-[hsl(var(--text-muted))]')} strokeWidth={1.8} />
+                      {sidebarOpen && <span className="truncate transition-all duration-150 group-hover:text-[0.9375rem]">{label}</span>}
                       {!sidebarOpen && (
                         <span className="absolute left-full ml-2 hidden whitespace-nowrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-2 py-1 text-xs text-[hsl(var(--text-primary))] shadow-xl group-hover:block">
                           {label}

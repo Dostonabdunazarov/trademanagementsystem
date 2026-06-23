@@ -79,3 +79,4 @@ trade-ms-ui/dist/
 # Temporary verification / test artifacts
 playwright-temp/
 verify-toast.mjs
+docker-compose.override.yml

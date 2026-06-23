@@ -215,3 +215,18 @@ html.light ::selection {
   background: rgba(99, 102, 241, 0.2);
   color: #3730a3;
 }
+
+/* Sidebar nav links — hover effect (theme-aware, overrides utility colors) */
+.nav-link-idle .nav-link-icon {
+  transition: color 0.15s;
+}
+/* Dark theme (default, no .light class): text brightens on hover */
+.nav-link-idle:hover,
+.nav-link-idle:hover .nav-link-icon {
+  color: #e2e8f0 !important;
+}
+/* Light theme: text turns black on hover */
+html.light .nav-link-idle:hover,
+html.light .nav-link-idle:hover .nav-link-icon {
+  color: #0f172a !important;
+}
