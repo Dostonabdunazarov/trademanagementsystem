@@ -63,7 +63,7 @@ export function DashboardPage() {
       />
 
       {/* Period filter — applies to revenue & profit */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
         <span className="text-xs font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">
           {t('dashboard.period')}
         </span>
