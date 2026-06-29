@@ -16,23 +16,25 @@ public class GetDashboardSummaryQueryHandler(IAppDbContext db)
         GetDashboardSummaryQuery request, CancellationToken cancellationToken)
     {
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
-        var monthStart = new DateOnly(today.Year, today.Month, 1);
-        var monthEnd = today;
 
-        // Revenue and profit for current month — both calculated from document lines for consistency
-        var monthLines = await db.DocumentLines
+        // Period for revenue/profit — defaults to the current month if not specified
+        var periodFrom = request.DateFrom ?? new DateOnly(today.Year, today.Month, 1);
+        var periodTo = request.DateTo ?? today;
+
+        // Revenue and profit for the selected period — both calculated from document lines for consistency
+        var periodLines = await db.DocumentLines
             .Where(l =>
                 l.Document.CompanyId == request.CompanyId &&
                 l.Document.Status == DocumentStatus.Confirmed &&
                 l.Document.Type == DocumentType.Expense &&
-                l.Document.Date >= monthStart &&
-                l.Document.Date <= monthEnd &&
+                l.Document.Date >= periodFrom &&
+                l.Document.Date <= periodTo &&
                 (!request.BranchId.HasValue || l.Document.BranchId == request.BranchId.Value))
             .Select(l => new { l.Total, Cost = l.Quantity * l.Product.PriceBuy })
             .ToListAsync(cancellationToken);
 
-        var revenueMonth = monthLines.Sum(l => l.Total);
-        var profitMonth = revenueMonth - monthLines.Sum(l => l.Cost);
+        var revenue = periodLines.Sum(l => l.Total);
+        var profit = revenue - periodLines.Sum(l => l.Cost);
 
         // Debtor debt: Expense − ReturnFromCustomer − PayOut, filtered by branch if set
         // (mirrors the Balance logic in ConfirmDocumentCommandHandler)
@@ -85,17 +87,17 @@ public class GetDashboardSummaryQueryHandler(IAppDbContext db)
         {
             var d = today.AddMonths(-i);
             var found = monthlySalesRaw.FirstOrDefault(r => r.Year == d.Year && r.Month == d.Month);
-            var revenue = found?.Revenue ?? 0m;
-            var cost = found?.Cost ?? 0m;
+            var monthRevenue = found?.Revenue ?? 0m;
+            var monthCost = found?.Cost ?? 0m;
             monthlySales.Add(new MonthlySalesDto(
                 d.Year, d.Month,
                 MonthLabels[d.Month - 1],
-                revenue,
-                revenue - cost
+                monthRevenue,
+                monthRevenue - monthCost
             ));
         }
 
         return new DashboardSummaryDto(
-            revenueMonth, profitMonth, debtorDebt, stockItemCount, monthlySales);
+            periodFrom, periodTo, revenue, profit, debtorDebt, stockItemCount, monthlySales);
     }
 }

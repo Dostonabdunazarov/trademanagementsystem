@@ -146,8 +146,10 @@ export const MOCK_SALES_SUMMARY = {
 }
 
 export const MOCK_DASHBOARD = {
-  revenueMonth: 5000000,
-  profitMonth: 1000000,
+  dateFrom: '2026-06-01',
+  dateTo: '2026-06-30',
+  revenue: 5000000,
+  profit: 1000000,
   debtorDebt: 250000,
   stockItemCount: 5,
   monthlySales: [

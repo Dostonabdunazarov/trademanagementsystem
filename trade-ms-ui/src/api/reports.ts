@@ -10,6 +10,6 @@ export const reportsApi = {
   getCounterpartyBalance: (type?: string) =>
     apiClient.get('/reports/counterparty-balance', { params: { type } }).then((r) => r.data),
 
-  getDashboardSummary: (params?: { branchId?: string }) =>
+  getDashboardSummary: (params?: { branchId?: string; dateFrom?: string; dateTo?: string }) =>
     apiClient.get('/reports/dashboard', { params }).then((r) => r.data),
 }

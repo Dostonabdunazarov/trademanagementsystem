@@ -8,7 +8,8 @@ using TradeMS.IntegrationTests.Seeders;
 namespace TradeMS.IntegrationTests.Tests.Reports;
 
 file record DashboardResp(
-    decimal RevenueMonth, decimal ProfitMonth, decimal DebtorDebt, int StockItemCount,
+    string DateFrom, string DateTo,
+    decimal Revenue, decimal Profit, decimal DebtorDebt, int StockItemCount,
     List<MonthlySalesResp> MonthlySales);
 file record MonthlySalesResp(int Year, int Month, string MonthLabel, decimal Revenue, decimal Profit);
 
@@ -76,7 +77,7 @@ public class ReportTests : SeededIntegrationTestBase
         var body = await resp.Content.ReadFromJsonAsync<DashboardResp>(JsonOpts);
 
         // Revenue should include the expense
-        body!.RevenueMonth.Should().BeGreaterThan(0);
+        body!.Revenue.Should().BeGreaterThan(0);
         // DebtorDebt should reflect customer's positive balance
         body.DebtorDebt.Should().BeGreaterThanOrEqualTo(0);
         // StockItemCount should reflect items in stock

@@ -48,7 +48,7 @@ services:
         VITE_API_URL: "/api"
     restart: unless-stopped
     # Порт 80 наружу не публикуется — им владеет Caddy (/root/corpdev/infra).
-    # Caddy проксирует savdo.corpdev.site -> tradems-ui:80 по сети proxy.
+    # Caddy проксирует savdo.hypex.site -> tradems-ui:80 по сети proxy.
     networks:
       - default
       - proxy
