@@ -58,8 +58,10 @@ public record CounterpartyBalanceLineDto(
 );
 
 public record DashboardSummaryDto(
-    decimal RevenueMonth,
-    decimal ProfitMonth,
+    DateOnly DateFrom,
+    DateOnly DateTo,
+    decimal Revenue,
+    decimal Profit,
     decimal DebtorDebt,
     long StockItemCount,
     IReadOnlyList<MonthlySalesDto> MonthlySales

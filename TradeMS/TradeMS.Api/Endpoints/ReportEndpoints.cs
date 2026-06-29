@@ -54,14 +54,17 @@ public static class ReportEndpoints
 
         group.MapGet("/dashboard", async (
             Guid? branchId,
+            DateOnly? dateFrom,
+            DateOnly? dateTo,
             ClaimsPrincipal user,
             IMediator mediator) =>
         {
             var companyId = GetCompanyId(user);
-            var result = await mediator.Send(new GetDashboardSummaryQuery(companyId, branchId));
+            var result = await mediator.Send(
+                new GetDashboardSummaryQuery(companyId, branchId, dateFrom, dateTo));
             return Results.Ok(result);
         })
-        .WithSummary("Dashboard summary: month revenue/profit, debtor debt, stock count, 12-month chart data");
+        .WithSummary("Dashboard summary: revenue/profit for selected period (default current month), debtor debt, stock count, 12-month chart data");
 
         return app;
     }

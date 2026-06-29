@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { TrendingUp, DollarSign, Users, Package } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { MetricCard } from '@/components/dashboard/MetricCard'
+import { PeriodFilter, defaultPeriod, type PeriodRange } from '@/components/dashboard/PeriodFilter'
 import { RevenueChart } from '@/components/dashboard/RevenueChart'
 import { TopProductsTable } from '@/components/dashboard/TopProductsTable'
 import { CounterpartyBalanceWidget } from '@/components/dashboard/CounterpartyBalanceWidget'
@@ -13,26 +15,31 @@ import { useUiStore } from '@/store/ui.store'
 
 export function DashboardPage() {
   const { activeBranch } = useUiStore()
-  const { data, isLoading } = useDashboardSummary(activeBranch?.id)
+  const [period, setPeriod] = useState<PeriodRange>(defaultPeriod)
+  const { data, isLoading } = useDashboardSummary({
+    branchId: activeBranch?.id,
+    dateFrom: period.dateFrom,
+    dateTo: period.dateTo,
+  })
   const { t } = useTranslation()
 
   const metrics = [
     {
       title: t('dashboard.revenueMonth'),
-      value: isLoading ? '…' : formatNumber(data?.revenueMonth ?? 0),
+      value: isLoading ? '…' : formatNumber(data?.revenue ?? 0),
       delta: undefined,
       icon: TrendingUp,
       iconColor: 'text-indigo-400',
     },
     {
       title: t('dashboard.profitMonth'),
-      value: isLoading ? '…' : formatNumber(data?.profitMonth ?? 0),
+      value: isLoading ? '…' : formatNumber(data?.profit ?? 0),
       delta: undefined,
       icon: DollarSign,
       iconColor: 'text-emerald-400',
     },
     {
-      title: t('dashboard.debtorDebt'),
+      title: `${t('dashboard.debtorDebt')} · ${t('dashboard.debtTotalHint')}`,
       value: isLoading ? '…' : formatNumber(data?.debtorDebt ?? 0),
       delta: undefined,
       icon: Users,
@@ -54,6 +61,14 @@ export function DashboardPage() {
         aria-hidden
         className="pointer-events-none absolute -top-20 left-1/3 h-96 w-96 rounded-full bg-indigo-500/5 blur-[120px]"
       />
+
+      {/* Period filter — applies to revenue & profit */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <span className="text-xs font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">
+          {t('dashboard.period')}
+        </span>
+        <PeriodFilter value={period} onChange={setPeriod} />
+      </div>
 
       {/* Metric cards — 4-col */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

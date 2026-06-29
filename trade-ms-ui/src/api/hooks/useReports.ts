@@ -67,8 +67,10 @@ export interface MonthlySales {
 }
 
 export interface DashboardSummaryResponse {
-  revenueMonth: number
-  profitMonth: number
+  dateFrom: string
+  dateTo: string
+  revenue: number
+  profit: number
   debtorDebt: number
   stockItemCount: number
   monthlySales: MonthlySales[]
@@ -96,10 +98,10 @@ export function useCounterpartyBalance(type?: string) {
   })
 }
 
-export function useDashboardSummary(branchId?: string) {
+export function useDashboardSummary(params?: { branchId?: string; dateFrom?: string; dateTo?: string }) {
   return useQuery<DashboardSummaryResponse>({
-    queryKey: ['reports', 'dashboard', branchId],
-    queryFn: () => reportsApi.getDashboardSummary({ branchId }),
+    queryKey: ['reports', 'dashboard', params],
+    queryFn: () => reportsApi.getDashboardSummary(params),
     staleTime: 60_000,
   })
 }
