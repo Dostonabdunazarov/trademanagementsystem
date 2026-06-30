@@ -319,7 +319,7 @@ export const ru = {
       stockItems: 'Остатки на складе',
       perMonth: 'за месяц',
       period: 'Период',
-      periodThisMonth: 'Этот месяц',
+      periodThisMonth: 'Текущий месяц',
       periodLastMonth: 'Прошлый месяц',
       periodQuarter: 'Квартал',
       periodYear: 'Год',
