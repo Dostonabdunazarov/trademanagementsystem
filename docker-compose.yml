@@ -2,6 +2,8 @@ services:
   db:
     image: postgres:17-alpine
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     environment:
       POSTGRES_DB: tradems
       POSTGRES_USER: postgres
@@ -21,6 +23,8 @@ services:
       context: ./TradeMS
       dockerfile: TradeMS.Api/Dockerfile
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     environment:
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: "Host=db;Port=5432;Database=tradems;Username=postgres;Password=${POSTGRES_PASSWORD}"
@@ -28,6 +32,7 @@ services:
       Jwt__Issuer: TradeMS
       Jwt__Audience: TradeMS
       Jwt__ExpiryMinutes: "60"
+      Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN}
       Seed__AdminEmail: ${ADMIN_EMAIL}
       Seed__AdminPassword: ${ADMIN_PASSWORD}
     depends_on:
@@ -47,6 +52,8 @@ services:
       args:
         VITE_API_URL: "/api"
     restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
     # Порт 80 наружу не публикуется — им владеет Caddy (/root/corpdev/infra).
     # Caddy проксирует savdo.hypex.site -> tradems-ui:80 по сети proxy.
     networks:

@@ -35,6 +35,9 @@ apiClient.interceptors.response.use(
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject })
       }).then((token) => {
+        // Mark as retried so a second 401 on the queued request does not trigger
+        // another refresh cycle (which could loop indefinitely).
+        original._retry = true
         original.headers.Authorization = `Bearer ${token}`
         return apiClient(original)
       })

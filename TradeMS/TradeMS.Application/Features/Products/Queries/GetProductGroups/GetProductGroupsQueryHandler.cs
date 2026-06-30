@@ -14,15 +14,16 @@ public class GetProductGroupsQueryHandler(IAppDbContext db)
             .Where(g => g.CompanyId == request.CompanyId)
             .ToListAsync(cancellationToken);
 
-        return BuildTree(groups, null);
+        // Index children by parent once (O(n)) instead of re-scanning the full list at every node.
+        var byParent = groups.ToLookup(g => g.ParentId);
+        return BuildTree(byParent, null);
     }
 
     private static List<ProductGroupDto> BuildTree(
-        List<Domain.Entities.ProductGroup> all, Guid? parentId)
+        ILookup<Guid?, Domain.Entities.ProductGroup> byParent, Guid? parentId)
     {
-        return all
-            .Where(g => g.ParentId == parentId)
-            .Select(g => new ProductGroupDto(g.Id, g.Name, g.ParentId, BuildTree(all, g.Id)))
+        return byParent[parentId]
+            .Select(g => new ProductGroupDto(g.Id, g.Name, g.ParentId, BuildTree(byParent, g.Id)))
             .ToList();
     }
 }

@@ -67,7 +67,7 @@ public class LoginCommandHandler(IAppDbContext db, IJwtService jwtService, IAudi
         user.LockoutUntil = null;
         var accessToken = jwtService.GenerateAccessToken(user);
         var refreshToken = jwtService.GenerateRefreshToken();
-        user.RefreshToken = refreshToken;
+        user.RefreshToken = jwtService.HashRefreshToken(refreshToken);
         user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
         await db.SaveChangesAsync(cancellationToken);
 

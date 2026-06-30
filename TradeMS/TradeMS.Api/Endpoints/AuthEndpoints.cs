@@ -1,5 +1,7 @@
+using System.Security.Claims;
 using MediatR;
 using TradeMS.Application.Features.Auth.Commands.Login;
+using TradeMS.Application.Features.Auth.Commands.Logout;
 using TradeMS.Application.Features.Auth.Commands.RefreshToken;
 using TradeMS.Application.Features.Auth.DTOs;
 
@@ -26,6 +28,17 @@ public static class AuthEndpoints
         })
         .AllowAnonymous()
         .WithSummary("Refresh access token");
+
+        group.MapPost("/logout", async (ClaimsPrincipal user, IMediator mediator) =>
+        {
+            var value = user.FindFirstValue(ClaimTypes.NameIdentifier)
+                     ?? user.FindFirstValue("sub")
+                     ?? throw new UnauthorizedAccessException("user id claim missing");
+            await mediator.Send(new LogoutCommand(Guid.Parse(value)));
+            return Results.NoContent();
+        })
+        .RequireAuthorization()
+        .WithSummary("Log out (revokes the refresh token)");
 
         return app;
     }

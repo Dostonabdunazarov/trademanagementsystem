@@ -6,5 +6,7 @@ public interface IJwtService
 {
     string GenerateAccessToken(User user);
     string GenerateRefreshToken();
-    (bool isValid, string email) ValidateRefreshToken(string token);
+
+    /// <summary>Hashes an opaque refresh token for at-rest storage (the raw token is never persisted).</summary>
+    string HashRefreshToken(string token);
 }

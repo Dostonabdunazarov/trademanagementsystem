@@ -43,9 +43,11 @@ public class JwtService(IConfiguration config) : IJwtService
         return Convert.ToBase64String(bytes);
     }
 
-    public (bool isValid, string email) ValidateRefreshToken(string token)
+    public string HashRefreshToken(string token)
     {
-        // Refresh tokens are opaque — validation is done via DB lookup
-        return (true, string.Empty);
+        // Refresh tokens are high-entropy random values, so a fast SHA-256 hash is sufficient
+        // (no need for a slow password hash). Only the hash is stored in the DB.
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(token));
+        return Convert.ToBase64String(hash);
     }
 }

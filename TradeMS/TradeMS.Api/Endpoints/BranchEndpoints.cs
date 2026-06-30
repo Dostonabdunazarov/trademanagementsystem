@@ -28,6 +28,7 @@ public static class BranchEndpoints
             var result = await mediator.Send(new CreateBranchCommand(companyId, req.Name, req.Address));
             return Results.Created($"/branches/{result.Id}", result);
         })
+        .RequireAuthorization(p => p.RequireRole("Admin"))
         .WithSummary("Create a new branch");
 
         group.MapDelete("/{id:guid}", async (Guid id, ClaimsPrincipal user, IMediator mediator) =>
@@ -36,6 +37,7 @@ public static class BranchEndpoints
             await mediator.Send(new DeleteBranchCommand(id, companyId));
             return Results.NoContent();
         })
+        .RequireAuthorization(p => p.RequireRole("Admin"))
         .WithSummary("Delete branch by id");
 
         return app;

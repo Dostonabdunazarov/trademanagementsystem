@@ -49,7 +49,7 @@ public class CreateDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
         {
             lines = BuildLines(request.Lines, request.ExchangeRate);
             var subtotal = lines.Sum(l => l.Total);
-            discountAmount = subtotal * (request.DiscountPercent / 100m);
+            discountAmount = Money(subtotal * (request.DiscountPercent / 100m));
             totalAmount = subtotal - discountAmount;
         }
 
@@ -66,7 +66,7 @@ public class CreateDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
             DiscountPercent = isPayment ? 0m : request.DiscountPercent,
             DiscountAmount  = discountAmount,
             TotalAmount     = totalAmount,
-            TotalAmountBase = totalAmount * request.ExchangeRate,
+            TotalAmountBase = Money(totalAmount * request.ExchangeRate),
             Note          = request.Note,
             Amount        = isPayment ? request.Amount : null,
             PaymentMethod = isPayment ? Enum.TryParse<PaymentMethod>(request.PaymentMethod, true, out var pm) ? pm : null : null,
@@ -88,12 +88,15 @@ public class CreateDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
         return await BuildDto(doc.Id, request.CompanyId, cancellationToken);
     }
 
+    /// <summary>Rounds a monetary value to 2 decimal places (currency scale).</summary>
+    internal static decimal Money(decimal value) => Math.Round(value, 2, MidpointRounding.AwayFromZero);
+
     private static List<DocumentLine> BuildLines(
         IReadOnlyList<CreateDocumentLineRequest> requests, decimal exchangeRate)
     {
         return requests.Select(r =>
         {
-            var discountPrice = r.Price * (1 - r.DiscountPercent / 100m);
+            var discountPrice = Money(r.Price * (1 - r.DiscountPercent / 100m));
             return new DocumentLine
             {
                 ProductId      = r.ProductId,
@@ -101,7 +104,7 @@ public class CreateDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
                 Price          = r.Price,
                 DiscountPercent = r.DiscountPercent,
                 DiscountPrice  = discountPrice,
-                Total          = r.Quantity * discountPrice,
+                Total          = Money(r.Quantity * discountPrice),
             };
         }).ToList();
     }

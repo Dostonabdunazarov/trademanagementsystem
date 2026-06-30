@@ -29,6 +29,7 @@ public static class CurrencyEndpoints
                 new CreateCurrencyCommand(req.Code, req.Name, req.IsBase));
             return Results.Created($"/currencies/{result.Id}", result);
         })
+        .RequireAuthorization(p => p.RequireRole("Admin"))
         .WithSummary("Create currency (setting IsBase=true demotes other base currencies)");
 
         // ── Exchange Rates ────────────────────────────────────────────────────
@@ -49,6 +50,7 @@ public static class CurrencyEndpoints
                 req.FromCurrencyId, req.ToCurrencyId, req.Rate, req.Date));
             return Results.Created($"/exchange-rates/{result.Id}", result);
         })
+        .RequireAuthorization(p => p.RequireRole("Admin"))
         .WithSummary("Create or update exchange rate for a currency pair on a given date");
 
         return app;
