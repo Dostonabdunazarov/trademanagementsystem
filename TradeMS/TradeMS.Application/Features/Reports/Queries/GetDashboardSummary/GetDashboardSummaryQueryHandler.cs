@@ -12,6 +12,14 @@ public class GetDashboardSummaryQueryHandler(IAppDbContext db)
     private static readonly string[] MonthLabels =
         ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"];
 
+    // Aggregates calculated for a given date range — used for both the selected period
+    // and the immediately preceding comparable period (for percentage deltas).
+    private record PeriodStats(
+        decimal Revenue, decimal Profit, decimal CashIn, decimal CashOut, int SalesCount)
+    {
+        public decimal CashFlow => CashIn - CashOut;
+    }
+
     public async Task<DashboardSummaryDto> Handle(
         GetDashboardSummaryQuery request, CancellationToken cancellationToken)
     {
@@ -21,20 +29,18 @@ public class GetDashboardSummaryQueryHandler(IAppDbContext db)
         var periodFrom = request.DateFrom ?? new DateOnly(today.Year, today.Month, 1);
         var periodTo = request.DateTo ?? today;
 
-        // Revenue and profit for the selected period — both calculated from document lines for consistency
-        var periodLines = await db.DocumentLines
-            .Where(l =>
-                l.Document.CompanyId == request.CompanyId &&
-                l.Document.Status == DocumentStatus.Confirmed &&
-                l.Document.Type == DocumentType.Expense &&
-                l.Document.Date >= periodFrom &&
-                l.Document.Date <= periodTo &&
-                (!request.BranchId.HasValue || l.Document.BranchId == request.BranchId.Value))
-            .Select(l => new { l.Total, Cost = l.Quantity * l.Product.PriceBuy })
-            .ToListAsync(cancellationToken);
+        // Current period aggregates
+        var current = await ComputePeriodStats(request, periodFrom, periodTo, cancellationToken);
 
-        var revenue = periodLines.Sum(l => l.Total);
-        var profit = revenue - periodLines.Sum(l => l.Cost);
+        // Previous comparable period: same length, immediately preceding `periodFrom`
+        var periodLength = periodTo.DayNumber - periodFrom.DayNumber; // inclusive span in days
+        var prevTo = periodFrom.AddDays(-1);
+        var prevFrom = prevTo.AddDays(-periodLength);
+        var previous = await ComputePeriodStats(request, prevFrom, prevTo, cancellationToken);
+
+        var averageCheck = current.SalesCount > 0
+            ? current.Revenue / current.SalesCount
+            : 0m;
 
         // Debtor debt: Expense − ReturnFromCustomer − PayOut, filtered by branch if set
         // (mirrors the Balance logic in ConfirmDocumentCommandHandler)
@@ -53,11 +59,38 @@ public class GetDashboardSummaryQueryHandler(IAppDbContext db)
                     : -d.TotalAmountBase,
                 cancellationToken);
 
-        // Stock item count
-        var stockItemCount = await db.Stocks
+        // Creditor debt: what we owe suppliers — mirror of the debtor logic.
+        // Income increases our debt; ReturnToSupplier and PayIn reduce it. Returned as a
+        // positive amount (how much we owe).
+        var creditorDebt = await db.Documents
+            .Where(d =>
+                d.CompanyId == request.CompanyId &&
+                d.Status == DocumentStatus.Confirmed &&
+                d.Counterparty!.Type == CounterpartyType.Supplier &&
+                (d.Type == DocumentType.Income ||
+                 d.Type == DocumentType.ReturnToSupplier ||
+                 d.Type == DocumentType.PayIn) &&
+                (!request.BranchId.HasValue || d.BranchId == request.BranchId.Value))
+            .SumAsync(d =>
+                d.Type == DocumentType.Income
+                    ? d.TotalAmountBase
+                    : -d.TotalAmountBase,
+                cancellationToken);
+
+        // Stock item count and total buy value (cost of inventory on hand)
+        var stockAgg = await db.Stocks
             .Where(s => s.Product.CompanyId == request.CompanyId && s.Quantity > 0 &&
                         (!request.BranchId.HasValue || s.BranchId == request.BranchId.Value))
-            .LongCountAsync(cancellationToken);
+            .GroupBy(s => 1)
+            .Select(g => new
+            {
+                Count = g.LongCount(),
+                BuyValue = g.Sum(s => s.Quantity * s.Product.PriceBuy),
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var stockItemCount = stockAgg?.Count ?? 0L;
+        var stockBuyValue = stockAgg?.BuyValue ?? 0m;
 
         // Monthly sales for last 12 months
         var yearAgo = today.AddMonths(-11);
@@ -98,6 +131,75 @@ public class GetDashboardSummaryQueryHandler(IAppDbContext db)
         }
 
         return new DashboardSummaryDto(
-            periodFrom, periodTo, revenue, profit, debtorDebt, stockItemCount, monthlySales);
+            periodFrom, periodTo,
+            current.Revenue, current.Profit, debtorDebt, stockItemCount,
+            creditorDebt,
+            current.CashIn, current.CashOut,
+            current.SalesCount, averageCheck,
+            stockBuyValue,
+            PercentDelta(current.Revenue, previous.Revenue),
+            PercentDelta(current.Profit, previous.Profit),
+            PercentDelta(current.CashFlow, previous.CashFlow),
+            PercentDelta(current.SalesCount, previous.SalesCount),
+            monthlySales);
+    }
+
+    private async Task<PeriodStats> ComputePeriodStats(
+        GetDashboardSummaryQuery request, DateOnly from, DateOnly to, CancellationToken ct)
+    {
+        // Revenue and profit — calculated from document lines for consistency
+        var lines = await db.DocumentLines
+            .Where(l =>
+                l.Document.CompanyId == request.CompanyId &&
+                l.Document.Status == DocumentStatus.Confirmed &&
+                l.Document.Type == DocumentType.Expense &&
+                l.Document.Date >= from &&
+                l.Document.Date <= to &&
+                (!request.BranchId.HasValue || l.Document.BranchId == request.BranchId.Value))
+            .Select(l => new { l.Total, Cost = l.Quantity * l.Product.PriceBuy })
+            .ToListAsync(ct);
+
+        var revenue = lines.Sum(l => l.Total);
+        var profit = revenue - lines.Sum(l => l.Cost);
+
+        // Number of confirmed sales (Expense documents) in the period
+        var salesCount = await db.Documents
+            .Where(d =>
+                d.CompanyId == request.CompanyId &&
+                d.Status == DocumentStatus.Confirmed &&
+                d.Type == DocumentType.Expense &&
+                d.Date >= from && d.Date <= to &&
+                (!request.BranchId.HasValue || d.BranchId == request.BranchId.Value))
+            .CountAsync(ct);
+
+        // Cash flow: PayIn (money received) and PayOut (money paid out) in the period
+        var cashIn = await db.Documents
+            .Where(d =>
+                d.CompanyId == request.CompanyId &&
+                d.Status == DocumentStatus.Confirmed &&
+                d.Type == DocumentType.PayIn &&
+                d.Date >= from && d.Date <= to &&
+                (!request.BranchId.HasValue || d.BranchId == request.BranchId.Value))
+            .SumAsync(d => d.TotalAmountBase, ct);
+
+        var cashOut = await db.Documents
+            .Where(d =>
+                d.CompanyId == request.CompanyId &&
+                d.Status == DocumentStatus.Confirmed &&
+                d.Type == DocumentType.PayOut &&
+                d.Date >= from && d.Date <= to &&
+                (!request.BranchId.HasValue || d.BranchId == request.BranchId.Value))
+            .SumAsync(d => d.TotalAmountBase, ct);
+
+        return new PeriodStats(revenue, profit, cashIn, cashOut, salesCount);
+    }
+
+    // Percentage change of `current` vs `previous`, rounded to 1 decimal place.
+    // Returns null when there is no comparable base (previous == 0).
+    private static decimal? PercentDelta(decimal current, decimal previous)
+    {
+        if (previous == 0m)
+            return null;
+        return Math.Round((current - previous) / Math.Abs(previous) * 100m, 1);
     }
 }
