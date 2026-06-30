@@ -64,6 +64,21 @@ public record DashboardSummaryDto(
     decimal Profit,
     decimal DebtorDebt,
     long StockItemCount,
+    // Кредиторская задолженность — сколько мы должны поставщикам
+    decimal CreditorDebt,
+    // Денежный поток за период
+    decimal CashIn,
+    decimal CashOut,
+    // Количество продаж и средний чек за период
+    int SalesCount,
+    decimal AverageCheck,
+    // Себестоимость складских остатков (деньги, замороженные в товаре)
+    decimal StockBuyValue,
+    // Процентные дельты к предыдущему сопоставимому периоду (null, если базы для сравнения нет)
+    decimal? RevenueDelta,
+    decimal? ProfitDelta,
+    decimal? CashFlowDelta,
+    decimal? SalesCountDelta,
     IReadOnlyList<MonthlySalesDto> MonthlySales
 );
 

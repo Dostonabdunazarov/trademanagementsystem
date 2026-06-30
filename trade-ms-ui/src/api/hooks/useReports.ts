@@ -73,6 +73,16 @@ export interface DashboardSummaryResponse {
   profit: number
   debtorDebt: number
   stockItemCount: number
+  creditorDebt: number
+  cashIn: number
+  cashOut: number
+  salesCount: number
+  averageCheck: number
+  stockBuyValue: number
+  revenueDelta: number | null
+  profitDelta: number | null
+  cashFlowDelta: number | null
+  salesCountDelta: number | null
   monthlySales: MonthlySales[]
 }
 
