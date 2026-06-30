@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Domain.Entities;
 
@@ -20,6 +21,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+
+    public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+        => Database.BeginTransactionAsync(cancellationToken);
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -68,6 +72,9 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.Balance).HasPrecision(18, 2);
             e.Property(x => x.CreatedAt).HasDefaultValueSql("now()");
             e.HasOne(x => x.Company).WithMany(x => x.Counterparties).HasForeignKey(x => x.CompanyId);
+            // Optimistic concurrency on the denormalized Balance field (read-modify-write on confirm).
+            // Maps PostgreSQL's system xmin column as a row-version token — no schema change required.
+            e.Property<uint>("xmin").IsRowVersion();
         });
 
         modelBuilder.Entity<Currency>(e =>
@@ -76,6 +83,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasKey(x => x.Id);
             e.Property(x => x.Code).HasMaxLength(3).IsRequired();
             e.Property(x => x.Name).HasMaxLength(50).IsRequired();
+            e.HasIndex(x => x.Code).IsUnique();
         });
 
         modelBuilder.Entity<ExchangeRate>(e =>
@@ -120,6 +128,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasIndex(x => new { x.ProductId, x.BranchId }).IsUnique();
             e.HasOne(x => x.Product).WithMany(x => x.Stocks).HasForeignKey(x => x.ProductId);
             e.HasOne(x => x.Branch).WithMany(x => x.Stocks).HasForeignKey(x => x.BranchId);
+            // Optimistic concurrency: prevent lost stock updates under concurrent confirms.
+            e.Property<uint>("xmin").IsRowVersion();
         });
 
         modelBuilder.Entity<Document>(e =>
@@ -185,6 +195,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasOne(x => x.Company).WithMany(x => x.Accounts).HasForeignKey(x => x.CompanyId);
             e.HasOne(x => x.Branch).WithMany(x => x.Accounts).HasForeignKey(x => x.BranchId);
             e.HasOne(x => x.Currency).WithMany(x => x.Accounts).HasForeignKey(x => x.CurrencyId);
+            // Optimistic concurrency: prevent lost balance updates under concurrent confirms.
+            e.Property<uint>("xmin").IsRowVersion();
         });
 
         modelBuilder.Entity<AuditLog>(e =>

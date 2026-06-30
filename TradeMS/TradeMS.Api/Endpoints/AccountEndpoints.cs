@@ -36,6 +36,7 @@ public static class AccountEndpoints
                 new CreateAccountCommand(companyId, branchId, req.Name, accountType, req.CurrencyId));
             return Results.Created($"/accounts/{result.Id}", result);
         })
+        .RequireAuthorization(p => p.RequireRole("Admin"))
         .WithSummary("Create a cash register or bank account");
 
         group.MapDelete("/{id:guid}", async (Guid id, ClaimsPrincipal user, IMediator mediator) =>
@@ -44,6 +45,7 @@ public static class AccountEndpoints
             await mediator.Send(new DeleteAccountCommand(id, companyId));
             return Results.NoContent();
         })
+        .RequireAuthorization(p => p.RequireRole("Admin"))
         .WithSummary("Delete account by id");
 
         return app;

@@ -27,6 +27,12 @@ public static class DependencyInjection
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IAuditLogger, AuditLogger>();
 
+        var jwtSecret = config["Jwt:Secret"];
+        if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.Length < 32)
+            throw new InvalidOperationException(
+                "Jwt:Secret is not configured or is shorter than 32 characters. " +
+                "Provide a strong secret via the Jwt__Secret environment variable.");
+
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(opts =>
             {
@@ -39,7 +45,9 @@ public static class DependencyInjection
                     ValidIssuer = config["Jwt:Issuer"],
                     ValidAudience = config["Jwt:Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(config["Jwt:Secret"]!))
+                        Encoding.UTF8.GetBytes(jwtSecret)),
+                    ValidAlgorithms = new[] { SecurityAlgorithms.HmacSha256 },
+                    ClockSkew = TimeSpan.FromSeconds(30)
                 };
             });
 

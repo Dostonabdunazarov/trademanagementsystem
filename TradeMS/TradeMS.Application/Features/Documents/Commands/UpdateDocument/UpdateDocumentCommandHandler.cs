@@ -37,7 +37,7 @@ public class UpdateDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
 
         var lines = request.Lines.Select(r =>
         {
-            var discountPrice = r.Price * (1 - r.DiscountPercent / 100m);
+            var discountPrice = CreateDocumentCommandHandler.Money(r.Price * (1 - r.DiscountPercent / 100m));
             return new DocumentLine
             {
                 DocumentId      = doc.Id,
@@ -46,18 +46,18 @@ public class UpdateDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
                 Price           = r.Price,
                 DiscountPercent = r.DiscountPercent,
                 DiscountPrice   = discountPrice,
-                Total           = r.Quantity * discountPrice,
+                Total           = CreateDocumentCommandHandler.Money(r.Quantity * discountPrice),
             };
         }).ToList();
 
         var subtotal = lines.Sum(l => l.Total);
-        var discountAmount = subtotal * (request.DiscountPercent / 100m);
+        var discountAmount = CreateDocumentCommandHandler.Money(subtotal * (request.DiscountPercent / 100m));
         var totalAmount = subtotal - discountAmount;
 
         doc.Lines           = lines;
         doc.DiscountAmount  = discountAmount;
         doc.TotalAmount     = totalAmount;
-        doc.TotalAmountBase = totalAmount * request.ExchangeRate;
+        doc.TotalAmountBase = CreateDocumentCommandHandler.Money(totalAmount * request.ExchangeRate);
 
         await db.SaveChangesAsync(cancellationToken);
 

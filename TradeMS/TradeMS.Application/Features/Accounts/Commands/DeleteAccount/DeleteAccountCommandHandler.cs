@@ -17,6 +17,13 @@ public class DeleteAccountCommandHandler(IAppDbContext db, IAuditLogger auditLog
                 cancellationToken)
             ?? throw new KeyNotFoundException($"Account {request.Id} not found");
 
+        // Guard against cascade data-loss: an account referenced by payments or documents must not
+        // be hard-deleted, otherwise the financial records pointing at it would be cascaded away.
+        if (await db.Payments.AnyAsync(p => p.AccountId == request.Id, cancellationToken))
+            throw new InvalidOperationException("Cannot delete an account that has payments.");
+        if (await db.Documents.AnyAsync(d => d.AccountId == request.Id, cancellationToken))
+            throw new InvalidOperationException("Cannot delete an account that is used in documents.");
+
         var snapshot = JsonSerializer.Serialize(new { name = account.Name });
 
         db.Accounts.Remove(account);

@@ -37,7 +37,10 @@ export function useUpdateDocument() {
   return useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdateDocumentPayload }) =>
       documentsApi.update(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['documents'] }),
+    onSuccess: (_data, { id }) => {
+      qc.invalidateQueries({ queryKey: ['documents'] })
+      qc.invalidateQueries({ queryKey: ['document', id] })
+    },
   })
 }
 
@@ -45,8 +48,9 @@ export function useConfirmDocument() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => documentsApi.confirm(id),
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       qc.invalidateQueries({ queryKey: ['documents'] })
+      qc.invalidateQueries({ queryKey: ['document', id] })
       qc.invalidateQueries({ queryKey: ['counterparties'] })
       qc.invalidateQueries({ queryKey: ['products'] })
       qc.invalidateQueries({ queryKey: ['accounts'] })
@@ -59,6 +63,13 @@ export function useDeleteDocument() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => documentsApi.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['documents'] }),
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ['documents'] })
+      qc.invalidateQueries({ queryKey: ['document', id] })
+      qc.invalidateQueries({ queryKey: ['counterparties'] })
+      qc.invalidateQueries({ queryKey: ['products'] })
+      qc.invalidateQueries({ queryKey: ['accounts'] })
+      qc.invalidateQueries({ queryKey: ['reports'] })
+    },
   })
 }

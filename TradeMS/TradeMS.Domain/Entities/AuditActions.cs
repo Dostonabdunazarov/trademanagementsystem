@@ -15,6 +15,7 @@ public static class AuditActions
     public const string DocCreate       = "DOC_CREATE";
     public const string DocUpdate       = "DOC_UPDATE";
     public const string DocConfirm      = "DOC_CONFIRM";
+    public const string DocCancel       = "DOC_CANCEL";
     public const string DocDelete       = "DOC_DELETE";
 
     public const string ProductCreate   = "PRODUCT_CREATE";

@@ -1,7 +1,7 @@
 ﻿import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Save, CheckCircle } from 'lucide-react'
+import { Save, CheckCircle, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { DocumentType, PaymentMethod } from '@/types/document'
 import { useCounterparties } from '@/api/hooks/useCounterparties'
@@ -92,6 +92,15 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
   const [accountId, setAccountId] = useState('')
   const [note, setNote] = useState('')
 
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const showToast = useCallback((message: string, type: 'success' | 'error') => {
+    setToast({ message, type })
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    toastTimer.current = setTimeout(() => setToast(null), 3500)
+  }, [])
+  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current) }, [])
+
   // Init currencyId and accountId once data loads
   useEffect(() => {
     if (currencies.length && !currencyId) {
@@ -172,15 +181,45 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
     accountId: accountId || null,
   })
 
+  const errorMessage = (err: unknown) =>
+    (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? t('common.error')
+
+  // Returns true if the form is valid enough to submit.
+  const validate = (requireAmount: boolean): boolean => {
+    if (!counterpartyId) {
+      showToast(t('documents.counterpartyRequired'), 'error')
+      return false
+    }
+    if (!currencyId || !accountId) {
+      showToast(t('common.error'), 'error')
+      return false
+    }
+    if (requireAmount && !(parseFloat(amount) > 0)) {
+      showToast(t('common.error'), 'error')
+      return false
+    }
+    return true
+  }
+
   const handleSaveDraft = async () => {
-    await createDoc.mutateAsync(buildPayload())
-    navigate(listRoute)
+    if (!validate(false)) return
+    try {
+      await createDoc.mutateAsync(buildPayload())
+      navigate(listRoute)
+    } catch (err) {
+      showToast(errorMessage(err), 'error')
+    }
   }
 
   const handleConfirm = async () => {
-    const doc = await createDoc.mutateAsync(buildPayload())
-    await confirmDoc.mutateAsync(doc.id)
-    navigate(listRoute)
+    if (!validate(true)) return
+    try {
+      const doc = await createDoc.mutateAsync(buildPayload())
+      await confirmDoc.mutateAsync(doc.id)
+      navigate(listRoute)
+    } catch (err) {
+      showToast(errorMessage(err), 'error')
+    }
   }
 
   const isBusy = createDoc.isPending || confirmDoc.isPending
@@ -203,7 +242,23 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
   const labelCls = 'text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]'
 
   return (
-    <div className={cn('flex flex-col h-full bg-background text-[hsl(var(--text-primary))]', className)}>
+    <div className={cn('flex flex-col h-full bg-background text-[hsl(var(--text-primary))] relative', className)}>
+      {/* Toast */}
+      {toast && (
+        <div className={cn(
+          'absolute top-4 right-4 z-50 flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs shadow-xl',
+          'transition-all animate-in fade-in slide-in-from-top-2',
+          toast.type === 'success'
+            ? 'border-emerald-600 bg-emerald-700 text-white'
+            : 'border-red-600 bg-red-700 text-white',
+        )}>
+          {toast.type === 'error'
+            ? <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+            : <CheckCircle className="h-3.5 w-3.5 shrink-0" />}
+          {toast.message}
+        </div>
+      )}
+
       {/* Title bar */}
       <div className="flex items-center justify-between px-6 pt-5 pb-4">
         <div className="flex items-center gap-2">
@@ -236,7 +291,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
             </button>
             <button
               onClick={handleConfirm}
-              disabled={isBusy || isBlocked || !counterpartyId || !amount}
+              disabled={isBusy || isBlocked || !counterpartyId || !(parseFloat(amount) > 0)}
               className={cn(
                 'flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 h-8 text-xs text-white font-medium',
                 'hover:bg-indigo-500 active:bg-indigo-700 transition-colors',

@@ -48,8 +48,7 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
         await CreateAndConfirm("Income", supplierId, productId, 20m, 12000m);
         await CreateAndConfirm("Expense", customerId, productId, 10m, 15000m);
 
-        // PayOut: customer pays 80000 (using product line as amount carrier)
-        var payProductId = TestDataSeeder.GetProductId(31);
+        // PayOut: customer pays 80000 (payment amount carried in `amount`, not lines)
         var payResp = await Client.PostAsJsonAsync("/api/documents", new
         {
             type = "PayOut",
@@ -58,7 +57,8 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
             currencyId = TestDataSeeder.CurrencyUzsId,
             exchangeRate = 1m,
             discountPercent = 0m,
-            lines = new[] { new { productId = payProductId, quantity = 1m, price = 80_000m, discountPercent = 0m } }
+            amount = 80_000m,
+            lines = Array.Empty<object>()
         });
         var payDraft = await payResp.Content.ReadFromJsonAsync<DocResp>(JsonOpts);
         await Client.PostAsync($"/api/documents/{payDraft!.Id}/confirm", null);
@@ -81,7 +81,6 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
         await CreateAndConfirm("Income", supplierId, productId, 10m, 12000m);
 
         // PayIn: we pay supplier 50000
-        var payProductId = TestDataSeeder.GetProductId(33);
         var payResp = await Client.PostAsJsonAsync("/api/documents", new
         {
             type = "PayIn",
@@ -90,7 +89,8 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
             currencyId = TestDataSeeder.CurrencyUzsId,
             exchangeRate = 1m,
             discountPercent = 0m,
-            lines = new[] { new { productId = payProductId, quantity = 1m, price = 50_000m, discountPercent = 0m } }
+            amount = 50_000m,
+            lines = Array.Empty<object>()
         });
         var payDraft = await payResp.Content.ReadFromJsonAsync<DocResp>(JsonOpts);
         await Client.PostAsync($"/api/documents/{payDraft!.Id}/confirm", null);
@@ -114,7 +114,6 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
         await CreateAndConfirm("Expense", customerId, productId, 4m, 50_000m);
 
         // First payment: 75000
-        var payProductId = TestDataSeeder.GetProductId(35);
         var p1Resp = await Client.PostAsJsonAsync("/api/documents", new
         {
             type = "PayOut",
@@ -123,7 +122,8 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
             currencyId = TestDataSeeder.CurrencyUzsId,
             exchangeRate = 1m,
             discountPercent = 0m,
-            lines = new[] { new { productId = payProductId, quantity = 1m, price = 75_000m, discountPercent = 0m } }
+            amount = 75_000m,
+            lines = Array.Empty<object>()
         });
         var p1 = await p1Resp.Content.ReadFromJsonAsync<DocResp>(JsonOpts);
         await Client.PostAsync($"/api/documents/{p1!.Id}/confirm", null);
@@ -137,7 +137,8 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
             currencyId = TestDataSeeder.CurrencyUzsId,
             exchangeRate = 1m,
             discountPercent = 0m,
-            lines = new[] { new { productId = payProductId, quantity = 1m, price = 50_000m, discountPercent = 0m } }
+            amount = 50_000m,
+            lines = Array.Empty<object>()
         });
         var p2 = await p2Resp.Content.ReadFromJsonAsync<DocResp>(JsonOpts);
         await Client.PostAsync($"/api/documents/{p2!.Id}/confirm", null);
@@ -159,7 +160,6 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
         await CreateAndConfirm("Income", supplierId, productId, 10m, 12000m);
 
         // PayIn
-        var payProductId = TestDataSeeder.GetProductId(37);
         var payResp = await Client.PostAsJsonAsync("/api/documents", new
         {
             type = "PayIn",
@@ -168,7 +168,8 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
             currencyId = TestDataSeeder.CurrencyUzsId,
             exchangeRate = 1m,
             discountPercent = 0m,
-            lines = new[] { new { productId = payProductId, quantity = 1m, price = 30_000m, discountPercent = 0m } }
+            amount = 30_000m,
+            lines = Array.Empty<object>()
         });
         var payDraft = await payResp.Content.ReadFromJsonAsync<DocResp>(JsonOpts);
         await Client.PostAsync($"/api/documents/{payDraft!.Id}/confirm", null);

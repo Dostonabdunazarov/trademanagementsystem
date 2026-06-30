@@ -13,7 +13,7 @@ public class GetCounterpartyBalanceQueryHandler(IAppDbContext db)
         GetCounterpartyBalanceQuery request, CancellationToken cancellationToken)
     {
         var query = db.Counterparties
-            .Where(c => c.CompanyId == request.CompanyId);
+            .Where(c => c.CompanyId == request.CompanyId && c.DeletedAt == null);
 
         if (!string.IsNullOrWhiteSpace(request.Type) &&
             Enum.TryParse<CounterpartyType>(request.Type, true, out var cpType))

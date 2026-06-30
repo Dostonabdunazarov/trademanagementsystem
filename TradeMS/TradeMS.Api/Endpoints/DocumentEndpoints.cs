@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using MediatR;
+using TradeMS.Application.Features.Documents.Commands.CancelDocument;
 using TradeMS.Application.Features.Documents.Commands.ConfirmDocument;
 using TradeMS.Application.Features.Documents.Commands.CreateDocument;
 using TradeMS.Application.Features.Documents.Commands.DeleteDocument;
@@ -113,6 +114,17 @@ public static class DocumentEndpoints
             return Results.Ok(result);
         })
         .WithSummary("Confirm document (updates stock and counterparty balance)");
+
+        group.MapPost("/{id:long}/cancel", async (long id, ClaimsPrincipal user, IMediator mediator) =>
+        {
+            var companyId = GetCompanyId(user);
+            var role = user.FindFirstValue(ClaimTypes.Role);
+            var branchId = role == "Admin" ? null : TryGetBranchId(user);
+
+            var result = await mediator.Send(new CancelDocumentCommand(id, companyId, branchId));
+            return Results.Ok(result);
+        })
+        .WithSummary("Cancel a confirmed document (reverses stock, balances and payment)");
 
         group.MapDelete("/{id:long}", async (long id, ClaimsPrincipal user, IMediator mediator) =>
         {

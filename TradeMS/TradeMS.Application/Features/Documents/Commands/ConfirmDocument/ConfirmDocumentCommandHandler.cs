@@ -15,6 +15,28 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
     public async Task<DocumentDto> Handle(
         ConfirmDocumentCommand request, CancellationToken cancellationToken)
     {
+        // Retry on optimistic-concurrency conflicts (Stock/Counterparty/Account use the
+        // PostgreSQL xmin row-version token). Concurrent confirms touching the same rows
+        // would otherwise silently lose an update.
+        const int maxAttempts = 3;
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return await ConfirmAsync(request, cancellationToken);
+            }
+            catch (DbUpdateConcurrencyException) when (attempt < maxAttempts)
+            {
+                // fall through and retry with freshly-read values
+            }
+        }
+    }
+
+    private async Task<DocumentDto> ConfirmAsync(
+        ConfirmDocumentCommand request, CancellationToken cancellationToken)
+    {
+        await using var transaction = await db.BeginTransactionAsync(cancellationToken);
+
         var doc = await db.Documents
             .Include(d => d.Lines)
             .Include(d => d.Counterparty)
@@ -28,6 +50,36 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
 
         if (doc.Status != DocumentStatus.Draft)
             throw new InvalidOperationException($"Document is already {doc.Status}");
+
+        // ── курс в базовую валюту (источник истины — сервер, не клиент) ─────────
+        // Берём официальный курс из таблицы ExchangeRate (последний на дату документа),
+        // пересчитываем TotalAmountBase. Клиентский ExchangeRate в расчёте не участвует.
+        var baseCurrency = await db.Currencies
+            .FirstOrDefaultAsync(c => c.IsBase, cancellationToken)
+            ?? throw new InvalidOperationException("No base currency is configured");
+
+        decimal serverRate;
+        if (doc.CurrencyId == baseCurrency.Id)
+        {
+            serverRate = 1m;
+        }
+        else
+        {
+            var rate = await db.ExchangeRates
+                .Where(r => r.FromCurrencyId == doc.CurrencyId
+                            && r.ToCurrencyId == baseCurrency.Id
+                            && r.Date <= doc.Date)
+                .OrderByDescending(r => r.Date)
+                .Select(r => (decimal?)r.Rate)
+                .FirstOrDefaultAsync(cancellationToken)
+                ?? throw new InvalidOperationException(
+                    $"No exchange rate found for currency {doc.Currency?.Code ?? doc.CurrencyId.ToString()} " +
+                    $"to base currency {baseCurrency.Code} on or before {doc.Date}");
+            serverRate = rate;
+        }
+
+        doc.ExchangeRate = serverRate;
+        doc.TotalAmountBase = Math.Round(doc.TotalAmount * serverRate, 2, MidpointRounding.AwayFromZero);
 
         // ── склад ─────────────────────────────────────────────────────────────
         // Expense / ReturnToSupplier  → уменьшить склад
@@ -118,6 +170,13 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
 
             if (account is not null)
             {
+                // Account balances are kept in the base currency, and the delta we apply is
+                // TotalAmountBase. Applying it to an account denominated in another currency would
+                // corrupt that account's balance, so require the account to be in the base currency.
+                if (account.CurrencyId != baseCurrency.Id)
+                    throw new InvalidOperationException(
+                        "Payment account currency must match the base currency.");
+
                 var accountDelta = doc.Type == DocumentType.PayIn
                     ? +doc.TotalAmountBase
                     : -doc.TotalAmountBase;
@@ -145,6 +204,7 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
         doc.ConfirmedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
 
         // reload with navigations for response
         var confirmed = await db.Documents

@@ -23,7 +23,12 @@ public class GetAuditLogsQueryHandler(IAppDbContext db)
             query = query.Where(l => l.CreatedAt >= request.DateFrom.Value);
 
         if (request.DateTo.HasValue)
-            query = query.Where(l => l.CreatedAt <= request.DateTo.Value);
+        {
+            // DateTo is treated as an inclusive day boundary. CreatedAt is a full timestamp, so use
+            // a strict "< next day" comparison to include entries created later on the DateTo day.
+            var dateToExclusive = request.DateTo.Value.Date.AddDays(1);
+            query = query.Where(l => l.CreatedAt < dateToExclusive);
+        }
 
         if (request.Success.HasValue)
             query = query.Where(l => l.Success == request.Success.Value);
