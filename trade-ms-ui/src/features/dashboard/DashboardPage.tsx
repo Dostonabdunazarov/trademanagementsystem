@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { TrendingUp, DollarSign, Users, CreditCard, Wallet, Receipt, Boxes } from 'lucide-react'
+import { TrendingUp, DollarSign, Users, CreditCard } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { MetricCard } from '@/components/dashboard/MetricCard'
 import { PeriodFilter, defaultPeriod, type PeriodRange } from '@/components/dashboard/PeriodFilter'
@@ -62,45 +62,6 @@ export function DashboardPage() {
     },
   ]
 
-  const cashFlow = (data?.cashIn ?? 0) - (data?.cashOut ?? 0)
-
-  // Row 2 — operational metrics
-  const secondaryMetrics = [
-    {
-      title: t('dashboard.cashFlow'),
-      value: isLoading ? '…' : formatNumber(cashFlow),
-      delta: delta(data?.cashFlowDelta),
-      deltaLabel: vsPrev,
-      icon: Wallet,
-      iconColor: 'text-cyan-400',
-    },
-    {
-      title: t('dashboard.salesCount'),
-      value: isLoading
-        ? '…'
-        : `${(data?.salesCount ?? 0).toLocaleString('ru-RU')} ${t('dashboard.salesCountUnit')}`,
-      delta: delta(data?.salesCountDelta),
-      deltaLabel: vsPrev,
-      icon: Receipt,
-      iconColor: 'text-sky-400',
-    },
-    {
-      title: t('dashboard.averageCheck'),
-      value: isLoading ? '…' : formatNumber(Math.round(data?.averageCheck ?? 0)),
-      delta: undefined,
-      icon: DollarSign,
-      iconColor: 'text-teal-400',
-    },
-    {
-      // Total cost value of inventory on hand (с подписью кол-ва позиций)
-      title: `${t('dashboard.stockBuyValue')} · ${(data?.stockItemCount ?? 0).toLocaleString('ru-RU')} ${t('dashboard.stockItemsUnit')}`,
-      value: isLoading ? '…' : formatNumber(data?.stockBuyValue ?? 0),
-      delta: undefined,
-      icon: Boxes,
-      iconColor: 'text-violet-400',
-    },
-  ]
-
   return (
     <div className="relative min-h-full p-6 pb-24">
       {/* Ambient glow */}
@@ -120,13 +81,6 @@ export function DashboardPage() {
       {/* Metric cards — 4-col */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {metrics.map((m) => (
-          <MetricCard key={m.title} {...m} />
-        ))}
-      </div>
-
-      {/* Operational metric cards — 4-col */}
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {secondaryMetrics.map((m) => (
           <MetricCard key={m.title} {...m} />
         ))}
       </div>
