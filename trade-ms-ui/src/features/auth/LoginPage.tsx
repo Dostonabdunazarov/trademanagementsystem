@@ -55,11 +55,11 @@ export function LoginPage() {
         loop
         playsInline
         preload="auto"
-        poster="/login-bg-poster.jpg"
+        poster="/login-bg-poster-v2.jpg"
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
         style={{ objectPosition: '60% center' }}
       >
-        <source src="/login-bg.mp4" type="video/mp4" />
+        <source src="/login-bg-v2.mp4" type="video/mp4" />
       </video>
 
       {/* Dark overlay for readability */}
