@@ -46,30 +46,26 @@ export function LoginPage() {
   const onSubmit = (values: FormValues) => mutation.mutate(values)
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background">
-      {/* Ambient glow blobs */}
-      <div
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black">
+      {/* Background video */}
+      <video
         aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/2 h-[500px] w-[500px] -translate-x-1/2 rounded-full bg-indigo-500/20 blur-[120px]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute bottom-0 right-0 h-[350px] w-[350px] rounded-full bg-violet-600/15 blur-[100px]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute bottom-0 left-0 h-[250px] w-[250px] rounded-full bg-cyan-500/10 blur-[80px]"
-      />
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        poster="/login-bg-poster.jpg"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+        style={{ objectPosition: '70% center' }}
+      >
+        <source src="/login-bg.mp4" type="video/mp4" />
+      </video>
 
-      {/* Grid pattern overlay */}
+      {/* Dark overlay for readability */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-        }}
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80"
       />
 
       {/* Language switcher top-right */}
