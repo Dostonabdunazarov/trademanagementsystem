@@ -57,7 +57,7 @@ export function LoginPage() {
         preload="auto"
         poster="/login-bg-poster.jpg"
         className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        style={{ objectPosition: '70% center' }}
+        style={{ objectPosition: '60% center' }}
       >
         <source src="/login-bg.mp4" type="video/mp4" />
       </video>
