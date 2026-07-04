@@ -38,6 +38,7 @@ export function MainLayout() {
   const { user, logout } = useAuthStore()
   const { sidebarOpen, toggleSidebar, language, setLanguage, theme, toggleTheme } = useUiStore()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [tooltip, setTooltip] = useState<{ label: string; top: number } | null>(null)
   const navigate = useNavigate()
 
   const handleLogout = useCallback(() => {
@@ -155,6 +156,15 @@ export function MainLayout() {
                   key={to}
                   to={to}
                   end={end}
+                  onMouseEnter={
+                    !sidebarOpen
+                      ? (e) => {
+                          const r = e.currentTarget.getBoundingClientRect()
+                          setTooltip({ label, top: r.top + r.height / 2 })
+                        }
+                      : undefined
+                  }
+                  onMouseLeave={!sidebarOpen ? () => setTooltip(null) : undefined}
                   className={({ isActive }) =>
                     cn(
                       'group relative flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm transition-all duration-150',
@@ -171,11 +181,6 @@ export function MainLayout() {
                       )}
                       <Icon className={cn('nav-link-icon h-4 w-4 shrink-0 transition-colors', isActive ? 'text-indigo-500' : 'text-[hsl(var(--text-muted))]')} strokeWidth={1.8} />
                       {sidebarOpen && <span className="truncate transition-all duration-150 group-hover:text-[0.9375rem]">{label}</span>}
-                      {!sidebarOpen && (
-                        <span className="absolute left-full ml-2 hidden whitespace-nowrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-2 py-1 text-xs text-[hsl(var(--text-primary))] shadow-xl group-hover:block">
-                          {label}
-                        </span>
-                      )}
                     </>
                   )}
                 </NavLink>
@@ -214,6 +219,16 @@ export function MainLayout() {
           </div>
         </div>
       </aside>
+
+      {/* Collapsed-sidebar tooltip (fixed, escapes scroll clipping) */}
+      {!sidebarOpen && tooltip && (
+        <div
+          className="pointer-events-none fixed left-[4.25rem] z-50 -translate-y-1/2 whitespace-nowrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-2.5 py-1 text-xs font-medium text-[hsl(var(--text-primary))] shadow-xl animate-in fade-in duration-150"
+          style={{ top: tooltip.top }}
+        >
+          {tooltip.label}
+        </div>
+      )}
 
       {/* Main */}
       <div className="flex flex-1 flex-col min-h-0">
