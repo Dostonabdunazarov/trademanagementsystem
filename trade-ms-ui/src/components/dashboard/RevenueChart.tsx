@@ -1,28 +1,53 @@
-﻿import { useTranslation } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
+import {
+  Bar,
+  CartesianGrid,
+  ComposedChart,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import type { TooltipContentProps } from 'recharts'
 import { cn } from '@/lib/utils'
+import { formatCurrency } from '@/utils/format'
 import type { MonthlySales } from '@/api/hooks/useReports'
 
-const W = 560
-const H = 160
-const PAD = { top: 12, right: 12, bottom: 28, left: 40 }
-const chartW = W - PAD.left - PAD.right
-const chartH = H - PAD.top - PAD.bottom
+const REVENUE_COLOR = '#6366F1' // indigo — совпадает с --primary
+const PROFIT_COLOR = '#10B981' // emerald
 
-function toX(i: number, total: number) {
-  return PAD.left + (i / Math.max(total - 1, 1)) * chartW
-}
-function toY(v: number, maxVal: number) {
-  if (maxVal === 0) return PAD.top + chartH
-  return PAD.top + chartH - (Math.max(v, 0) / maxVal) * chartH
+/** Компактный формат оси Y: 57 000 000 → «57 млн» */
+function formatAxis(value: number): string {
+  if (value === 0) return '0'
+  if (value >= 1_000_000) return `${(value / 1_000_000).toLocaleString('ru-RU', { maximumFractionDigits: 1 })} млн`
+  if (value >= 1_000) return `${Math.round(value / 1_000)} тыс`
+  return value.toLocaleString('ru-RU')
 }
 
-function polylinePts(data: MonthlySales[], key: 'revenue' | 'profit', maxVal: number) {
-  return data.map((d, i) => `${toX(i, data.length)},${toY(d[key], maxVal)}`).join(' ')
-}
-
-function areaPath(data: MonthlySales[], key: 'revenue' | 'profit', maxVal: number) {
-  const pts = data.map((d, i) => `${toX(i, data.length)},${toY(d[key], maxVal)}`).join(' L ')
-  return `M ${toX(0, data.length)},${toY(data[0][key], maxVal)} L ${pts} L ${toX(data.length - 1, data.length)},${H - PAD.bottom} L ${toX(0, data.length)},${H - PAD.bottom} Z`
+function renderTooltip(
+  { active, payload, label }: TooltipContentProps,
+  revenueLabel: string,
+  profitLabel: string,
+) {
+  if (!active || !payload?.length) return null
+  const revenue = Number(payload.find((p) => p.dataKey === 'revenue')?.value ?? 0)
+  const profit = Number(payload.find((p) => p.dataKey === 'profit')?.value ?? 0)
+  return (
+    <div className="rounded-lg border border-[hsl(var(--border))] bg-card px-3 py-2 shadow-lg">
+      <div className="mb-1.5 text-xs font-semibold text-[hsl(var(--text-primary))]">{label}</div>
+      <div className="flex items-center gap-2 text-xs">
+        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: REVENUE_COLOR }} />
+        <span className="text-[hsl(var(--text-muted))]">{revenueLabel}</span>
+        <span className="ml-auto font-semibold text-[hsl(var(--text-primary))]">{formatCurrency(revenue)}</span>
+      </div>
+      <div className="mt-1 flex items-center gap-2 text-xs">
+        <span className="h-2 w-2 rounded-full" style={{ backgroundColor: PROFIT_COLOR }} />
+        <span className="text-[hsl(var(--text-muted))]">{profitLabel}</span>
+        <span className="ml-auto font-semibold text-[hsl(var(--text-primary))]">{formatCurrency(profit)}</span>
+      </div>
+    </div>
+  )
 }
 
 interface Props {
@@ -33,25 +58,18 @@ interface Props {
 
 export function RevenueChart({ className, loading, monthlySales }: Props) {
   const { t } = useTranslation()
+
   if (loading || !monthlySales) {
     return (
       <div className={cn('rounded-xl border border-[hsl(var(--border))] bg-card p-5 animate-pulse', className)}>
         <div className="mb-4 h-4 w-32 rounded bg-[hsl(var(--surface-2))]" />
-        <div className="h-40 rounded bg-[hsl(var(--surface-2))]" />
+        <div className="h-56 rounded bg-[hsl(var(--surface-2))]" />
       </div>
     )
   }
 
-  const data = monthlySales
-  const rawMax = Math.max(...data.map((d) => d.revenue), 1)
-
-  // Round up maxVal to a nice round number for clean tick labels
-  const magnitude = Math.pow(10, Math.floor(Math.log10(rawMax)))
-  const nice = Math.ceil(rawMax / magnitude) * magnitude
-  const maxVal = nice
-
-  // Generate 4 evenly spaced ticks (0, 25%, 50%, 75%, 100%)
-  const ticks = [0, 1, 2, 3, 4].map((i) => Math.round((i / 4) * maxVal))
+  const revenueLabel = t('dashboard.revenue')
+  const profitLabel = t('dashboard.profit')
 
   return (
     <div className={cn('rounded-xl border border-[hsl(var(--border))] bg-card p-5', className)}>
@@ -59,93 +77,66 @@ export function RevenueChart({ className, loading, monthlySales }: Props) {
         <h3 className="text-sm font-semibold text-[hsl(var(--text-primary))]">{t('dashboard.revenueAndProfit')}</h3>
         <div className="flex items-center gap-4 text-xs text-[hsl(var(--text-muted))]">
           <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-indigo-400" />
-            {t('dashboard.revenue')}
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: REVENUE_COLOR }} />
+            {revenueLabel}
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            {t('dashboard.profit')}
+            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: PROFIT_COLOR }} />
+            {profitLabel}
           </span>
         </div>
       </div>
 
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full overflow-visible" aria-hidden>
-        <defs>
-          <linearGradient id="rev-grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#6366F1" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#6366F1" stopOpacity="0" />
-          </linearGradient>
-          <linearGradient id="profit-grad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#10B981" stopOpacity="0.2" />
-            <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
-          </linearGradient>
-        </defs>
+      <ResponsiveContainer width="100%" height={224}>
+        <ComposedChart data={monthlySales} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
+          <defs>
+            <linearGradient id="revenue-bar" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={REVENUE_COLOR} stopOpacity={0.95} />
+              <stop offset="100%" stopColor={REVENUE_COLOR} stopOpacity={0.55} />
+            </linearGradient>
+          </defs>
 
-        {/* Horizontal grid lines */}
-        {ticks.map((val) => {
-          const y = toY(val, maxVal)
-          return (
-            <g key={val}>
-              <line x1={PAD.left} y1={y} x2={W - PAD.right} y2={y} stroke="hsl(215 20% 88%)" strokeWidth="0.4" />
-              <text x={PAD.left - 6} y={y} textAnchor="end" dominantBaseline="middle" fontSize="5.5" fill="#64748b">
-                {val.toLocaleString()}
-              </text>
-            </g>
-          )
-        })}
+          <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeDasharray="3 3" />
 
-        {/* Area fills */}
-        <path d={areaPath(data, 'revenue', maxVal)} fill="url(#rev-grad)" />
-        <path d={areaPath(data, 'profit', maxVal)} fill="url(#profit-grad)" />
+          <XAxis
+            dataKey="monthLabel"
+            tick={{ fontSize: 11, fill: 'hsl(var(--text-muted))' }}
+            tickLine={false}
+            axisLine={{ stroke: 'hsl(var(--border))' }}
+            dy={6}
+          />
+          <YAxis
+            tick={{ fontSize: 11, fill: 'hsl(var(--text-muted))' }}
+            tickLine={false}
+            axisLine={false}
+            width={56}
+            tickFormatter={formatAxis}
+          />
 
-        {/* Lines */}
-        <polyline points={polylinePts(data, 'revenue', maxVal)} fill="none" stroke="#6366F1" strokeWidth="1" strokeLinejoin="round" strokeLinecap="round" />
-        <polyline points={polylinePts(data, 'profit', maxVal)} fill="none" stroke="#10B981" strokeWidth="1" strokeLinejoin="round" strokeLinecap="round" />
+          <Tooltip
+            cursor={{ fill: 'hsl(var(--surface-2))', opacity: 0.4 }}
+            content={(props) => renderTooltip(props, revenueLabel, profitLabel)}
+          />
 
-        {/* Revenue value labels */}
-        {data.map((d, i) => (
-          <text
-            key={`rev-label-${d.year}-${d.month}`}
-            x={toX(i, data.length)}
-            y={toY(d.revenue, maxVal) - 5}
-            textAnchor="middle"
-            fontSize="5.5"
-            fill="#6366F1"
-            fontWeight="600"
-          >
-            {d.revenue.toLocaleString()}
-          </text>
-        ))}
+          <Bar
+            dataKey="revenue"
+            fill="url(#revenue-bar)"
+            radius={[4, 4, 0, 0]}
+            maxBarSize={36}
+            isAnimationActive={false}
+          />
 
-        {/* Profit value labels */}
-        {data.map((d, i) => (
-          <text
-            key={`profit-label-${d.year}-${d.month}`}
-            x={toX(i, data.length)}
-            y={toY(d.profit, maxVal) - 5}
-            textAnchor="middle"
-            fontSize="5.5"
-            fill="#10B981"
-            fontWeight="600"
-          >
-            {d.profit.toLocaleString()}
-          </text>
-        ))}
-
-        {/* X labels */}
-        {data.map((d, i) => (
-          <text
-            key={`${d.year}-${d.month}`}
-            x={toX(i, data.length)}
-            y={H - PAD.bottom + 14}
-            textAnchor="middle"
-            fontSize="5.5"
-            fill="#334155"
-          >
-            {d.monthLabel}
-          </text>
-        ))}
-      </svg>
+          <Line
+            type="monotone"
+            dataKey="profit"
+            stroke={PROFIT_COLOR}
+            strokeWidth={2.5}
+            dot={{ r: 3, fill: PROFIT_COLOR, strokeWidth: 0 }}
+            activeDot={{ r: 5, strokeWidth: 2, stroke: 'hsl(var(--card))' }}
+            isAnimationActive={false}
+          />
+        </ComposedChart>
+      </ResponsiveContainer>
     </div>
   )
 }
