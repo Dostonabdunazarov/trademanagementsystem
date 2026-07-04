@@ -19,12 +19,12 @@ import {
   LogOut,
   Menu,
   X,
-  List,
   Languages,
   Sun,
   Moon,
   Building2,
   ScrollText,
+  type LucideIcon,
 } from 'lucide-react'
 import { AppLogoIcon } from '@/components/ui/AppLogo'
 import { useAuthStore } from '@/store/auth.store'
@@ -45,23 +45,34 @@ export function MainLayout() {
     navigate('/login', { replace: true })
   }, [logout, navigate])
 
-  const NAV_SECTIONS = [
+  type NavItem = { to: string; icon: LucideIcon; label: string; end?: boolean }
+  const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
     {
       label: t('nav.operations'),
       items: [
         { to: '/', icon: LayoutDashboard, label: t('nav.dashboard'), end: true },
+      ],
+    },
+    {
+      label: t('nav.createDocument'),
+      items: [
         { to: '/expense', icon: ArrowUpFromLine, label: t('nav.expense') },
-        { to: '/expenses', icon: List, label: t('nav.expenseList') },
         { to: '/income', icon: ArrowDownToLine, label: t('nav.income') },
-        { to: '/incomes', icon: List, label: t('nav.incomeList') },
         { to: '/return-customer', icon: RotateCcw, label: t('nav.returnCustomer') },
-        { to: '/return-customers', icon: List, label: t('nav.returnCustomerList') },
         { to: '/return-supplier', icon: RefreshCw, label: t('nav.returnSupplier') },
-        { to: '/return-suppliers', icon: List, label: t('nav.returnSupplierList') },
         { to: '/pay-out', icon: Banknote, label: t('nav.payOut') },
-        { to: '/pay-outs', icon: List, label: t('nav.payOutList') },
         { to: '/pay-in', icon: Wallet, label: t('nav.payIn') },
-        { to: '/pay-ins', icon: List, label: t('nav.payInList') },
+      ],
+    },
+    {
+      label: t('nav.journals'),
+      items: [
+        { to: '/expenses', icon: ArrowUpFromLine, label: t('nav.expenseList') },
+        { to: '/incomes', icon: ArrowDownToLine, label: t('nav.incomeList') },
+        { to: '/return-customers', icon: RotateCcw, label: t('nav.returnCustomerList') },
+        { to: '/return-suppliers', icon: RefreshCw, label: t('nav.returnSupplierList') },
+        { to: '/pay-outs', icon: Banknote, label: t('nav.payOutList') },
+        { to: '/pay-ins', icon: Wallet, label: t('nav.payInList') },
       ],
     },
     {

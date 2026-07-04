@@ -64,6 +64,8 @@ export const uz = {
     // Nav sections
     nav: {
       operations: 'Operatsiyalar',
+      createDocument: 'Hujjat yaratish',
+      journals: 'Jurnallar',
       directories: 'Ma\'lumotnomalar',
       analytics: 'Tahlil',
       system: 'Tizim',

@@ -20,19 +20,19 @@ export function StockAlertBanner({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4',
+        'flex items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 dark:border-amber-500/20 dark:bg-amber-500/5',
         className,
       )}
       role="alert"
     >
-      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400" />
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
       <div className="flex-1">
-        <p className="text-sm font-medium text-amber-300">{t('dashboard.stockAlerts')}</p>
+        <p className="text-sm font-medium text-amber-700 dark:text-amber-300">{t('dashboard.stockAlerts')}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {lowItems.map(({ productId, productName, quantity, unit }) => (
             <span
               key={productId}
-              className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-xs text-amber-300"
+              className="rounded-full border border-amber-500/40 bg-amber-500/15 px-2.5 py-0.5 text-xs text-amber-700 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-300"
             >
               {productName} — <span className="font-mono font-semibold">{quantity} {unit}</span>
             </span>
@@ -41,7 +41,7 @@ export function StockAlertBanner({ className }: { className?: string }) {
       </div>
       <button
         onClick={() => setDismissed(true)}
-        className="shrink-0 rounded-md p-1 text-amber-500 hover:bg-amber-500/10 hover:text-amber-300 transition-colors"
+        className="shrink-0 rounded-md p-1 text-amber-600 hover:bg-amber-500/15 hover:text-amber-700 dark:text-amber-500 dark:hover:bg-amber-500/10 dark:hover:text-amber-300 transition-colors"
         aria-label={t('common.close')}
       >
         <X className="h-3.5 w-3.5" />

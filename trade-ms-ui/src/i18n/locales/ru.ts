@@ -64,6 +64,8 @@ export const ru = {
     // Nav sections
     nav: {
       operations: 'Операции',
+      createDocument: 'Создать документ',
+      journals: 'Журналы',
       directories: 'Справочники',
       analytics: 'Аналитика',
       system: 'Система',
