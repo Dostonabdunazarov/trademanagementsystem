@@ -1,5 +1,7 @@
+import { useTranslation } from 'react-i18next'
 import { DocumentForm } from '../DocumentForm'
 
 export function ReturnSupplierPage() {
-  return <DocumentForm type="ReturnToSupplier" title="Возврат поставщику (F4)" className="h-full" />
+  const { t } = useTranslation()
+  return <DocumentForm type="ReturnToSupplier" title={t('nav.returnSupplier')} className="h-full" />
 }

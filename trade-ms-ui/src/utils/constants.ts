@@ -3,10 +3,10 @@ export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000/ap
 export const TOKEN_STORAGE_KEY = 'auth-storage'
 
 export const DOCUMENT_TYPES = {
-  Expense: 'Расход',
-  Income: 'Приход',
+  Expense: 'Продажа',
+  Income: 'Закупка',
   ReturnFromCustomer: 'Возврат от клиента',
   ReturnToSupplier: 'Возврат поставщику',
-  PayOut: 'Оплата',
-  PayIn: 'Получить',
+  PayOut: 'Выплата',
+  PayIn: 'Приём оплаты',
 } as const

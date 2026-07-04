@@ -1,5 +1,7 @@
+import { useTranslation } from 'react-i18next'
 import { DocumentForm } from '../DocumentForm'
 
 export function IncomePage() {
-  return <DocumentForm type="Income" title="Приход (F2)" className="h-full" />
+  const { t } = useTranslation()
+  return <DocumentForm type="Income" title={t('nav.income')} className="h-full" />
 }

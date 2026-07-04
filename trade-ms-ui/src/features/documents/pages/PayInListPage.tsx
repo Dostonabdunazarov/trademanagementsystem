@@ -1,5 +1,7 @@
+import { useTranslation } from 'react-i18next'
 import { DocumentsListPage } from '../DocumentsListPage'
 
 export function PayInListPage() {
-  return <DocumentsListPage type="PayIn" title="Получения денег — список" createPath="/pay-in" />
+  const { t } = useTranslation()
+  return <DocumentsListPage type="PayIn" title={t('nav.payInList')} createPath="/pay-in" />
 }
