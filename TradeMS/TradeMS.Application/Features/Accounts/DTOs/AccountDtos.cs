@@ -14,5 +14,6 @@ public record AccountDto(
 public record CreateAccountRequest(
     string Name,
     string Type,
-    Guid CurrencyId
+    Guid CurrencyId,
+    Guid? BranchId = null
 );

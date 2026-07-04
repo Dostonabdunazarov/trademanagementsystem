@@ -27,7 +27,25 @@ public static class AccountEndpoints
         group.MapPost("/", async (CreateAccountRequest req, ClaimsPrincipal user, IMediator mediator) =>
         {
             var companyId = GetCompanyId(user);
-            var branchId = GetBranchId(user);
+            var role = user.FindFirstValue(ClaimTypes.Role);
+            var tokenBranchId = GetBranchId(user);
+
+            // Admins aren't necessarily pinned to a branch, so they pick the target branch in the
+            // UI and send it in the body. We fall back to the token branch when it's present
+            // (keeps existing single-branch admins working). Non-admins always use their token.
+            Guid branchId;
+            if (role == "Admin")
+            {
+                branchId = req.BranchId is { } b && b != Guid.Empty ? b : tokenBranchId;
+                if (branchId == Guid.Empty)
+                    return Results.BadRequest("BranchId is required for Admin");
+            }
+            else
+            {
+                branchId = tokenBranchId;
+                if (branchId == Guid.Empty)
+                    return Results.BadRequest("User is not assigned to a branch");
+            }
 
             if (!Enum.TryParse<AccountType>(req.Type, true, out var accountType))
                 return Results.BadRequest($"Invalid account type '{req.Type}'. Use Cash or Bank.");

@@ -257,6 +257,7 @@ export const uz = {
       Cash: 'Kassa',
       Bank: 'Bank',
       addAccount: 'Kassa/hisob qo\'shish',
+      selectBranchFirst: 'Avval yuqoridan filialni tanlang',
       deleteAccount: 'Kassani o\'chirish?',
       totalUsers: 'Jami',
       activeUsers: 'Faol',

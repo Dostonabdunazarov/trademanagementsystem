@@ -17,7 +17,7 @@ const TYPE_META = {
   Bank: { labelKey: 'settings.Bank', icon: Landmark, color: 'bg-blue-500/15 text-blue-400' },
 }
 
-function AccountDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+function AccountDialog({ open, onClose, branchId }: { open: boolean; onClose: () => void; branchId?: string }) {
   const { t } = useTranslation()
   const { data: currencies = [] } = useCurrencies()
   const createAccount = useCreateAccount()
@@ -30,8 +30,9 @@ function AccountDialog({ open, onClose }: { open: boolean; onClose: () => void }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!branchId) return
     try {
-      await createAccount.mutateAsync(form)
+      await createAccount.mutateAsync({ ...form, branchId })
       onClose()
       setForm({ name: '', type: 'Cash', currencyId: '', branchId: '' })
     } catch {}
@@ -93,11 +94,14 @@ function AccountDialog({ open, onClose }: { open: boolean; onClose: () => void }
               </SelectContent>
             </Select>
           </div>
+          {!branchId && (
+            <p className="text-xs text-amber-400">{t('settings.selectBranchFirst')}</p>
+          )}
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="ghost" onClick={onClose} className="text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]">
               {t('common.cancel')}
             </Button>
-            <Button type="submit" disabled={createAccount.isPending} className="bg-indigo-600 hover:bg-indigo-500">
+            <Button type="submit" disabled={createAccount.isPending || !branchId} className="bg-indigo-600 hover:bg-indigo-500">
               {createAccount.isPending ? t('common.loading') : t('common.create')}
             </Button>
           </div>
@@ -240,7 +244,7 @@ export function AccountsTab() {
         </div>
       </div>
 
-      <AccountDialog open={showDialog} onClose={() => setShowDialog(false)} />
+      <AccountDialog open={showDialog} onClose={() => setShowDialog(false)} branchId={activeBranch?.id} />
     </div>
   )
 }
