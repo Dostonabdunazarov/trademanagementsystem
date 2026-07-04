@@ -223,7 +223,7 @@ export function MainLayout() {
       {/* Collapsed-sidebar tooltip (fixed, escapes scroll clipping) */}
       {!sidebarOpen && tooltip && (
         <div
-          className="pointer-events-none fixed left-[4.25rem] z-50 -translate-y-1/2 whitespace-nowrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-2.5 py-1 text-xs font-medium text-[hsl(var(--text-primary))] shadow-xl animate-in fade-in duration-150"
+          className="pointer-events-none fixed left-[3.5rem] z-50 -translate-y-1/2 whitespace-nowrap rounded-md border border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-2.5 py-1 text-xs font-medium text-[hsl(var(--text-primary))] shadow-xl animate-in fade-in duration-150"
           style={{ top: tooltip.top }}
         >
           {tooltip.label}
