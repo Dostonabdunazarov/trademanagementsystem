@@ -46,14 +46,14 @@ export function StockBalanceReport() {
           className={cn(
             'flex h-9 items-center gap-2 rounded-lg px-4 text-sm font-medium ring-1 transition-all',
             showLowOnly
-              ? 'bg-amber-500/15 text-amber-400 ring-amber-500/30'
+              ? 'bg-[#ee8800]/15 text-[#ee8800] ring-[#ee8800]/30'
               : 'bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))] ring-white/[0.06] hover:bg-white/[0.08]',
           )}
         >
           <AlertTriangle className="h-3.5 w-3.5" />
           Низкий остаток
           {lowStockCount > 0 && (
-            <span className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-xs font-semibold text-amber-400">
+            <span className="rounded-full bg-[#ee8800]/20 px-1.5 py-0.5 text-xs font-semibold text-[#ee8800]">
               {lowStockCount}
             </span>
           )}
@@ -119,7 +119,7 @@ export function StockBalanceReport() {
                   <td className="px-4 py-3 text-[hsl(var(--text-muted))] text-xs">{row.groupName}</td>
                   <td className="px-4 py-3 text-xs text-[hsl(var(--text-muted))]">{row.branchName}</td>
                   <td className="px-4 py-3 text-right">
-                    <span className={cn('inline-flex items-center gap-1 font-mono tabular-nums', isLow ? 'text-amber-400' : 'text-[hsl(var(--text-primary))]')}>
+                    <span className={cn('inline-flex items-center gap-1 font-mono tabular-nums', isLow ? 'text-[#ee8800]' : 'text-[hsl(var(--text-primary))]')}>
                       {isLow && <AlertTriangle className="h-3 w-3" />}
                       {formatNumber(row.quantity)} {t(`products.units.${row.unit}`, row.unit)}
                     </span>
