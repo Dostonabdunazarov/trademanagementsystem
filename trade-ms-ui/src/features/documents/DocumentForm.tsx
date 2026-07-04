@@ -763,7 +763,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
 
           {/* ── Totals ── */}
           <div className="shrink-0 border-t border-[hsl(var(--border))] bg-card/60 px-5 py-3">
-            <div className="ml-auto max-w-xs flex flex-col gap-1 text-xs">
+            <div className="ml-auto max-w-sm flex flex-col gap-1.5 text-sm">
               <div className="flex items-center justify-between gap-4">
                 <span className="text-[hsl(var(--text-muted))]">{t('documents.totalSum')}:</span>
                 <span className="font-mono tabular-nums text-[hsl(var(--text-primary))]">
@@ -787,7 +787,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
                     onChange={(e) => !isReadonly && form.setDiscount(parseFloat(e.target.value) || 0)}
                     readOnly={isReadonly}
                     className={cn(
-                      'w-14 h-6 rounded border border-border bg-secondary px-1.5 text-right text-xs font-mono tabular-nums text-[hsl(var(--text-primary))]',
+                      'w-16 h-7 rounded border border-border bg-secondary px-1.5 text-right text-sm font-mono tabular-nums text-[hsl(var(--text-primary))]',
                       !isReadonly && 'focus:outline-none focus:ring-1 focus:ring-indigo-500/60 transition-colors',
                       isReadonly && 'opacity-70 cursor-default',
                     )}
@@ -797,9 +797,9 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
                   -{fmt(form.discountAmount)} {state.currencyCode}
                 </span>
               </div>
-              <div className="flex items-center justify-between gap-4 pt-1 border-t border-[hsl(var(--border))]">
-                <span className="font-medium text-[hsl(var(--text-primary))]">{t('common.total')}:</span>
-                <span className="font-mono tabular-nums font-semibold text-indigo-400 text-sm">
+              <div className="flex items-center justify-between gap-4 pt-1.5 border-t border-[hsl(var(--border))]">
+                <span className="font-medium text-[hsl(var(--text-primary))] text-base">{t('common.total')}:</span>
+                <span className="font-mono tabular-nums font-semibold text-indigo-400 text-lg">
                   {fmt(form.totalWithDiscount)} {state.currencyCode}
                 </span>
               </div>

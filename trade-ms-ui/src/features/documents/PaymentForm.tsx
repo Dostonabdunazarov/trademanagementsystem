@@ -497,8 +497,8 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
 
           {/* Summary */}
           <div className="rounded-lg border border-[hsl(var(--border))] bg-background p-3 flex items-center justify-between">
-            <span className="text-xs text-[hsl(var(--text-muted))]">{type === 'PayOut' ? t('payments.totalToPay') : t('payments.totalToReceive')}:</span>
-            <span className="font-mono font-semibold text-indigo-400">
+            <span className="text-sm text-[hsl(var(--text-muted))]">{type === 'PayOut' ? t('payments.totalToPay') : t('payments.totalToReceive')}:</span>
+            <span className="font-mono font-semibold text-indigo-400 text-lg">
               {amount ? fmt(parseFloat(amount) || 0) : '0'} {selectedCurrency?.code ?? ''}
             </span>
           </div>
