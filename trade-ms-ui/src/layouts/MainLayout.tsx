@@ -137,12 +137,18 @@ export function MainLayout() {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 scrollbar-none">
-          {NAV_SECTIONS.map((section) => (
-            <div key={section.label} className="mb-1">
-              {sidebarOpen && (
-                <p className="mb-1 px-4 text-[10px] font-semibold uppercase tracking-widest text-[hsl(var(--text-muted))]">
-                  {section.label}
-                </p>
+          {NAV_SECTIONS.map((section, i) => (
+            <div key={section.label} className={cn('mb-1', i > 0 && 'mt-4')}>
+              {sidebarOpen ? (
+                <div className="mb-1.5 flex items-center gap-2 px-4">
+                  <span className="h-1 w-1 shrink-0 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500" />
+                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] bg-gradient-to-r from-[hsl(var(--text-primary))] to-[hsl(var(--text-muted))] bg-clip-text text-transparent">
+                    {section.label}
+                  </p>
+                  <span className="h-px flex-1 bg-gradient-to-r from-[hsl(var(--border))] to-transparent" />
+                </div>
+              ) : (
+                i > 0 && <div className="mx-3 mb-2 h-px bg-[hsl(var(--border))]" />
               )}
               {section.items.map(({ to, icon: Icon, label, end }) => (
                 <NavLink
