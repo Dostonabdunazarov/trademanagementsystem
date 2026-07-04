@@ -63,6 +63,7 @@ export const uz = {
     },
     // Nav sections
     nav: {
+      overview: 'Umumiy ko\'rinish',
       operations: 'Operatsiyalar',
       createDocument: 'Hujjat yaratish',
       journals: 'Jurnallar',

@@ -49,7 +49,7 @@ export function MainLayout() {
   type NavItem = { to: string; icon: LucideIcon; label: string; end?: boolean }
   const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
     {
-      label: t('nav.operations'),
+      label: t('nav.overview'),
       items: [
         { to: '/', icon: LayoutDashboard, label: t('nav.dashboard'), end: true },
       ],
@@ -122,10 +122,16 @@ export function MainLayout() {
         {/* Logo */}
         <div className={cn('flex h-14 shrink-0 items-center border-b border-[hsl(var(--border))]', sidebarOpen ? 'gap-3 px-4' : 'justify-center px-2')}>
           {sidebarOpen && (
-            <>
+            <NavLink
+              to="/"
+              end
+              onClick={() => setMobileOpen(false)}
+              className="flex min-w-0 items-center gap-3 rounded-md outline-none transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))]"
+              aria-label={t('nav.dashboard')}
+            >
               <AppLogoIcon size={28} />
               <span className="text-sm font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">Торговля</span>
-            </>
+            </NavLink>
           )}
           <button
             onClick={toggleSidebar}
@@ -207,6 +213,7 @@ export function MainLayout() {
               <div className="flex-1 overflow-hidden">
                 <p className="truncate text-xs font-medium text-[hsl(var(--text-primary))]">{user?.fullName}</p>
                 <p className="truncate text-[10px] text-[hsl(var(--text-muted))]">{user?.role}</p>
+                <p className="truncate text-[10px] text-[hsl(var(--text-muted))]">{user?.email}</p>
               </div>
             )}
             <button

@@ -63,6 +63,7 @@ export const ru = {
     },
     // Nav sections
     nav: {
+      overview: 'Обзор',
       operations: 'Операции',
       createDocument: 'Создать документ',
       journals: 'Журналы',
