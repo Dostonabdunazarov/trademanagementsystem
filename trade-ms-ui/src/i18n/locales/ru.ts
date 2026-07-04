@@ -257,6 +257,7 @@ export const ru = {
       Cash: 'Касса',
       Bank: 'Банк',
       addAccount: 'Добавить кассу/счёт',
+      selectBranchFirst: 'Сначала выберите филиал в шапке',
       deleteAccount: 'Удалить кассу?',
       totalUsers: 'Всего',
       activeUsers: 'Активных',

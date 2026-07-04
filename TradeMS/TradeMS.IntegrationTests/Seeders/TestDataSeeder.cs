@@ -20,6 +20,7 @@ public class TestDataSeeder
     public static readonly Guid UserAdminId = Guid.Parse("40000000-0000-0000-0000-000000000001");
     public static readonly Guid UserManagerId = Guid.Parse("40000000-0000-0000-0000-000000000002");
     public static readonly Guid UserCashierId = Guid.Parse("40000000-0000-0000-0000-000000000003");
+    public static readonly Guid UserAdminNoBranchId = Guid.Parse("40000000-0000-0000-0000-000000000004");
     public static readonly Guid AccountCashId = Guid.Parse("50000000-0000-0000-0000-000000000001");
 
     public const string AdminEmail = "admin@test.com";
@@ -28,6 +29,9 @@ public class TestDataSeeder
     public const string ManagerPassword = "Manager123!";
     public const string CashierEmail = "cashier@test.com";
     public const string CashierPassword = "Cashier123!";
+    // Mirrors the production default admin (Program.cs seed): Admin role with no branch assigned.
+    public const string AdminNoBranchEmail = "admin-nobranch@test.com";
+    public const string AdminNoBranchPassword = "Admin123!";
 
     private static readonly string[] GroupNames =
     [
@@ -158,6 +162,18 @@ public class TestDataSeeder
                 Email = CashierEmail,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(CashierPassword),
                 Role = UserRole.Cashier,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new User
+            {
+                Id = UserAdminNoBranchId,
+                CompanyId = CompanyId,
+                BranchId = null,
+                FullName = "Администратор без филиала",
+                Email = AdminNoBranchEmail,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(AdminNoBranchPassword),
+                Role = UserRole.Admin,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             }

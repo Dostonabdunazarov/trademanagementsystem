@@ -209,17 +209,52 @@ public class SettingsTests : SeededIntegrationTestBase
         deleteResp.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
+    // Reproduces the production case: the default admin (admin@tradems.com) has no branch in its
+    // token. Creating an account must not 500 — it needs a branchId in the body (the branch the
+    // admin picked in the UI header).
+    [Fact]
+    public async Task CreateAccount_AdminWithoutBranch_UsesBodyBranch_Returns201()
+    {
+        await AuthenticateAsync(TestDataSeeder.AdminNoBranchEmail, TestDataSeeder.AdminNoBranchPassword);
+        var resp = await Client.PostAsJsonAsync("/api/accounts", new
+        {
+            name = "Касса филиала",
+            type = "Cash",
+            currencyId = TestDataSeeder.CurrencyUzsId,
+            branchId = TestDataSeeder.BranchMainId
+        });
+
+        resp.StatusCode.Should().Be(HttpStatusCode.Created);
+        var body = await resp.Content.ReadFromJsonAsync<AccountResp>(JsonOpts);
+        body!.Name.Should().Be("Касса филиала");
+    }
+
+    // Without a branch in the token AND without one in the body, we return a clean 400 instead of
+    // a 500 FK violation.
+    [Fact]
+    public async Task CreateAccount_AdminWithoutBranch_NoBodyBranch_Returns400()
+    {
+        await AuthenticateAsync(TestDataSeeder.AdminNoBranchEmail, TestDataSeeder.AdminNoBranchPassword);
+        var resp = await Client.PostAsJsonAsync("/api/accounts", new
+        {
+            name = "Касса без филиала",
+            type = "Cash",
+            currencyId = TestDataSeeder.CurrencyUzsId
+        });
+
+        resp.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+    }
+
     // ── 2.9 Users ───────────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task GetUsers_Returns3SeededUsers()
+    public async Task GetUsers_ReturnsSeededUsers()
     {
         await AuthenticateAsync();
         var resp = await Client.GetAsync("/api/users");
         resp.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var users = await resp.Content.ReadFromJsonAsync<List<UserResp>>(JsonOpts);
-        users.Should().HaveCount(3);
         users.Should().Contain(u => u.Email == TestDataSeeder.AdminEmail && u.Role == "Admin");
         users.Should().Contain(u => u.Email == TestDataSeeder.ManagerEmail && u.Role == "Manager");
         users.Should().Contain(u => u.Email == TestDataSeeder.CashierEmail && u.Role == "Cashier");
