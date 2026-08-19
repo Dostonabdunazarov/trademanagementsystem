@@ -45,25 +45,15 @@ export function LoginPage() {
   const onSubmit = (values: FormValues) => mutation.mutate(values)
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#070d12]">
-      {/* Soft gradient backdrop */}
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background">
+      {/* Ambient glow blobs — только в тёмной теме, чтобы фон совпадал с темой после логина */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            'radial-gradient(120% 80% at 50% -10%, rgba(20,184,166,0.18) 0%, rgba(7,13,18,0) 60%), radial-gradient(90% 70% at 100% 100%, rgba(16,185,129,0.14) 0%, rgba(7,13,18,0) 65%), radial-gradient(80% 60% at 0% 90%, rgba(56,189,248,0.10) 0%, rgba(7,13,18,0) 60%), linear-gradient(160deg, #070d12 0%, #0a1419 55%, #071014 100%)',
-        }}
-      />
-
-      {/* Ambient glow blobs */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-teal-500/20 blur-[130px]"
+        className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-teal-500/20 blur-[130px] light:hidden"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute bottom-0 right-0 h-[350px] w-[350px] rounded-full bg-emerald-500/15 blur-[110px]"
+        className="pointer-events-none absolute bottom-0 right-0 h-[350px] w-[350px] rounded-full bg-emerald-500/15 blur-[110px] light:hidden"
       />
 
       {/* Language switcher top-right */}

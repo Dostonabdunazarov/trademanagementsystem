@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Вариант для светлой темы: тема переключается классом html.light. */
+@custom-variant light (&:where(.light, .light *));
+
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -229,4 +232,20 @@ html.light ::selection {
 html.light .nav-link-idle:hover,
 html.light .nav-link-idle:hover .nav-link-icon {
   color: #0f172a !important;
+}
+
+/* Появление dropdown-меню (замена tailwindcss-animate). */
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-0.25rem) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-dropdown-in {
+  animation: dropdown-in 0.15s ease-out;
 }
