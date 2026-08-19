@@ -19,7 +19,6 @@ import {
   LogOut,
   Menu,
   X,
-  Languages,
   Sun,
   Moon,
   Building2,
@@ -31,12 +30,13 @@ import { useAuthStore } from '@/store/auth.store'
 import { useUiStore } from '@/store/ui.store'
 import { BranchSelector } from '@/components/dashboard/BranchSelector'
 import { CurrencyRateTicker } from '@/components/dashboard/CurrencyRateTicker'
+import { LanguageSelect } from '@/components/ui/LanguageSelect'
 import { cn } from '@/lib/utils'
 
 export function MainLayout() {
   const { t } = useTranslation()
   const { user, logout } = useAuthStore()
-  const { sidebarOpen, toggleSidebar, language, setLanguage, theme, toggleTheme } = useUiStore()
+  const { sidebarOpen, toggleSidebar, theme, toggleTheme } = useUiStore()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [tooltip, setTooltip] = useState<{ label: string; top: number } | null>(null)
   const navigate = useNavigate()
@@ -262,31 +262,7 @@ export function MainLayout() {
             </button>
 
             {/* Language switcher */}
-            <div className="flex items-center gap-1 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface-2))] p-1">
-              <Languages className="h-3.5 w-3.5 text-[hsl(var(--text-muted))] mx-1" />
-              <button
-                onClick={() => setLanguage('ru')}
-                className={cn(
-                  'rounded px-2 py-0.5 text-xs font-medium transition-colors',
-                  language === 'ru'
-                    ? 'bg-indigo-500/20 text-indigo-500'
-                    : 'text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]',
-                )}
-              >
-                RU
-              </button>
-              <button
-                onClick={() => setLanguage('uz')}
-                className={cn(
-                  'rounded px-2 py-0.5 text-xs font-medium transition-colors',
-                  language === 'uz'
-                    ? 'bg-indigo-500/20 text-indigo-500'
-                    : 'text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]',
-                )}
-              >
-                UZ
-              </button>
-            </div>
+            <LanguageSelect />
 
             <CurrencyRateTicker />
 
