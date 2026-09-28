@@ -4,24 +4,24 @@
 @custom-variant light (&:where(.light, .light *));
 
 /*
-  Палитра «Navy & Gold»: тёмно-синий фон #050816 + золотой акцент.
+  Палитра «Navy & Cyan»: тёмно-синий фон #050816 + электрик-циан.
   В тёмной теме заливка акцента яркая, поэтому текст на ней тёмный (brand-fg);
-  в светлой — тёмное золото с белым текстом. Шкала переопределяется в html.light.
+  в светлой — тёмный циан с белым текстом. Шкала переопределяется в html.light.
 */
 @theme {
-  --color-brand-50: #fffaeb;
-  --color-brand-100: #fef0c7;
-  --color-brand-200: #fde08a;
-  --color-brand-300: #fcd679;
-  --color-brand-400: #f7c75e;
-  --color-brand-500: #f5b83d;
-  --color-brand-600: #e5a526;
-  --color-brand-700: #c98a12;
-  --color-brand-800: #a86b0c;
-  --color-brand-900: #7a4a05;
-  --color-brand-950: #4a2c03;
+  --color-brand-50: #ecfeff;
+  --color-brand-100: #cffafe;
+  --color-brand-200: #a5f3fc;
+  --color-brand-300: #a5f3fc;
+  --color-brand-400: #67e8f9;
+  --color-brand-500: #22d3ee;
+  --color-brand-600: #06b6d4;
+  --color-brand-700: #0891b2;
+  --color-brand-800: #0e7490;
+  --color-brand-900: #155e75;
+  --color-brand-950: #083344;
   /* Текст на заливке bg-brand-500/600/700. */
-  --color-brand-fg: #1a1204;
+  --color-brand-fg: #03222b;
 }
 
 @theme inline {
@@ -65,8 +65,8 @@
     --surface: 229 50% 9%;
     --surface-2: 229 40% 15%;
     --border: 232 100% 79% / 0.1;
-    --accent: 40 90% 60%;
-    --accent-glow: 40 90% 60% / 0.12;
+    --accent: 188 86% 53%;
+    --accent-glow: 188 86% 53% / 0.12;
     --success: 160 84% 39%;
     --warning: 27 96% 61%;
     --danger: 351 95% 71%;
@@ -77,8 +77,8 @@
     --card-foreground: 226 40% 93%;
     --popover: 229 48% 10%;
     --popover-foreground: 226 40% 93%;
-    --primary: 40 90% 60%;
-    --primary-foreground: 40 73% 6%;
+    --primary: 188 86% 53%;
+    --primary-foreground: 191 87% 9%;
     --secondary: 229 40% 15%;
     --secondary-foreground: 226 40% 93%;
     --muted: 229 40% 15%;
@@ -86,18 +86,18 @@
     --destructive: 351 95% 71%;
     --destructive-foreground: 0 0% 100%;
     --input: 229 40% 15%;
-    --ring: 41 90% 67%;
+    --ring: 187 92% 69%;
     --radius: 0.5rem;
   }
 
-  /* Светлая тема — белые панели, тёмно-синий текст, тёмное золото. */
+  /* Светлая тема — белые панели, тёмно-синий текст, тёмный циан. */
   html.light {
-    /* На белом яркое золото нечитаемо: вся шкала сдвинута в тёмную сторону. */
-    --color-brand-300: #b26d06;
-    --color-brand-400: #9a5d05;
-    --color-brand-500: #b26d06;
-    --color-brand-600: #955a04;
-    --color-brand-700: #7a4a05;
+    /* На белом яркий циан нечитаем: вся шкала сдвинута в тёмную сторону. */
+    --color-brand-300: #0891b2;
+    --color-brand-400: #0e7490;
+    --color-brand-500: #0e7490;
+    --color-brand-600: #155e75;
+    --color-brand-700: #164e63;
     --color-brand-fg: #ffffff;
 
     --background: 0 0% 100%;
@@ -105,8 +105,8 @@
     --surface: 0 0% 100%;
     --surface-2: 230 30% 96%;
     --border: 230 30% 20% / 0.09;
-    --accent: 36 93% 36%;
-    --accent-glow: 36 93% 36% / 0.1;
+    --accent: 192 82% 31%;
+    --accent-glow: 192 82% 31% / 0.1;
     --success: 161 94% 30%;
     --warning: 21 90% 48%;
     --danger: 347 77% 50%;
@@ -117,7 +117,7 @@
     --card-foreground: 229 55% 13%;
     --popover: 0 0% 100%;
     --popover-foreground: 229 55% 13%;
-    --primary: 36 93% 36%;
+    --primary: 192 82% 31%;
     --primary-foreground: 0 0% 100%;
     --secondary: 230 30% 94%;
     --secondary-foreground: 229 55% 13%;
@@ -126,7 +126,7 @@
     --destructive: 347 77% 50%;
     --destructive-foreground: 0 0% 100%;
     --input: 230 30% 94%;
-    --ring: 36 93% 36%;
+    --ring: 192 82% 31%;
   }
 
   html {
@@ -161,13 +161,13 @@
 /* ── Accent Border Glow (Вариант 4) ───────────────────────────────────────── */
 
 aside {
-  border-right: 1px solid rgba(245, 184, 61, 0.16);
-  box-shadow: 4px 0 24px rgba(245, 184, 61, 0.05);
+  border-right: 1px solid rgba(34, 211, 238, 0.16);
+  box-shadow: 4px 0 24px rgba(34, 211, 238, 0.05);
 }
 
 header {
-  border-bottom: 1px solid rgba(245, 184, 61, 0.14);
-  box-shadow: 0 4px 24px rgba(245, 184, 61, 0.04);
+  border-bottom: 1px solid rgba(34, 211, 238, 0.14);
+  box-shadow: 0 4px 24px rgba(34, 211, 238, 0.04);
 }
 
 /* ── Light theme component overrides ─────────────────────────────────────── */
@@ -175,25 +175,25 @@ header {
 /* Sidebar */
 html.light aside {
   background-color: #ffffff !important;
-  border-right-color: rgba(178, 109, 6, 0.22) !important;
-  box-shadow: 4px 0 20px rgba(178, 109, 6, 0.06) !important;
+  border-right-color: rgba(14, 116, 144, 0.22) !important;
+  box-shadow: 4px 0 20px rgba(14, 116, 144, 0.06) !important;
 }
 
 /* Topbar */
 html.light header {
   background-color: #ffffff !important;
-  border-bottom-color: rgba(178, 109, 6, 0.2) !important;
-  box-shadow: 0 4px 20px rgba(178, 109, 6, 0.05) !important;
+  border-bottom-color: rgba(14, 116, 144, 0.2) !important;
+  box-shadow: 0 4px 20px rgba(14, 116, 144, 0.05) !important;
 }
 
 /* Table header row */
 html.light thead tr {
-  background-image: linear-gradient(90deg, #fdf6e7 0%, #f5f6fb 100%);
+  background-image: linear-gradient(90deg, #ecfeff 0%, #f5f6fb 100%);
 }
 
 /* Table row hover */
 html.light tbody tr:hover {
-  background-color: rgba(178, 109, 6, 0.04) !important;
+  background-color: rgba(14, 116, 144, 0.04) !important;
 }
 
 /* Toolbar / card areas */
@@ -205,14 +205,14 @@ html.light .bg-card {
 
 /* Primary gradient button */
 html.light .btn-primary-gradient {
-  background-image: linear-gradient(135deg, #b26d06 0%, #c27a0a 50%, #cf8a14 100%) !important;
-  background-color: #b26d06 !important;
-  box-shadow: 0 4px 14px rgba(178, 109, 6, 0.3) !important;
+  background-image: linear-gradient(135deg, #0e7490 0%, #0f7f9c 50%, #0891b2 100%) !important;
+  background-color: #0e7490 !important;
+  box-shadow: 0 4px 14px rgba(14, 116, 144, 0.3) !important;
   border: none !important;
 }
 html.light .btn-primary-gradient:hover {
-  background-image: linear-gradient(135deg, #955a04 0%, #a36607 50%, #b0730c 100%) !important;
-  box-shadow: 0 6px 20px rgba(178, 109, 6, 0.38) !important;
+  background-image: linear-gradient(135deg, #155e75 0%, #12698a 50%, #0e7490 100%) !important;
+  box-shadow: 0 6px 20px rgba(14, 116, 144, 0.38) !important;
   transform: translateY(-1px);
 }
 
@@ -226,8 +226,8 @@ html.light input:not([type]) {
   border-color: rgba(15, 22, 51, 0.12) !important;
 }
 html.light input:focus {
-  border-color: #b26d06 !important;
-  box-shadow: 0 0 0 3px rgba(178, 109, 6, 0.15) !important;
+  border-color: #0e7490 !important;
+  box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.15) !important;
   outline: none !important;
 }
 
@@ -244,8 +244,8 @@ html.light ::-webkit-scrollbar-thumb:hover {
 
 /* Selection */
 html.light ::selection {
-  background: rgba(245, 184, 61, 0.28);
-  color: #7a4a05;
+  background: rgba(34, 211, 238, 0.25);
+  color: #155e75;
 }
 
 /* Sidebar nav links — hover effect (theme-aware, overrides utility colors) */
