@@ -160,14 +160,14 @@ header {
 
 /* Sidebar */
 html.light aside {
-  background-color: #f0fdfabf !important;
+  background-color: #ffffff !important;
   border-right-color: rgba(4, 120, 87, 0.35) !important;
   box-shadow: 4px 0 20px rgba(4, 120, 87, 0.18) !important;
 }
 
 /* Topbar */
 html.light header {
-  background-color: #f0fdfabf !important;
+  background-color: #ffffff !important;
   border-bottom-color: rgba(4, 120, 87, 0.30) !important;
   box-shadow: 0 4px 20px rgba(4, 120, 87, 0.14) !important;
 }
