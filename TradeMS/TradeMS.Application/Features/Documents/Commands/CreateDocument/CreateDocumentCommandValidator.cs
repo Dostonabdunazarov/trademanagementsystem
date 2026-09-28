@@ -1,4 +1,5 @@
 using FluentValidation;
+using TradeMS.Application.Common.Exceptions;
 using TradeMS.Application.Features.Documents.DTOs;
 using TradeMS.Domain.Enums;
 
@@ -9,29 +10,29 @@ public class CreateDocumentCommandValidator : AbstractValidator<CreateDocumentCo
     public CreateDocumentCommandValidator()
     {
         RuleFor(x => x.CompanyId).NotEmpty();
-        RuleFor(x => x.BranchId).NotEmpty();
-        RuleFor(x => x.CurrencyId).NotEmpty();
-        RuleFor(x => x.ExchangeRate).GreaterThan(0);
-        RuleFor(x => x.DiscountPercent).InclusiveBetween(0, 100);
+        RuleFor(x => x.BranchId).NotEmpty().WithErrorCode(DocumentErrorCodes.BranchRequired);
+        RuleFor(x => x.CurrencyId).NotEmpty().WithErrorCode(DocumentErrorCodes.CurrencyRequired);
+        RuleFor(x => x.ExchangeRate).GreaterThan(0).WithErrorCode(DocumentErrorCodes.ExchangeRatePositive);
+        RuleFor(x => x.DiscountPercent).InclusiveBetween(0, 100).WithErrorCode(DocumentErrorCodes.DiscountRange);
 
         // Payment documents (PayIn/PayOut) carry no lines — the moved money is in Amount.
         When(x => x.Type is DocumentType.PayIn or DocumentType.PayOut, () =>
         {
             RuleFor(x => x.Amount)
-                .NotNull().WithMessage("Amount is required for payment documents")
-                .GreaterThan(0).WithMessage("Payment amount must be greater than zero");
+                .NotNull().WithErrorCode(DocumentErrorCodes.AmountRequired).WithMessage("Amount is required for payment documents")
+                .GreaterThan(0).WithErrorCode(DocumentErrorCodes.AmountPositive).WithMessage("Payment amount must be greater than zero");
             RuleFor(x => x.CounterpartyId)
-                .NotNull().WithMessage("Counterparty is required for payment documents");
+                .NotNull().WithErrorCode(DocumentErrorCodes.CounterpartyRequired).WithMessage("Counterparty is required for payment documents");
             RuleFor(x => x.PaymentMethod)
                 .Must(pm => string.IsNullOrEmpty(pm) || Enum.TryParse<PaymentMethod>(pm, true, out _))
-                .WithMessage("Invalid payment method. Use Cash, BankTransfer or Card.");
+                .WithErrorCode(DocumentErrorCodes.InvalidPaymentMethod).WithMessage("Invalid payment method. Use Cash, BankTransfer or Card.");
         });
 
         // Goods documents carry lines and ignore Amount.
         When(x => x.Type is not (DocumentType.PayIn or DocumentType.PayOut), () =>
         {
             RuleFor(x => x.Lines)
-                .NotEmpty().WithMessage("At least one line is required");
+                .NotEmpty().WithErrorCode(DocumentErrorCodes.LinesRequired).WithMessage("At least one line is required");
             RuleForEach(x => x.Lines).SetValidator(new CreateDocumentLineRequestValidator());
         });
     }
@@ -41,9 +42,9 @@ public class CreateDocumentLineRequestValidator : AbstractValidator<CreateDocume
 {
     public CreateDocumentLineRequestValidator()
     {
-        RuleFor(x => x.ProductId).NotEmpty();
-        RuleFor(x => x.Quantity).GreaterThan(0);
-        RuleFor(x => x.Price).GreaterThanOrEqualTo(0);
-        RuleFor(x => x.DiscountPercent).InclusiveBetween(0, 100);
+        RuleFor(x => x.ProductId).NotEmpty().WithErrorCode(DocumentErrorCodes.LineProductRequired);
+        RuleFor(x => x.Quantity).GreaterThan(0).WithErrorCode(DocumentErrorCodes.LineQuantityPositive);
+        RuleFor(x => x.Price).GreaterThanOrEqualTo(0).WithErrorCode(DocumentErrorCodes.LinePriceNonNegative);
+        RuleFor(x => x.DiscountPercent).InclusiveBetween(0, 100).WithErrorCode(DocumentErrorCodes.DiscountRange);
     }
 }

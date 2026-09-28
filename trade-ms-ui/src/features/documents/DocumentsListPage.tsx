@@ -18,6 +18,7 @@ import {
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+import { getApiErrorMessage } from '@/lib/apiError'
 import { useDocuments } from '@/api/hooks/useDocuments'
 import { useDeleteDocument, useConfirmDocument } from '@/api/hooks/useDocumentMutations'
 import { useUiStore } from '@/store/ui.store'
@@ -106,8 +107,8 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
       try {
         await deleteMut.mutateAsync(id)
         toast.success(t('common.success'))
-      } catch {
-        toast.error(t('common.error'))
+      } catch (err) {
+        toast.error(getApiErrorMessage(err, t))
       } finally {
         setDeletingId(null)
       }
@@ -121,8 +122,8 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
       try {
         await confirmMut.mutateAsync(id)
         toast.success(t('documents.confirmed'))
-      } catch {
-        toast.error(t('common.error'))
+      } catch (err) {
+        toast.error(getApiErrorMessage(err, t))
       } finally {
         setConfirmingId(null)
       }

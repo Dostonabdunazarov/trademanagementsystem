@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
+using TradeMS.Application.Common.Exceptions;
 using TradeMS.Application.Features.Documents.Commands.CreateDocument;
 using TradeMS.Application.Features.Documents.DTOs;
 using TradeMS.Domain.Entities;
@@ -24,7 +25,8 @@ public class UpdateDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
             throw new UnauthorizedAccessException("Access to this document is not allowed");
 
         if (doc.Status != DocumentStatus.Draft)
-            throw new InvalidOperationException("Only Draft documents can be updated");
+            throw new BusinessException(DocumentErrorCodes.NotDraft, "Only Draft documents can be updated",
+                new Dictionary<string, object?> { ["status"] = doc.Status.ToString() });
 
         doc.Date           = request.Date;
         doc.CounterpartyId = request.CounterpartyId;

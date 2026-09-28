@@ -2,6 +2,7 @@ using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
+using TradeMS.Application.Common.Exceptions;
 using TradeMS.Domain.Entities;
 using TradeMS.Domain.Enums;
 
@@ -22,7 +23,8 @@ public class DeleteDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
             throw new UnauthorizedAccessException("Access to this document is not allowed");
 
         if (doc.Status != DocumentStatus.Draft)
-            throw new InvalidOperationException("Only Draft documents can be deleted");
+            throw new BusinessException(DocumentErrorCodes.NotDraft, "Only Draft documents can be deleted",
+                new Dictionary<string, object?> { ["status"] = doc.Status.ToString() });
 
         var snapshot = JsonSerializer.Serialize(new { number = doc.Number, type = doc.Type.ToString(), total = doc.TotalAmountBase, date = doc.Date });
 

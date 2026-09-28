@@ -2,6 +2,7 @@ using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
+using TradeMS.Application.Common.Exceptions;
 using TradeMS.Application.Features.Documents.Commands.CreateDocument;
 using TradeMS.Application.Features.Documents.DTOs;
 using TradeMS.Domain.Entities;
@@ -38,7 +39,7 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
         await using var transaction = await db.BeginTransactionAsync(cancellationToken);
 
         var doc = await db.Documents
-            .Include(d => d.Lines)
+            .Include(d => d.Lines).ThenInclude(l => l.Product)
             .Include(d => d.Counterparty)
             .Include(d => d.Currency)
             .FirstOrDefaultAsync(d => d.Id == request.Id && d.CompanyId == request.CompanyId,
@@ -49,14 +50,16 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
             throw new UnauthorizedAccessException("Access to this document is not allowed");
 
         if (doc.Status != DocumentStatus.Draft)
-            throw new InvalidOperationException($"Document is already {doc.Status}");
+            throw new BusinessException(DocumentErrorCodes.NotDraft,
+                $"Document is already {doc.Status}",
+                new Dictionary<string, object?> { ["status"] = doc.Status.ToString() });
 
         // ── курс в базовую валюту (источник истины — сервер, не клиент) ─────────
         // Берём официальный курс из таблицы ExchangeRate (последний на дату документа),
         // пересчитываем TotalAmountBase. Клиентский ExchangeRate в расчёте не участвует.
         var baseCurrency = await db.Currencies
             .FirstOrDefaultAsync(c => c.IsBase, cancellationToken)
-            ?? throw new InvalidOperationException("No base currency is configured");
+            ?? throw new BusinessException(DocumentErrorCodes.NoBaseCurrency, "No base currency is configured");
 
         decimal serverRate;
         if (doc.CurrencyId == baseCurrency.Id)
@@ -72,9 +75,15 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
                 .OrderByDescending(r => r.Date)
                 .Select(r => (decimal?)r.Rate)
                 .FirstOrDefaultAsync(cancellationToken)
-                ?? throw new InvalidOperationException(
+                ?? throw new BusinessException(DocumentErrorCodes.ExchangeRateNotFound,
                     $"No exchange rate found for currency {doc.Currency?.Code ?? doc.CurrencyId.ToString()} " +
-                    $"to base currency {baseCurrency.Code} on or before {doc.Date}");
+                    $"to base currency {baseCurrency.Code} on or before {doc.Date}",
+                    new Dictionary<string, object?>
+                    {
+                        ["currency"] = doc.Currency?.Code,
+                        ["baseCurrency"] = baseCurrency.Code,
+                        ["date"] = doc.Date.ToString("yyyy-MM-dd"),
+                    });
             serverRate = rate;
         }
 
@@ -119,9 +128,16 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
 
                 var newQty = stock.Quantity + stockDelta * line.Quantity;
                 if (newQty < 0)
-                    throw new InvalidOperationException(
-                        $"Insufficient stock for product {line.ProductId}: " +
-                        $"available {stock.Quantity}, needed {line.Quantity}");
+                    throw new BusinessException(DocumentErrorCodes.InsufficientStock,
+                        $"Insufficient stock for product {line.Product?.Name ?? line.ProductId.ToString()}: " +
+                        $"available {stock.Quantity}, needed {line.Quantity}",
+                        new Dictionary<string, object?>
+                        {
+                            ["product"] = line.Product?.Name,
+                            ["unit"] = line.Product?.Unit.ToString(),
+                            ["available"] = stock.Quantity,
+                            ["needed"] = line.Quantity,
+                        });
 
                 stock.Quantity = newQty;
             }
@@ -174,8 +190,9 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
                 // TotalAmountBase. Applying it to an account denominated in another currency would
                 // corrupt that account's balance, so require the account to be in the base currency.
                 if (account.CurrencyId != baseCurrency.Id)
-                    throw new InvalidOperationException(
-                        "Payment account currency must match the base currency.");
+                    throw new BusinessException(DocumentErrorCodes.AccountCurrencyMismatch,
+                        "Payment account currency must match the base currency.",
+                        new Dictionary<string, object?> { ["account"] = account.Name, ["baseCurrency"] = baseCurrency.Code });
 
                 var accountDelta = doc.Type == DocumentType.PayIn
                     ? +doc.TotalAmountBase

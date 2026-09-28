@@ -2,6 +2,7 @@ using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
+using TradeMS.Application.Common.Exceptions;
 using TradeMS.Application.Features.Documents.Commands.CreateDocument;
 using TradeMS.Application.Features.Documents.DTOs;
 using TradeMS.Domain.Entities;
@@ -41,7 +42,7 @@ public class CancelDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
         await using var transaction = await db.BeginTransactionAsync(cancellationToken);
 
         var doc = await db.Documents
-            .Include(d => d.Lines)
+            .Include(d => d.Lines).ThenInclude(l => l.Product)
             .Include(d => d.Counterparty)
             .Include(d => d.Currency)
             .FirstOrDefaultAsync(d => d.Id == request.Id && d.CompanyId == request.CompanyId,
@@ -52,8 +53,9 @@ public class CancelDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
             throw new UnauthorizedAccessException("Access to this document is not allowed");
 
         if (doc.Status != DocumentStatus.Confirmed)
-            throw new InvalidOperationException(
-                $"Only Confirmed documents can be cancelled (document is {doc.Status})");
+            throw new BusinessException(DocumentErrorCodes.NotConfirmed,
+                $"Only Confirmed documents can be cancelled (document is {doc.Status})",
+                new Dictionary<string, object?> { ["status"] = doc.Status.ToString() });
 
         // ── склад: откат подтверждения (знак противоположен Confirm) ───────────────
         var reverseStockDelta = doc.Type switch
@@ -80,10 +82,17 @@ public class CancelDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
 
                 var newQty = stock.Quantity + reverseStockDelta * line.Quantity;
                 if (newQty < 0)
-                    throw new InvalidOperationException(
-                        $"Cannot cancel: reversing would drive stock negative for product {line.ProductId} " +
+                    throw new BusinessException(DocumentErrorCodes.CancelStockConsumed,
+                        $"Cannot cancel: reversing would drive stock negative for product {line.Product?.Name ?? line.ProductId.ToString()} " +
                         $"(current {stock.Quantity}, reversing {line.Quantity}). " +
-                        "The stock has already been consumed by later documents.");
+                        "The stock has already been consumed by later documents.",
+                        new Dictionary<string, object?>
+                        {
+                            ["product"] = line.Product?.Name,
+                            ["unit"] = line.Product?.Unit.ToString(),
+                            ["available"] = stock.Quantity,
+                            ["needed"] = line.Quantity,
+                        });
 
                 stock.Quantity = newQty;
             }

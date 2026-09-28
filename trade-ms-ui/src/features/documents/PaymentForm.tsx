@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Save, CheckCircle, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { getApiErrorMessage } from '@/lib/apiError'
 import type { DocumentType, PaymentMethod } from '@/types/document'
 import { useCounterparties } from '@/api/hooks/useCounterparties'
 import { useCurrencies } from '@/api/hooks/useCurrencies'
@@ -97,7 +98,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
   const showToast = useCallback((message: string, type: 'success' | 'error') => {
     setToast({ message, type })
     if (toastTimer.current) clearTimeout(toastTimer.current)
-    toastTimer.current = setTimeout(() => setToast(null), 3500)
+    toastTimer.current = setTimeout(() => setToast(null), type === 'error' ? 7000 : 3500)
   }, [])
   useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current) }, [])
 
@@ -181,28 +182,32 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
     accountId: accountId || null,
   })
 
-  const errorMessage = (err: unknown) =>
-    (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? t('common.error')
+  const errorMessage = (err: unknown) => getApiErrorMessage(err, t)
 
   // Returns true if the form is valid enough to submit.
-  const validate = (requireAmount: boolean): boolean => {
+  const validate = (): boolean => {
     if (!counterpartyId) {
       showToast(t('documents.counterpartyRequired'), 'error')
       return false
     }
-    if (!currencyId || !accountId) {
-      showToast(t('common.error'), 'error')
+    if (!currencyId) {
+      showToast(t('errors.codes.currencyRequired'), 'error')
       return false
     }
-    if (requireAmount && !(parseFloat(amount) > 0)) {
-      showToast(t('common.error'), 'error')
+    if (!accountId) {
+      showToast(t('errors.accountRequired'), 'error')
+      return false
+    }
+    // Сервер требует сумму > 0 и для черновика, поэтому проверяем её всегда.
+    if (!(parseFloat(amount) > 0)) {
+      showToast(t(amount.trim() ? 'errors.codes.amountPositive' : 'errors.codes.amountRequired'), 'error')
       return false
     }
     return true
   }
 
   const handleSaveDraft = async () => {
-    if (!validate(false)) return
+    if (!validate()) return
     try {
       await createDoc.mutateAsync(buildPayload())
       navigate(listRoute)
@@ -212,7 +217,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
   }
 
   const handleConfirm = async () => {
-    if (!validate(true)) return
+    if (!validate()) return
     try {
       const doc = await createDoc.mutateAsync(buildPayload())
       await confirmDoc.mutateAsync(doc.id)
@@ -246,7 +251,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
       {/* Toast */}
       {toast && (
         <div className={cn(
-          'absolute top-4 right-4 z-50 flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs shadow-xl',
+          'absolute top-14 right-4 z-50 flex max-w-md items-start gap-2 rounded-lg border px-4 py-2.5 text-xs shadow-xl whitespace-pre-line',
           'transition-all animate-in fade-in slide-in-from-top-2',
           toast.type === 'success'
             ? 'border-emerald-600 bg-emerald-700 text-white'

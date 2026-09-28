@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { getApiErrorMessage } from '@/lib/apiError'
 
 const UNIT_KEYS = ['Pcs', 'Kg', 'M', 'M2', 'M3', 'Litre'] as const
 
@@ -148,7 +149,7 @@ function ProductFormDialog({ open, onClose, initial, groupId, groups, currencyId
       onClose()
     } catch (err) {
       console.error('Product save error:', err)
-      toast.error(isEdit ? t('products.updateError') : t('products.createError'))
+      toast.error(getApiErrorMessage(err, t, isEdit ? t('products.updateError') : t('products.createError')))
     }
   }
 
@@ -296,8 +297,8 @@ function GroupFormDialog({
       setName('')
       setParentId(null)
       onClose()
-    } catch {
-      toast.error(t('products.createError'))
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, t, t('products.createError')))
     }
   }
 
@@ -438,8 +439,8 @@ export function ProductsPage() {
     try {
       await deleteProduct.mutateAsync(deleteDialog.item.id)
       toast.success(t('products.deletedSuccess'))
-    } catch {
-      toast.error(t('products.deleteError'))
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, t, t('products.deleteError')))
     } finally {
       setDeleteDialog({ open: false })
     }

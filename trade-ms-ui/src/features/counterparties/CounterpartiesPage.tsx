@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { getApiErrorMessage } from '@/lib/apiError'
 
 // ── Delete confirm dialog ──────────────────────────────────────────────────────
 
@@ -121,7 +122,7 @@ function CounterpartyFormDialog({
       onClose()
     } catch (err) {
       console.error('Counterparty save error:', err)
-      toast.error(isEdit ? t('counterparties.updateError') : t('counterparties.createError'))
+      toast.error(getApiErrorMessage(err, t, isEdit ? t('counterparties.updateError') : t('counterparties.createError')))
     }
   }
 
@@ -240,7 +241,7 @@ export function CounterpartiesPage() {
       toast.success(t('counterparties.deletedSuccess'))
     } catch (err) {
       console.error('Counterparty delete error:', err)
-      toast.error(t('counterparties.deleteError'))
+      toast.error(getApiErrorMessage(err, t, t('counterparties.deleteError')))
     } finally {
       setDeleteDialog({ open: false })
     }

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom'
 import { Trash2, ChevronDown, ChevronRight, Search, Save, CheckCircle, Loader2, AlertCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+import { getApiErrorMessage } from '@/lib/apiError'
 import type { DocumentType } from '@/types/document'
 import { useDocumentForm } from './useDocumentForm'
 import { QuantityDialog } from './QuantityDialog'
@@ -197,10 +198,14 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
 
   // Toast
   const [toast, setToast] = useState<ToastState | null>(null)
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const showToast = useCallback((message: string, type: 'success' | 'error') => {
     setToast({ message, type })
-    setTimeout(() => setToast(null), 3500)
+    if (toastTimer.current) clearTimeout(toastTimer.current)
+    // Ошибку нужно успеть прочитать — держим её дольше, чем сообщение об успехе.
+    toastTimer.current = setTimeout(() => setToast(null), type === 'error' ? 7000 : 3500)
   }, [])
+  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current) }, [])
 
   // Product dialog
   const [selectedProduct, setSelectedProduct] = useState<ProductDto | null>(null)
@@ -238,13 +243,13 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
     if (isOutbound) {
       const qty = stockByProductId.get(p.id) ?? 0
       if (qty <= 0) {
-        showToast(`"${p.name}" отсутствует на складе`, 'error')
+        showToast(t('errors.outOfStock', { product: p.name }), 'error')
         return
       }
     }
     setSelectedProduct(p)
     setDialogOpen(true)
-  }, [isOutbound, stockByProductId, showToast])
+  }, [isOutbound, stockByProductId, showToast, t])
 
   const handleProductKeyDown = useCallback((e: React.KeyboardEvent, p: ProductDto) => {
     if (e.key !== 'Enter') return
@@ -252,13 +257,13 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
     if (isOutbound) {
       const qty = stockByProductId.get(p.id) ?? 0
       if (qty <= 0) {
-        showToast(`"${p.name}" отсутствует на складе`, 'error')
+        showToast(t('errors.outOfStock', { product: p.name }), 'error')
         return
       }
     }
     setSelectedProduct(p)
     setDialogOpen(true)
-  }, [isOutbound, stockByProductId, showToast])
+  }, [isOutbound, stockByProductId, showToast, t])
 
   const handleDialogConfirm = useCallback(
     (qty: number, price: number, discount: number) => {
@@ -290,13 +295,39 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
     })),
   }), [type, state, isAdmin, activeBranch])
 
-  const handleSaveDraft = useCallback(async () => {
-    if (state.lines.length === 0) {
-      showToast(t('common.error'), 'error')
-      return
+  /** Проверка перед отправкой: возвращает текст первой ошибки или null. */
+  const validate = useCallback((forConfirm: boolean): string | null => {
+    if (state.lines.length === 0) return t('errors.codes.linesRequired')
+    if (!state.counterpartyId) return t('documents.counterpartyRequired')
+    if (!state.currencyId) return t('errors.codes.currencyRequired')
+
+    // Для расхода проверяем остатки заранее, чтобы назвать товар и цифры,
+    // не дожидаясь отказа сервера. Сервер всё равно проверяет сам.
+    if (forConfirm && isOutbound && stockData) {
+      const needed = new Map<string, { name: string; unit: string; qty: number }>()
+      for (const l of state.lines) {
+        const cur = needed.get(l.productId)
+        needed.set(l.productId, { name: l.productName, unit: l.unit, qty: (cur?.qty ?? 0) + l.quantity })
+      }
+      for (const [productId, { name, unit, qty }] of needed) {
+        const available = stockByProductId.get(productId) ?? 0
+        if (qty > available) {
+          return t('errors.codes.insufficientStock', {
+            product: name,
+            unit: t(`products.units.${unit}`, { defaultValue: unit }),
+            available: available.toLocaleString('ru-RU'),
+            needed: qty.toLocaleString('ru-RU'),
+          })
+        }
+      }
     }
-    if (!state.counterpartyId) {
-      showToast(t('documents.counterpartyRequired'), 'error')
+    return null
+  }, [state, isOutbound, stockData, stockByProductId, t])
+
+  const handleSaveDraft = useCallback(async () => {
+    const invalid = validate(false)
+    if (invalid) {
+      showToast(invalid, 'error')
       return
     }
     try {
@@ -309,18 +340,15 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
         setSavedDocId(result.id)
         showToast(t('documents.draftSaved'), 'success')
       }
-    } catch {
-      showToast(t('common.error'), 'error')
+    } catch (err) {
+      showToast(getApiErrorMessage(err, t), 'error')
     }
-  }, [state, savedDocId, buildPayload, createDoc, updateDoc, showToast, t])
+  }, [validate, savedDocId, buildPayload, createDoc, updateDoc, showToast, t])
 
   const handleConfirm = useCallback(async () => {
-    if (state.lines.length === 0) {
-      showToast(t('common.error'), 'error')
-      return
-    }
-    if (!state.counterpartyId) {
-      showToast(t('documents.counterpartyRequired'), 'error')
+    const invalid = validate(true)
+    if (invalid) {
+      showToast(invalid, 'error')
       return
     }
     try {
@@ -336,12 +364,10 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
       showToast(t('documents.confirmed'), 'success')
       form.clearForm()
       setSavedDocId(null)
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { detail?: string } } })
-        ?.response?.data?.detail ?? t('common.error')
-      showToast(msg, 'error')
+    } catch (err) {
+      showToast(getApiErrorMessage(err, t), 'error')
     }
-  }, [state, savedDocId, buildPayload, createDoc, updateDoc, confirmDoc, showToast, form, t])
+  }, [validate, savedDocId, buildPayload, createDoc, updateDoc, confirmDoc, showToast, form, t])
 
   const isSaving = createDoc.isPending || updateDoc.isPending
   const isConfirming = confirmDoc.isPending
@@ -356,15 +382,15 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
       {/* ── Toast ── */}
       {toast && (
         <div className={cn(
-          'absolute top-4 right-4 z-50 flex items-center gap-2 rounded-lg border px-4 py-2.5 text-xs shadow-xl',
+          'absolute top-14 right-4 z-50 flex max-w-md items-start gap-2 rounded-lg border px-4 py-2.5 text-xs shadow-xl whitespace-pre-line',
           'transition-all animate-in fade-in slide-in-from-top-2',
           toast.type === 'success'
             ? 'border-emerald-600 bg-emerald-700 text-white'
             : 'border-red-600 bg-red-700 text-white',
         )}>
           {toast.type === 'error'
-            ? <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-            : <CheckCircle className="h-3.5 w-3.5 shrink-0" />}
+            ? <AlertCircle className="mt-px h-3.5 w-3.5 shrink-0" />
+            : <CheckCircle className="mt-px h-3.5 w-3.5 shrink-0" />}
           {toast.message}
         </div>
       )}
