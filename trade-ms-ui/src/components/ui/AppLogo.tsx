@@ -15,12 +15,12 @@ export function AppLogoIcon({ size = 32, className }: AppLogoProps) {
     >
       <defs>
         <linearGradient id="logo-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#7aa2f7" />
-          <stop offset="100%" stopColor="#3b6ee8" />
+          <stop offset="0%" stopColor="#34d399" />
+          <stop offset="100%" stopColor="#059669" />
         </linearGradient>
         <linearGradient id="logo-grad-glow" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#a3bffa" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="#3b6ee8" stopOpacity="0.1" />
+          <stop offset="0%" stopColor="#6ee7b7" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#059669" stopOpacity="0.1" />
         </linearGradient>
       </defs>
       {/* Diamond shape */}

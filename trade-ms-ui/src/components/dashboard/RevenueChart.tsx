@@ -14,8 +14,8 @@ import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/utils/format'
 import type { MonthlySales } from '@/api/hooks/useReports'
 
-const REVENUE_COLOR = '#3B6EE8' // brand-500 — совпадает с --primary
-const PROFIT_COLOR = '#10B981' // emerald — прибыль, семантический зелёный
+const REVENUE_COLOR = '#10B981' // emerald — фирменный акцент, ярче brand-500 для тёмного фона
+const PROFIT_COLOR = '#F59E0B' // amber — контраст с зелёными столбцами
 
 /** Компактный формат оси Y: 57 000 000 → «57 млн» */
 function formatAxis(value: number): string {
