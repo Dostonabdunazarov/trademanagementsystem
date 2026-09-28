@@ -3,19 +3,19 @@
 /* Вариант для светлой темы: тема переключается классом html.light. */
 @custom-variant light (&:where(.light, .light *));
 
-/* Фирменный цвет — тёмно-зелёный (emerald → бирюза), как в InterviewHub. */
+/* Фирменный цвет — тёмно-зелёный (emerald → бирюза). */
 @theme {
   --color-brand-50: #f0fdfa;
   --color-brand-100: #ccfbf1;
   --color-brand-200: #99f6e4;
-  --color-brand-300: #5eead4;
-  --color-brand-400: #2dd4bf;
-  --color-brand-500: #047857;
-  --color-brand-600: #065f46;
-  --color-brand-700: #064e3b;
-  --color-brand-800: #043d30;
-  --color-brand-900: #022c22;
-  --color-brand-950: #011a14;
+  --color-brand-300: #1fa88a;
+  --color-brand-400: #14937a;
+  --color-brand-500: #03644a;
+  --color-brand-600: #054d39;
+  --color-brand-700: #043d2f;
+  --color-brand-800: #032e24;
+  --color-brand-900: #021f19;
+  --color-brand-950: #01130f;
 }
 
 @theme inline {
@@ -53,33 +53,33 @@
 
 @layer base {
   :root {
-    --background: 222 30% 5%;
+    --background: 229 63% 5%;
     --foreground: 214 32% 91%;
-    --surface: 215 28% 7%;
-    --surface-2: 215 25% 13%;
-    --border: 215 20% 65% / 0.12;
-    --accent: 163 94% 24%;
-    --accent-glow: 163 94% 24% / 0.15;
+    --surface: 229 50% 9%;
+    --surface-2: 229 40% 15%;
+    --border: 229 40% 70% / 0.12;
+    --accent: 164 94% 20%;
+    --accent-glow: 164 94% 20% / 0.15;
     --success: 160 84% 39%;
     --warning: 38 92% 50%;
     --danger: 0 84% 60%;
     --text-primary: 214 32% 91%;
     --text-muted: 215 16% 47%;
 
-    --card: 215 28% 7%;
+    --card: 229 50% 9%;
     --card-foreground: 214 32% 91%;
-    --popover: 215 28% 7%;
+    --popover: 229 50% 9%;
     --popover-foreground: 214 32% 91%;
-    --primary: 163 94% 24%;
+    --primary: 164 94% 20%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 215 25% 13%;
+    --secondary: 229 40% 15%;
     --secondary-foreground: 214 32% 91%;
-    --muted: 215 25% 13%;
+    --muted: 229 40% 15%;
     --muted-foreground: 215 16% 47%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
-    --input: 215 25% 13%;
-    --ring: 172 66% 50%;
+    --input: 229 40% 15%;
+    --ring: 168 76% 33%;
     --radius: 0.5rem;
   }
 
@@ -91,8 +91,8 @@
     --surface: 0 0% 100%;
     --surface-2: 0 0% 96%;
     --border: 228 20% 0% / 0.08;
-    --accent: 164 88% 20%;
-    --accent-glow: 164 88% 20% / 0.15;
+    --accent: 163 88% 16%;
+    --accent-glow: 163 88% 16% / 0.15;
     --success: 152 76% 36%;
     --warning: 38 92% 44%;
     --danger: 0 84% 55%;
@@ -103,7 +103,7 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    --primary: 164 88% 20%;
+    --primary: 163 88% 16%;
     --primary-foreground: 0 0% 100%;
     --secondary: 228 25% 88%;
     --secondary-foreground: 222 47% 11%;
@@ -112,7 +112,7 @@
     --destructive: 0 84% 55%;
     --destructive-foreground: 0 0% 100%;
     --input: 228 25% 88%;
-    --ring: 164 88% 20%;
+    --ring: 163 88% 16%;
   }
 
   html {
@@ -147,13 +147,13 @@
 /* ── Accent Border Glow (Вариант 4) ───────────────────────────────────────── */
 
 aside {
-  border-right: 1px solid rgba(4, 120, 87, 0.30);
-  box-shadow: 4px 0 20px rgba(4, 120, 87, 0.18);
+  border-right: 1px solid rgba(3, 100, 74, 0.30);
+  box-shadow: 4px 0 20px rgba(3, 100, 74, 0.18);
 }
 
 header {
-  border-bottom: 1px solid rgba(4, 120, 87, 0.25);
-  box-shadow: 0 4px 20px rgba(4, 120, 87, 0.14);
+  border-bottom: 1px solid rgba(3, 100, 74, 0.25);
+  box-shadow: 0 4px 20px rgba(3, 100, 74, 0.14);
 }
 
 /* ── Light theme component overrides ─────────────────────────────────────── */
@@ -161,15 +161,15 @@ header {
 /* Sidebar */
 html.light aside {
   background-color: #ffffff !important;
-  border-right-color: rgba(4, 120, 87, 0.35) !important;
-  box-shadow: 4px 0 20px rgba(4, 120, 87, 0.18) !important;
+  border-right-color: rgba(3, 100, 74, 0.35) !important;
+  box-shadow: 4px 0 20px rgba(3, 100, 74, 0.18) !important;
 }
 
 /* Topbar */
 html.light header {
   background-color: #ffffff !important;
-  border-bottom-color: rgba(4, 120, 87, 0.30) !important;
-  box-shadow: 0 4px 20px rgba(4, 120, 87, 0.14) !important;
+  border-bottom-color: rgba(3, 100, 74, 0.30) !important;
+  box-shadow: 0 4px 20px rgba(3, 100, 74, 0.14) !important;
 }
 
 /* Table header row */
@@ -179,26 +179,26 @@ html.light thead tr {
 
 /* Table row hover */
 html.light tbody tr:hover {
-  background-color: rgba(4, 120, 87, 0.04) !important;
+  background-color: rgba(3, 100, 74, 0.04) !important;
 }
 
 /* Toolbar / card areas */
 html.light .bg-card {
   background-color: rgba(255, 255, 255, 0.88) !important;
   backdrop-filter: blur(10px);
-  box-shadow: 0 1px 10px rgba(4, 120, 87, 0.07);
+  box-shadow: 0 1px 10px rgba(3, 100, 74, 0.07);
 }
 
 /* Primary gradient button */
 html.light .btn-primary-gradient {
-  background-image: linear-gradient(135deg, #047857 0%, #115e59 50%, #0f766e 100%) !important;
-  background-color: #047857 !important;
-  box-shadow: 0 4px 16px rgba(4, 120, 87, 0.40) !important;
+  background-image: linear-gradient(135deg, #03644a 0%, #0e4f4a 50%, #0d6660 100%) !important;
+  background-color: #03644a !important;
+  box-shadow: 0 4px 16px rgba(3, 100, 74, 0.40) !important;
   border: none !important;
 }
 html.light .btn-primary-gradient:hover {
-  background-image: linear-gradient(135deg, #065f46 0%, #134e4a 50%, #115e59 100%) !important;
-  box-shadow: 0 6px 22px rgba(4, 120, 87, 0.50) !important;
+  background-image: linear-gradient(135deg, #054d39 0%, #0f403c 50%, #0e4f4a 100%) !important;
+  box-shadow: 0 6px 22px rgba(3, 100, 74, 0.50) !important;
   transform: translateY(-1px);
 }
 
@@ -209,11 +209,11 @@ html.light input[type="email"],
 html.light input[type="password"],
 html.light input:not([type]) {
   background-color: rgba(240, 253, 250, 0.75) !important;
-  border-color: rgba(4, 120, 87, 0.18) !important;
+  border-color: rgba(3, 100, 74, 0.18) !important;
 }
 html.light input:focus {
-  border-color: #047857 !important;
-  box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.15) !important;
+  border-color: #03644a !important;
+  box-shadow: 0 0 0 3px rgba(3, 100, 74, 0.15) !important;
   outline: none !important;
 }
 
@@ -221,17 +221,17 @@ html.light input:focus {
 html.light ::-webkit-scrollbar { width: 6px; height: 6px; }
 html.light ::-webkit-scrollbar-track { background: transparent; }
 html.light ::-webkit-scrollbar-thumb {
-  background: rgba(4, 120, 87, 0.22);
+  background: rgba(3, 100, 74, 0.22);
   border-radius: 3px;
 }
 html.light ::-webkit-scrollbar-thumb:hover {
-  background: rgba(4, 120, 87, 0.38);
+  background: rgba(3, 100, 74, 0.38);
 }
 
 /* Selection */
 html.light ::selection {
-  background: rgba(4, 120, 87, 0.2);
-  color: #064e3b;
+  background: rgba(3, 100, 74, 0.2);
+  color: #043d2f;
 }
 
 /* Sidebar nav links — hover effect (theme-aware, overrides utility colors) */

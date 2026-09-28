@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/utils/format'
 import type { MonthlySales } from '@/api/hooks/useReports'
 
-const REVENUE_COLOR = '#047857' // тёмно-зелёный — совпадает с --primary
+const REVENUE_COLOR = '#14937A' // тёмно-зелёный — brand-400, на тёмном фоне видно лучше, чем --primary
 const PROFIT_COLOR = '#F59E0B' // amber — контраст с зелёными столбцами
 
 /** Компактный формат оси Y: 57 000 000 → «57 млн» */
