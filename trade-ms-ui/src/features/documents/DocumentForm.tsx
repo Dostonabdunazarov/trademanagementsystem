@@ -19,6 +19,7 @@ import { useAuthStore } from '@/store/auth.store'
 import { useUiStore } from '@/store/ui.store'
 import { useStockBalance } from '@/api/hooks/useReports'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DatePicker } from '@/components/ui/date-picker'
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
 
@@ -457,20 +458,14 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
       {/* ── Header row ── */}
       <div className="flex flex-wrap items-end gap-2 px-4 pb-3 border-b border-[hsl(var(--border))]">
         {/* Date */}
-        <label className="flex flex-col gap-1 min-w-[130px]">
+        <div className="flex flex-col gap-1 min-w-[130px]">
           <span className="text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('common.date')}</span>
-          <input
-            type="date"
+          <DatePicker
             value={state.date}
-            onChange={(e) => !isReadonly && form.setDate(e.target.value)}
-            readOnly={isReadonly}
-            className={cn(
-              'h-8 rounded-lg border border-border bg-secondary px-2.5 text-xs text-[hsl(var(--text-primary))]',
-              'focus:outline-none focus:ring-1 focus:ring-brand-500/60 transition-colors',
-              isReadonly && 'opacity-70 cursor-default',
-            )}
+            onChange={(v) => !isReadonly && form.setDate(v)}
+            disabled={isReadonly}
           />
-        </label>
+        </div>
 
         {/* Counterparty combobox */}
         <div className="flex flex-col gap-1 flex-1 min-w-[180px]" ref={cpRef}>

@@ -23,6 +23,7 @@ import { useDocuments } from '@/api/hooks/useDocuments'
 import { useDeleteDocument, useConfirmDocument } from '@/api/hooks/useDocumentMutations'
 import { useUiStore } from '@/store/ui.store'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DatePicker } from '@/components/ui/date-picker'
 
 const PAGE_SIZE = 100
 
@@ -188,20 +189,22 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
         <div className="flex flex-wrap gap-3 rounded-lg border border-border bg-secondary p-4">
           <div className="flex flex-col gap-1">
             <label className="text-[11px] font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">{t('documents.filterByDate')}</label>
-            <input
-              type="date"
+            <DatePicker
               value={dateFrom}
-              onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
-              className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-[hsl(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+              max={dateTo || undefined}
+              onChange={(v) => { setDateFrom(v); setPage(1) }}
+              clearable
+              className="h-[34px] bg-card text-sm"
             />
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-[11px] font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">{t('documents.filterByDateTo')}</label>
-            <input
-              type="date"
+            <DatePicker
               value={dateTo}
-              onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
-              className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-[hsl(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+              min={dateFrom || undefined}
+              onChange={(v) => { setDateTo(v); setPage(1) }}
+              clearable
+              className="h-[34px] bg-card text-sm"
             />
           </div>
           <div className="flex flex-col gap-1">

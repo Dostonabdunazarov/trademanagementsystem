@@ -5,6 +5,7 @@ import { Shield, ChevronLeft, ChevronRight, Filter, CheckCircle2, XCircle } from
 import { cn } from '@/lib/utils'
 import { fetchAuditLogs, type AuditLogsParams } from '@/api/auditLogs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DatePicker } from '@/components/ui/date-picker'
 
 const PAGE_SIZE = 500
 
@@ -101,20 +102,22 @@ export function AuditLogsPage() {
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-[11px] font-medium text-[hsl(var(--text-muted))]">{t('common.from')}</label>
-              <input
-                type="date"
+              <DatePicker
                 value={filters.dateFrom}
-                onChange={(e) => setFilters((f) => ({ ...f, dateFrom: e.target.value }))}
-                className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-xs text-[hsl(var(--text-primary))] focus:outline-none focus:ring-1 focus:ring-brand-500"
+                max={filters.dateTo || undefined}
+                onChange={(v) => setFilters((f) => ({ ...f, dateFrom: v }))}
+                clearable
+                className="bg-[hsl(var(--background))]"
               />
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-[11px] font-medium text-[hsl(var(--text-muted))]">{t('common.to')}</label>
-              <input
-                type="date"
+              <DatePicker
                 value={filters.dateTo}
-                onChange={(e) => setFilters((f) => ({ ...f, dateTo: e.target.value }))}
-                className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-xs text-[hsl(var(--text-primary))] focus:outline-none focus:ring-1 focus:ring-brand-500"
+                min={filters.dateFrom || undefined}
+                onChange={(v) => setFilters((f) => ({ ...f, dateTo: v }))}
+                clearable
+                className="bg-[hsl(var(--background))]"
               />
             </div>
             <div className="flex flex-col gap-1">

@@ -187,7 +187,7 @@ html.light header {
 }
 
 /* Table header row */
-html.light thead tr {
+html.light thead tr:not(.rdp-weekdays) {
   background-image: linear-gradient(90deg, #ecfeff 0%, #f5f6fb 100%);
 }
 
@@ -297,4 +297,84 @@ html.light .nav-link-idle:hover .nav-link-icon {
 }
 @media (prefers-reduced-motion: reduce) {
   .select-content { animation: none; }
+}
+
+/* ── Выбор даты (ui/date-picker, react-day-picker) ───────────────────────── */
+@keyframes popover-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(-4px) scale(0.97); }
+}
+.date-picker-content {
+  transform-origin: var(--radix-popover-content-transform-origin);
+  animation: select-in-down 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.date-picker-content[data-side="top"] { animation-name: select-in-up; }
+.date-picker-content[data-state="closed"] { animation: popover-out 0.12s ease-in forwards; }
+
+.date-picker {
+  --rdp-accent-color: var(--color-brand-500);
+  --rdp-accent-background-color: color-mix(in oklab, var(--color-brand-500) 14%, transparent);
+  --rdp-day-height: 36px;
+  --rdp-day-width: 36px;
+  --rdp-day_button-height: 34px;
+  --rdp-day_button-width: 34px;
+  --rdp-day_button-border-radius: 10px;
+  --rdp-day_button-border: 0;
+  --rdp-selected-border: 0;
+  --rdp-nav-height: 2.25rem;
+  --rdp-nav_button-height: 2rem;
+  --rdp-nav_button-width: 2rem;
+  --rdp-outside-opacity: 0.35;
+  --rdp-weekday-opacity: 1;
+  --rdp-animation_duration: 0.28s;
+  font-size: 13px;
+  color: hsl(var(--text-primary));
+}
+.date-picker .rdp-month_caption { font-size: 14px; font-weight: 600; padding-inline-start: 6px; }
+.date-picker .rdp-caption_label { text-transform: capitalize; }
+.date-picker .rdp-weekday {
+  font-size: 11px;
+  font-weight: 600;
+  color: hsl(var(--text-muted));
+  text-transform: capitalize;
+}
+.date-picker .rdp-button_previous,
+.date-picker .rdp-button_next {
+  border-radius: 8px;
+  color: hsl(var(--text-muted));
+  transition: background-color 0.15s, color 0.15s;
+}
+.date-picker .rdp-button_previous:hover:not(:disabled),
+.date-picker .rdp-button_next:hover:not(:disabled) {
+  background: hsl(var(--surface-2));
+  color: hsl(var(--text-primary));
+}
+.date-picker .rdp-chevron { fill: currentColor; width: 14px; height: 14px; }
+.date-picker .rdp-day_button {
+  transition: background-color 0.15s, color 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+.date-picker .rdp-day_button:hover:not(:disabled) { background: hsl(var(--surface-2)); }
+.date-picker .rdp-day_button:active:not(:disabled) { transform: scale(0.92); }
+.date-picker .rdp-day_button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--color-brand-500) 55%, transparent);
+}
+.date-picker .rdp-today:not(.rdp-selected) .rdp-day_button {
+  color: var(--color-brand-400);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-brand-500) 45%, transparent);
+}
+.date-picker .rdp-selected { font-size: inherit; }
+.date-picker .rdp-selected .rdp-day_button,
+.date-picker .rdp-selected .rdp-day_button:hover {
+  background: var(--color-brand-500);
+  color: var(--color-brand-fg);
+  font-weight: 600;
+  box-shadow: 0 4px 12px -4px color-mix(in oklab, var(--color-brand-500) 70%, transparent);
+}
+.date-picker .rdp-disabled { opacity: 0.3; }
+
+@media (prefers-reduced-motion: reduce) {
+  .date-picker-content, .date-picker-content[data-state="closed"] { animation: none; }
+  .date-picker { --rdp-animation_duration: 0s; }
 }

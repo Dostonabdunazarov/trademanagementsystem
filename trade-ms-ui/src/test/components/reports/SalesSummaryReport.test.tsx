@@ -41,7 +41,7 @@ describe('SalesSummaryReport', () => {
 
   it('имеет поля фильтра по дате', () => {
     renderWithProviders(<SalesSummaryReport />)
-    const dateInputs = document.querySelectorAll('input[type="date"]')
+    const dateInputs = document.querySelectorAll('[data-date-picker]')
     expect(dateInputs.length).toBeGreaterThanOrEqual(2)
   })
 })

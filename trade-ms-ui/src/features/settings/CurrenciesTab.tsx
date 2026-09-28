@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { DatePicker } from '@/components/ui/date-picker'
 
 function CurrencyDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t } = useTranslation()
@@ -159,12 +160,10 @@ function ExchangeRateDialog({
           </div>
           <div className="space-y-1.5">
             <Label className="text-[hsl(var(--text-muted))] text-xs">{t('settings.rateDate')}</Label>
-            <Input
-              type="date"
+            <DatePicker
               value={form.date}
-              onChange={(e) => setForm((f) => ({ ...f, date: e.target.value }))}
-              className="bg-background border-border text-[hsl(var(--text-primary))]"
-              required
+              onChange={(v) => setForm((f) => ({ ...f, date: v }))}
+              className="h-10 bg-background text-sm"
             />
           </div>
           <div className="flex justify-end gap-2 pt-2">

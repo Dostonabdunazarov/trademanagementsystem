@@ -11,6 +11,7 @@ import {
 } from 'date-fns'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+import { DatePicker } from '@/components/ui/date-picker'
 
 export interface PeriodRange {
   dateFrom: string
@@ -88,24 +89,22 @@ export function PeriodFilter({ value, onChange, className }: PeriodFilterProps) 
           <label className="text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">
             {t('dashboard.from')}
           </label>
-          <input
-            type="date"
+          <DatePicker
             value={value.dateFrom}
             max={value.dateTo}
-            onChange={(e) => setCustom({ dateFrom: e.target.value })}
-            className="h-8 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-2.5 text-xs text-[hsl(var(--text-primary))] focus:border-brand-500/50 focus:outline-none focus:ring-1 focus:ring-brand-500/30"
+            onChange={(v) => setCustom({ dateFrom: v })}
+            className="bg-[hsl(var(--surface))]"
           />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">
             {t('dashboard.to')}
           </label>
-          <input
-            type="date"
+          <DatePicker
             value={value.dateTo}
             min={value.dateFrom}
-            onChange={(e) => setCustom({ dateTo: e.target.value })}
-            className="h-8 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-2.5 text-xs text-[hsl(var(--text-primary))] focus:border-brand-500/50 focus:outline-none focus:ring-1 focus:ring-brand-500/30"
+            onChange={(v) => setCustom({ dateTo: v })}
+            className="bg-[hsl(var(--surface))]"
           />
         </div>
       </div>

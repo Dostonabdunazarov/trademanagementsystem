@@ -5,6 +5,7 @@ import { useSalesSummary } from '@/api/hooks/useReports'
 import { formatNumber } from '@/utils/format'
 import { cn } from '@/lib/utils'
 import { useUiStore } from '@/store/ui.store'
+import { DatePicker } from '@/components/ui/date-picker'
 
 function MetricBadge({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -32,21 +33,11 @@ export function SalesSummaryReport() {
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1">
           <label className="text-[11px] font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">С</label>
-          <input
-            type="date"
-            value={dateFrom}
-            onChange={(e) => setDateFrom(e.target.value)}
-            className="h-9 rounded-lg border border-border bg-card px-3 text-sm text-[hsl(var(--text-primary))] focus:border-brand-500/50 focus:outline-none focus:ring-1 focus:ring-brand-500/30"
-          />
+          <DatePicker value={dateFrom} max={dateTo} onChange={setDateFrom} className="h-9 bg-card text-sm" />
         </div>
         <div className="flex flex-col gap-1">
           <label className="text-[11px] font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">По</label>
-          <input
-            type="date"
-            value={dateTo}
-            onChange={(e) => setDateTo(e.target.value)}
-            className="h-9 rounded-lg border border-border bg-card px-3 text-sm text-[hsl(var(--text-primary))] focus:border-brand-500/50 focus:outline-none focus:ring-1 focus:ring-brand-500/30"
-          />
+          <DatePicker value={dateTo} min={dateFrom} onChange={setDateTo} className="h-9 bg-card text-sm" />
         </div>
         <button
           onClick={() => refetch()}

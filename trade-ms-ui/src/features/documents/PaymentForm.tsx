@@ -13,6 +13,7 @@ import { useDocument } from '@/api/hooks/useDocument'
 import { useAuthStore } from '@/store/auth.store'
 import { useUiStore } from '@/store/ui.store'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { DatePicker } from '@/components/ui/date-picker'
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
 
@@ -318,16 +319,10 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
         )}>
 
           {/* Date */}
-          <label className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1">
             <span className={labelCls}>{t('common.date')}</span>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              readOnly={isReadonly}
-              className={cn(inputCls, isReadonly && 'opacity-70 cursor-default')}
-            />
-          </label>
+            <DatePicker value={date} onChange={setDate} disabled={isReadonly} className="h-9" />
+          </div>
 
           {/* Counterparty */}
           <div className="flex flex-col gap-1" ref={cpRef}>

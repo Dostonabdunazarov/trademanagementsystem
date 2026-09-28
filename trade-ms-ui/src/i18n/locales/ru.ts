@@ -510,6 +510,11 @@ export const ru = {
       actionPayOut: 'Оплата',
       actionPayIn: 'Получить',
     },
+    datePicker: {
+      placeholder: 'Выберите дату',
+      today: 'Сегодня',
+      clear: 'Очистить',
+    },
     // Понятные тексты ошибок (коды приходят с API, см. lib/apiError.ts)
     errors: {
       unknown: 'Не удалось выполнить операцию. Попробуйте ещё раз.',

@@ -510,6 +510,11 @@ export const uz = {
       actionPayOut: 'To\'lash',
       actionPayIn: 'Qabul qilish',
     },
+    datePicker: {
+      placeholder: 'Sanani tanlang',
+      today: 'Bugun',
+      clear: 'Tozalash',
+    },
     // Xatolarning tushunarli matnlari (kodlar API dan keladi, lib/apiError.ts ga qarang)
     errors: {
       unknown: 'Amalni bajarib bo\'lmadi. Qaytadan urinib ko\'ring.',

@@ -52,7 +52,7 @@ export function LanguageSelect({ className }: { className?: string }) {
           'flex items-center gap-1.5 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface-2))]/60 px-2.5 py-1.5',
           'text-xs font-semibold uppercase text-[hsl(var(--text-primary))] backdrop-blur-md transition-colors',
           'hover:bg-[hsl(var(--surface-2))]',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
         )}
       >
         <Flag lng={current.code} className="h-3 w-[1.125rem]" />
@@ -82,7 +82,7 @@ export function LanguageSelect({ className }: { className?: string }) {
                 className={cn(
                   'flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors',
                   lang.code === language
-                    ? 'bg-teal-500/15 text-teal-300'
+                    ? 'bg-brand-500/15 text-brand-300'
                     : 'text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--accent-glow))] hover:text-[hsl(var(--text-primary))]',
                 )}
               >

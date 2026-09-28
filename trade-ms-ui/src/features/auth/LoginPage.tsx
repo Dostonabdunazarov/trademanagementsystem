@@ -49,11 +49,11 @@ export function LoginPage() {
       {/* Ambient glow blobs — только в тёмной теме, чтобы фон совпадал с темой после логина */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-teal-500/20 blur-[130px] light:hidden"
+        className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-brand-500/20 blur-[130px] light:hidden"
       />
       <div
         aria-hidden
-        className="pointer-events-none absolute bottom-0 right-0 h-[350px] w-[350px] rounded-full bg-emerald-500/15 blur-[110px] light:hidden"
+        className="pointer-events-none absolute bottom-0 right-0 h-[350px] w-[350px] rounded-full bg-brand-500/10 blur-[110px] light:hidden"
       />
 
       {/* Language switcher top-right */}
@@ -62,7 +62,7 @@ export function LoginPage() {
       <div className="relative w-full max-w-md px-4">
         {/* Logo / brand */}
         <div className="mb-8 flex flex-col items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-500/10 ring-1 ring-teal-500/30 shadow-lg shadow-teal-500/20">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500/10 ring-1 ring-brand-500/30 shadow-lg shadow-brand-500/20">
             <AppLogoIcon size={40} />
           </div>
           <div className="text-center">
@@ -92,7 +92,7 @@ export function LoginPage() {
                 {...register('email')}
                 className={cn(
                   'w-full rounded-lg border bg-white/[0.04] px-4 py-2.5 text-sm text-[hsl(var(--text-primary))] placeholder-slate-600 outline-none transition-all duration-200',
-                  'focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:border-teal-500/50',
+                  'focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:border-brand-500/50',
                   errors.email
                     ? 'border-red-500/60 focus-visible:ring-red-500'
                     : 'border-border hover:border-white/[0.15]',
@@ -117,7 +117,7 @@ export function LoginPage() {
                   {...register('password')}
                   className={cn(
                     'w-full rounded-lg border bg-white/[0.04] py-2.5 pl-4 pr-11 text-sm text-[hsl(var(--text-primary))] placeholder-slate-600 outline-none transition-all duration-200',
-                    'focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:border-teal-500/50',
+                    'focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:border-brand-500/50',
                     errors.password
                       ? 'border-red-500/60 focus-visible:ring-red-500'
                       : 'border-border hover:border-white/[0.15]',
@@ -146,11 +146,11 @@ export function LoginPage() {
               type="submit"
               disabled={mutation.isPending}
               className={cn(
-                'relative w-full rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200',
-                'bg-teal-600 hover:bg-teal-500 active:scale-[0.98]',
-                'shadow-lg shadow-teal-500/25 hover:shadow-teal-500/40',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#070d12]',
-                'disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-teal-600',
+                'relative w-full rounded-lg px-4 py-2.5 text-sm font-semibold text-brand-fg transition-all duration-200',
+                'bg-brand-600 hover:bg-brand-500 active:scale-[0.98]',
+                'shadow-lg shadow-brand-500/25 hover:shadow-brand-500/40',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))]',
+                'disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:bg-brand-600',
               )}
             >
               {mutation.isPending ? (
