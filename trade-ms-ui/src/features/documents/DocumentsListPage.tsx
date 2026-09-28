@@ -140,7 +140,7 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
         </div>
         <button
           onClick={() => navigate(createPath)}
-          className="inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+          className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
         >
           <Plus className="h-4 w-4" />
           {t('documents.createNew')}
@@ -155,20 +155,20 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             placeholder={t('common.search') + '...'}
-            className="w-full rounded-lg border border-border bg-secondary pl-9 pr-3 py-2 text-sm text-[hsl(var(--text-primary))] placeholder:text-[hsl(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-shadow"
+            className="w-full rounded-lg border border-border bg-secondary pl-9 pr-3 py-2 text-sm text-[hsl(var(--text-primary))] placeholder:text-[hsl(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-shadow"
           />
         </div>
         <button
           onClick={() => setShowFilters((v) => !v)}
           className={cn(
             'inline-flex items-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))] hover:bg-[hsl(var(--surface-2))] transition-colors',
-            showFilters && 'border-indigo-500/40 text-indigo-500',
+            showFilters && 'border-brand-500/40 text-brand-500',
           )}
         >
           <Filter className="h-4 w-4" />
           {t('common.filter')}
           {(dateFrom || dateTo || statusFilter) && (
-            <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-[10px] font-semibold text-white">
+            <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-semibold text-white">
               {[dateFrom, dateTo, statusFilter].filter(Boolean).length}
             </span>
           )}
@@ -190,7 +190,7 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
               type="date"
               value={dateFrom}
               onChange={(e) => { setDateFrom(e.target.value); setPage(1) }}
-              className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-[hsl(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-[hsl(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-brand-500/50"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -199,7 +199,7 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
               type="date"
               value={dateTo}
               onChange={(e) => { setDateTo(e.target.value); setPage(1) }}
-              className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-[hsl(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-[hsl(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-brand-500/50"
             />
           </div>
           <div className="flex flex-col gap-1">
@@ -207,7 +207,7 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
             <select
               value={statusFilter}
               onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
-              className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-[hsl(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+              className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-[hsl(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-brand-500/50"
             >
               <option value="">{t('documents.allStatuses')}</option>
               <option value="Draft">{t('status.Draft')}</option>
@@ -257,7 +257,7 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
                 className="group cursor-pointer hover:bg-[hsl(var(--surface-2))] transition-colors"
                 onClick={() => navigate(`${createPath}?id=${doc.id}`)}
               >
-                <td className="px-4 py-3 font-mono text-xs text-indigo-400 font-medium">
+                <td className="px-4 py-3 font-mono text-xs text-brand-400 font-medium">
                   {doc.number}
                 </td>
                 <td className="px-4 py-3 text-[hsl(var(--text-muted))] whitespace-nowrap">
@@ -334,7 +334,7 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
                   className={cn(
                     'h-7 min-w-[28px] rounded-md px-1 text-xs font-medium transition-colors',
                     n === page
-                      ? 'bg-indigo-500/20 text-indigo-500'
+                      ? 'bg-brand-500/20 text-brand-500'
                       : 'text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))]',
                   )}
                 >

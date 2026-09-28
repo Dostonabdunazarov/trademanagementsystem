@@ -74,7 +74,7 @@ export function PeriodFilter({ value, onChange, className }: PeriodFilterProps) 
             className={cn(
               'rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
               active === p.key
-                ? 'bg-indigo-500/15 text-indigo-400 ring-1 ring-indigo-500/30'
+                ? 'bg-brand-500/15 text-brand-400 ring-1 ring-brand-500/30'
                 : 'text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]',
             )}
           >
@@ -93,7 +93,7 @@ export function PeriodFilter({ value, onChange, className }: PeriodFilterProps) 
             value={value.dateFrom}
             max={value.dateTo}
             onChange={(e) => setCustom({ dateFrom: e.target.value })}
-            className="h-8 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-2.5 text-xs text-[hsl(var(--text-primary))] focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+            className="h-8 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-2.5 text-xs text-[hsl(var(--text-primary))] focus:border-brand-500/50 focus:outline-none focus:ring-1 focus:ring-brand-500/30"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -105,7 +105,7 @@ export function PeriodFilter({ value, onChange, className }: PeriodFilterProps) 
             value={value.dateTo}
             min={value.dateFrom}
             onChange={(e) => setCustom({ dateTo: e.target.value })}
-            className="h-8 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-2.5 text-xs text-[hsl(var(--text-primary))] focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+            className="h-8 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface))] px-2.5 text-xs text-[hsl(var(--text-primary))] focus:border-brand-500/50 focus:outline-none focus:ring-1 focus:ring-brand-500/30"
           />
         </div>
       </div>

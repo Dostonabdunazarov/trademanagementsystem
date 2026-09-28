@@ -68,7 +68,7 @@ function GroupTree({ groups, activeGroupId, onSelect, level = 0 }: GroupTreeProp
             className={cn(
               'flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors',
               activeGroupId === g.id
-                ? 'bg-indigo-500/15 text-indigo-400'
+                ? 'bg-brand-500/15 text-brand-400'
                 : 'text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))]',
             )}
             style={{ paddingLeft: `${(level + 1) * 8}px` }}
@@ -413,8 +413,8 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
               onClick={handleConfirm}
               disabled={isSaving || isConfirming || isBlocked}
               className={cn(
-                'flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 h-8 text-xs text-white font-medium',
-                'hover:bg-indigo-500 active:bg-indigo-700 transition-colors',
+                'flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 h-8 text-xs text-white font-medium',
+                'hover:bg-brand-500 active:bg-brand-700 transition-colors',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
               )}
             >
@@ -439,7 +439,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
             readOnly={isReadonly}
             className={cn(
               'h-8 rounded-lg border border-border bg-secondary px-2.5 text-xs text-[hsl(var(--text-primary))]',
-              'focus:outline-none focus:ring-1 focus:ring-indigo-500/60 transition-colors',
+              'focus:outline-none focus:ring-1 focus:ring-brand-500/60 transition-colors',
               isReadonly && 'opacity-70 cursor-default',
             )}
           />
@@ -461,7 +461,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
               className={cn(
                 'h-8 w-full rounded-lg border border-border bg-secondary px-2.5 text-xs text-[hsl(var(--text-primary))]',
                 'placeholder:text-[hsl(var(--text-muted))]',
-                'focus:outline-none focus:ring-1 focus:ring-indigo-500/60 transition-colors',
+                'focus:outline-none focus:ring-1 focus:ring-brand-500/60 transition-colors',
                 isReadonly && 'opacity-70 cursor-default',
               )}
             />
@@ -481,7 +481,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
                     }}
                     className={cn(
                       'flex w-full items-center justify-between px-3 py-2 text-xs hover:bg-[hsl(var(--surface-2))] transition-colors',
-                      state.counterpartyId === cp.id ? 'text-indigo-400' : 'text-[hsl(var(--text-primary))]',
+                      state.counterpartyId === cp.id ? 'text-brand-400' : 'text-[hsl(var(--text-primary))]',
                     )}
                   >
                     <span className="truncate">{cp.name}</span>
@@ -524,7 +524,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
             disabled={isReadonly}
             className={cn(
               'h-8 rounded-lg border border-border bg-secondary px-2.5 text-xs text-[hsl(var(--text-primary))]',
-              'focus:outline-none focus:ring-1 focus:ring-indigo-500/60 transition-colors',
+              'focus:outline-none focus:ring-1 focus:ring-brand-500/60 transition-colors',
               isReadonly && 'opacity-70 cursor-default',
             )}
           >
@@ -547,7 +547,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
               readOnly={isReadonly}
               className={cn(
                 'h-8 w-full rounded-lg border border-border bg-secondary px-2.5 text-xs text-[hsl(var(--text-primary))] font-mono',
-                'focus:outline-none focus:ring-1 focus:ring-indigo-500/60 transition-colors',
+                'focus:outline-none focus:ring-1 focus:ring-brand-500/60 transition-colors',
                 isReadonly && 'opacity-70 cursor-default',
               )}
             />
@@ -566,7 +566,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
             className={cn(
               'h-8 w-full rounded-lg border border-border bg-secondary px-2.5 text-xs text-[hsl(var(--text-primary))]',
               'placeholder:text-[hsl(var(--text-muted))]',
-              'focus:outline-none focus:ring-1 focus:ring-indigo-500/60 transition-colors',
+              'focus:outline-none focus:ring-1 focus:ring-brand-500/60 transition-colors',
               isReadonly && 'opacity-70 cursor-default',
             )}
           />
@@ -590,7 +590,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
                 className={cn(
                   'h-7 w-full rounded-md border border-border bg-secondary pl-8 pr-3 text-xs text-[hsl(var(--text-primary))]',
                   'placeholder:text-[hsl(var(--text-muted))]',
-                  'focus:outline-none focus:ring-1 focus:ring-indigo-500/60 transition-colors',
+                  'focus:outline-none focus:ring-1 focus:ring-brand-500/60 transition-colors',
                 )}
               />
             </div>
@@ -610,7 +610,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
                   className={cn(
                     'flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-xs transition-colors',
                     activeGroupId === null
-                      ? 'bg-indigo-500/15 text-indigo-400'
+                      ? 'bg-brand-500/15 text-brand-400'
                       : 'text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))]',
                   )}
                 >
@@ -649,7 +649,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
                       onKeyDown={(e) => handleProductKeyDown(e, p)}
                       className={cn(
                         'border-b border-[hsl(var(--border))] cursor-pointer outline-none transition-colors',
-                        'hover:bg-[hsl(var(--surface-2))] focus:bg-indigo-500/10 focus:text-indigo-300',
+                        'hover:bg-[hsl(var(--surface-2))] focus:bg-brand-500/10 focus:text-brand-300',
                       )}
                       title="Двойной клик или Enter"
                     >
@@ -705,7 +705,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
                         readOnly={isReadonly}
                         className={cn(
                           'w-full h-7 rounded border border-transparent bg-transparent px-1 text-right text-xs font-mono tabular-nums text-[hsl(var(--text-primary))]',
-                          !isReadonly && 'focus:border-indigo-500/40 focus:bg-secondary focus:outline-none transition-colors hover:border-border',
+                          !isReadonly && 'focus:border-brand-500/40 focus:bg-secondary focus:outline-none transition-colors hover:border-border',
                           isReadonly && 'cursor-default',
                         )}
                       />
@@ -719,7 +719,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
                         readOnly={isReadonly}
                         className={cn(
                           'w-full h-7 rounded border border-transparent bg-transparent px-1 text-right text-xs font-mono tabular-nums text-[hsl(var(--text-primary))]',
-                          !isReadonly && 'focus:border-indigo-500/40 focus:bg-secondary focus:outline-none transition-colors hover:border-border',
+                          !isReadonly && 'focus:border-brand-500/40 focus:bg-secondary focus:outline-none transition-colors hover:border-border',
                           isReadonly && 'cursor-default',
                         )}
                       />
@@ -732,7 +732,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
                         readOnly={isReadonly}
                         className={cn(
                           'w-full h-7 rounded border border-transparent bg-transparent px-1 text-right text-xs font-mono tabular-nums text-[hsl(var(--text-primary))]',
-                          !isReadonly && 'focus:border-indigo-500/40 focus:bg-secondary focus:outline-none transition-colors hover:border-border',
+                          !isReadonly && 'focus:border-brand-500/40 focus:bg-secondary focus:outline-none transition-colors hover:border-border',
                           isReadonly && 'cursor-default',
                         )}
                       />
@@ -788,7 +788,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
                     readOnly={isReadonly}
                     className={cn(
                       'w-16 h-7 rounded border border-border bg-secondary px-1.5 text-right text-sm font-mono tabular-nums text-[hsl(var(--text-primary))]',
-                      !isReadonly && 'focus:outline-none focus:ring-1 focus:ring-indigo-500/60 transition-colors',
+                      !isReadonly && 'focus:outline-none focus:ring-1 focus:ring-brand-500/60 transition-colors',
                       isReadonly && 'opacity-70 cursor-default',
                     )}
                   />
@@ -799,7 +799,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
               </div>
               <div className="flex items-center justify-between gap-4 pt-1.5 border-t border-[hsl(var(--border))]">
                 <span className="font-medium text-[hsl(var(--text-primary))] text-base">{t('common.total')}:</span>
-                <span className="font-mono tabular-nums font-semibold text-indigo-400 text-lg">
+                <span className="font-mono tabular-nums font-semibold text-brand-400 text-lg">
                   {fmt(form.totalWithDiscount)} {state.currencyCode}
                 </span>
               </div>

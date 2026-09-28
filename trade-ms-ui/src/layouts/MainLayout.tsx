@@ -126,11 +126,11 @@ export function MainLayout() {
               to="/"
               end
               onClick={() => setMobileOpen(false)}
-              className="flex min-w-0 items-center gap-3 rounded-md outline-none transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))]"
+              className="flex min-w-0 items-center gap-3 rounded-md outline-none transition-opacity hover:opacity-85 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(var(--background))]"
               aria-label={t('nav.dashboard')}
             >
               <AppLogoIcon size={28} />
-              <span className="text-sm font-bold tracking-tight bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">Торговля</span>
+              <span className="text-sm font-bold tracking-tight bg-gradient-to-r from-brand-600 to-brand-600 dark:from-brand-400 dark:to-brand-400 bg-clip-text text-transparent">Торговля</span>
             </NavLink>
           )}
           <button
@@ -148,7 +148,7 @@ export function MainLayout() {
             <div key={section.label} className={cn('mb-1', i > 0 && 'mt-4')}>
               {sidebarOpen ? (
                 <div className="mb-1.5 flex items-center gap-2 px-4">
-                  <span className="h-1 w-1 shrink-0 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500" />
+                  <span className="h-1 w-1 shrink-0 rounded-full bg-gradient-to-br from-brand-500 to-brand-500" />
                   <p className="text-[11px] font-bold uppercase tracking-[0.12em] bg-gradient-to-r from-[hsl(var(--text-primary))] to-[hsl(var(--text-muted))] bg-clip-text text-transparent">
                     {section.label}
                   </p>
@@ -175,7 +175,7 @@ export function MainLayout() {
                     cn(
                       'group relative flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm transition-all duration-150',
                       isActive
-                        ? 'bg-gradient-to-r from-indigo-500/15 to-violet-500/10 text-indigo-600 dark:text-indigo-400 font-semibold shadow-sm shadow-indigo-500/10'
+                        ? 'bg-gradient-to-r from-brand-500/15 to-brand-500/10 text-brand-600 dark:text-brand-400 font-semibold shadow-sm shadow-brand-500/10'
                         : 'nav-link-idle text-[hsl(var(--text-muted))] hover:font-semibold',
                     )
                   }
@@ -183,9 +183,9 @@ export function MainLayout() {
                   {({ isActive }) => (
                     <>
                       {isActive && (
-                        <span className="absolute inset-y-1 left-0 w-0.5 rounded-r bg-gradient-to-b from-indigo-500 to-violet-500" />
+                        <span className="absolute inset-y-1 left-0 w-0.5 rounded-r bg-gradient-to-b from-brand-500 to-brand-500" />
                       )}
-                      <Icon className={cn('nav-link-icon h-4 w-4 shrink-0 transition-colors', isActive ? 'text-indigo-500' : 'text-[hsl(var(--text-muted))]')} strokeWidth={1.8} />
+                      <Icon className={cn('nav-link-icon h-4 w-4 shrink-0 transition-colors', isActive ? 'text-brand-500' : 'text-[hsl(var(--text-muted))]')} strokeWidth={1.8} />
                       {sidebarOpen && <span className="truncate transition-all duration-150 group-hover:text-[0.9375rem]">{label}</span>}
                     </>
                   )}
@@ -199,7 +199,7 @@ export function MainLayout() {
         <div className="shrink-0 border-t border-[hsl(var(--border))] p-3">
           <div className={cn('flex items-center gap-3', !sidebarOpen && 'justify-center')}>
             <div
-              className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-xs font-bold text-white shadow-md shadow-indigo-500/30 group/avatar"
+              className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-600 text-xs font-bold text-white shadow-md shadow-brand-500/30 group/avatar"
               title={user?.fullName ?? ''}
             >
               {user?.fullName?.charAt(0) ?? 'U'}
@@ -268,7 +268,7 @@ export function MainLayout() {
 
             {user?.companyName && (
               <div className="flex items-center gap-1.5 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface-2))] px-3 py-1.5">
-                <Building2 className="h-3.5 w-3.5 shrink-0 text-indigo-400" />
+                <Building2 className="h-3.5 w-3.5 shrink-0 text-brand-400" />
                 <span className="text-xs font-medium text-[hsl(var(--text-primary))] max-w-[160px] truncate">{user.companyName}</span>
               </div>
             )}

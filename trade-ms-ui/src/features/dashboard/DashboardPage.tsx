@@ -36,7 +36,7 @@ export function DashboardPage() {
       delta: delta(data?.revenueDelta),
       deltaLabel: vsPrev,
       icon: TrendingUp,
-      iconColor: 'text-indigo-400',
+      iconColor: 'text-brand-400',
     },
     {
       title: t('dashboard.profitMonth'),
@@ -67,7 +67,7 @@ export function DashboardPage() {
       {/* Ambient glow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-20 left-1/3 h-96 w-96 rounded-full bg-indigo-500/5 blur-[120px]"
+        className="pointer-events-none absolute -top-20 left-1/3 h-96 w-96 rounded-full bg-brand-500/5 blur-[120px]"
       />
 
       {/* Period filter — applies to revenue & profit */}

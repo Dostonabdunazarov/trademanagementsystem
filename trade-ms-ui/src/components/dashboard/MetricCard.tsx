@@ -43,7 +43,7 @@ export function MetricCard({
   delta,
   deltaLabel,
   icon: Icon,
-  iconColor = 'text-indigo-400',
+  iconColor = 'text-brand-400',
   loading,
   className,
 }: MetricCardProps) {

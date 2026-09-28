@@ -63,7 +63,7 @@ function GroupNode({
       <div
         className={`flex items-center gap-1 px-2 py-1.5 rounded-lg mx-1 cursor-pointer text-sm transition-all duration-150 ${
           isSelected
-            ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-300 font-semibold shadow-sm shadow-indigo-500/10'
+            ? 'bg-brand-500/15 text-brand-600 dark:text-brand-300 font-semibold shadow-sm shadow-brand-500/10'
             : 'text-[hsl(var(--text-primary))] hover:bg-[hsl(var(--surface-2))]'
         }`}
         style={{ paddingLeft: `${8 + depth * 16}px` }}
@@ -255,13 +255,13 @@ function ProductFormDialog({ open, onClose, initial, groupId, groups, currencyId
               type="checkbox"
               checked={form.isActive}
               onChange={(e) => set('isActive', e.target.checked)}
-              className="accent-indigo-500"
+              className="accent-brand-500"
             />
             <Label htmlFor="isActive">{t('common.active')}</Label>
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="ghost" onClick={onClose} disabled={busy}>{t('common.cancel')}</Button>
-            <Button type="submit" disabled={busy} className="bg-indigo-600 hover:bg-indigo-700">
+            <Button type="submit" disabled={busy} className="bg-brand-600 hover:bg-brand-700">
               {busy ? t('common.loading') : isEdit ? t('common.save') : t('common.create')}
             </Button>
           </div>
@@ -333,7 +333,7 @@ function GroupFormDialog({
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="ghost" onClick={onClose}>{t('common.cancel')}</Button>
-            <Button type="submit" disabled={create.isPending} className="bg-indigo-600 hover:bg-indigo-700">
+            <Button type="submit" disabled={create.isPending} className="bg-brand-600 hover:bg-brand-700">
               {create.isPending ? t('common.loading') : t('common.create')}
             </Button>
           </div>
@@ -454,7 +454,7 @@ export function ProductsPage() {
           {isAdmin && (
             <button
               onClick={() => setGroupDialog(true)}
-              className="w-6 h-6 flex items-center justify-center rounded-full bg-indigo-500/15 text-indigo-500 hover:bg-indigo-500 hover:text-white transition-all duration-150 text-base leading-none font-bold"
+              className="w-6 h-6 flex items-center justify-center rounded-full bg-brand-500/15 text-brand-500 hover:bg-brand-500 hover:text-white transition-all duration-150 text-base leading-none font-bold"
               title={t('products.createGroup')}
             >
               +
@@ -469,7 +469,7 @@ export function ProductsPage() {
               <div
                 className={`px-3 py-1.5 text-sm rounded-lg mx-1 cursor-pointer transition-all duration-150 ${
                   selectedGroup === null
-                    ? 'text-indigo-600 dark:text-indigo-300 bg-indigo-500/15 font-semibold shadow-sm shadow-indigo-500/10'
+                    ? 'text-brand-600 dark:text-brand-300 bg-brand-500/15 font-semibold shadow-sm shadow-brand-500/10'
                     : 'text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-2))]'
                 }`}
                 onClick={() => selectGroup(null)}
@@ -498,13 +498,13 @@ export function ProductsPage() {
             placeholder={t('common.search')}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-            className="bg-white/5 border-white/10 text-[hsl(var(--text-primary))] w-72 light:bg-indigo-50/70 light:border-indigo-200"
+            className="bg-white/5 border-white/10 text-[hsl(var(--text-primary))] w-72 light:bg-brand-50/70 light:border-brand-200"
           />
           <div className="flex-1" />
           {isAdmin && (
             <Button
               onClick={() => setProductDialog({ open: true, item: null })}
-              className="btn-primary-gradient bg-indigo-600 hover:bg-indigo-700 text-white transition-all duration-200"
+              className="btn-primary-gradient bg-brand-600 hover:bg-brand-700 text-white transition-all duration-200"
             >
               + {t('products.newProduct')}
             </Button>
@@ -550,12 +550,12 @@ export function ProductsPage() {
                     <TableCell className="py-2 text-[hsl(var(--text-muted))] text-xs tabular-nums font-medium">{(page - 1) * PAGE_SIZE + idx + 1}</TableCell>
                     <TableCell className="py-2 text-[hsl(var(--text-primary))]">{p.name}</TableCell>
                     <TableCell className="py-2 font-mono text-xs">
-                      <span className="px-1.5 py-0.5 rounded bg-indigo-500/10 text-indigo-500 dark:text-indigo-400">
+                      <span className="px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-500 dark:text-brand-400">
                         {p.sku || '—'}
                       </span>
                     </TableCell>
                     <TableCell className="py-2">
-                      <span className="px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-600 dark:text-violet-400 text-xs font-medium">
+                      <span className="px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 text-xs font-medium">
                         {t(`products.units.${p.unit}`, p.unit)}
                       </span>
                     </TableCell>
@@ -583,7 +583,7 @@ export function ProductsPage() {
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => setProductDialog({ open: true, item: p })}
-                            className="px-2 py-1 text-xs text-indigo-500 hover:text-white hover:bg-indigo-500 rounded transition-all duration-150"
+                            className="px-2 py-1 text-xs text-brand-500 hover:text-white hover:bg-brand-500 rounded transition-all duration-150"
                           >
                             {t('common.edit')}
                           </button>

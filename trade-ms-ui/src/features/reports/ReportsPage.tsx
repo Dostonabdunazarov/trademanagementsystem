@@ -40,7 +40,7 @@ export function ReportsPage() {
               className={cn(
                 'flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-150',
                 isActive
-                  ? 'bg-indigo-500/15 text-indigo-400 ring-1 ring-indigo-500/25'
+                  ? 'bg-brand-500/15 text-brand-400 ring-1 ring-brand-500/25'
                   : 'text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))]',
               )}
             >

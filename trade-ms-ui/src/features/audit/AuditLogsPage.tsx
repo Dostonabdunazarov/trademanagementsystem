@@ -60,7 +60,7 @@ export function AuditLogsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-indigo-500" strokeWidth={1.8} />
+          <Shield className="h-5 w-5 text-brand-500" strokeWidth={1.8} />
           <h1 className="text-lg font-semibold text-[hsl(var(--text-primary))]">
             {t('auditLogs.title')}
           </h1>
@@ -75,7 +75,7 @@ export function AuditLogsPage() {
           className={cn(
             'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
             showFilters
-              ? 'border-indigo-500/40 bg-indigo-500/10 text-indigo-500'
+              ? 'border-brand-500/40 bg-brand-500/10 text-brand-500'
               : 'border-[hsl(var(--border))] bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]',
           )}
         >
@@ -95,7 +95,7 @@ export function AuditLogsPage() {
                 value={filters.action}
                 onChange={(e) => setFilters((f) => ({ ...f, action: e.target.value }))}
                 placeholder={t('auditLogs.actionPlaceholder')}
-                className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-xs text-[hsl(var(--text-primary))] focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-xs text-[hsl(var(--text-primary))] focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -104,7 +104,7 @@ export function AuditLogsPage() {
                 type="date"
                 value={filters.dateFrom}
                 onChange={(e) => setFilters((f) => ({ ...f, dateFrom: e.target.value }))}
-                className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-xs text-[hsl(var(--text-primary))] focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-xs text-[hsl(var(--text-primary))] focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -113,7 +113,7 @@ export function AuditLogsPage() {
                 type="date"
                 value={filters.dateTo}
                 onChange={(e) => setFilters((f) => ({ ...f, dateTo: e.target.value }))}
-                className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-xs text-[hsl(var(--text-primary))] focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-xs text-[hsl(var(--text-primary))] focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -121,7 +121,7 @@ export function AuditLogsPage() {
               <select
                 value={filters.success}
                 onChange={(e) => setFilters((f) => ({ ...f, success: e.target.value as '' | 'true' | 'false' }))}
-                className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-xs text-[hsl(var(--text-primary))] focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-xs text-[hsl(var(--text-primary))] focus:outline-none focus:ring-1 focus:ring-brand-500"
               >
                 <option value="">{t('common.all')}</option>
                 <option value="true">{t('auditLogs.successOnly')}</option>
@@ -132,7 +132,7 @@ export function AuditLogsPage() {
           <div className="mt-3 flex gap-2">
             <button
               onClick={applyFilters}
-              className="rounded-lg bg-indigo-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-indigo-600 transition-colors"
+              className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-600 transition-colors"
             >
               {t('reports.apply')}
             </button>
@@ -189,7 +189,7 @@ export function AuditLogsPage() {
                     {log.userEmail ?? '—'}
                   </td>
                   <td className="px-4 py-2.5">
-                    <span className="rounded bg-indigo-500/10 px-2 py-0.5 font-mono text-[11px] text-indigo-500">
+                    <span className="rounded bg-brand-500/10 px-2 py-0.5 font-mono text-[11px] text-brand-500">
                       {log.action}
                     </span>
                   </td>

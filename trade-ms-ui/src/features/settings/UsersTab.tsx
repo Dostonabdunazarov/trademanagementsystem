@@ -20,7 +20,7 @@ import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
 const ROLE_META = {
-  Admin: { label: 'Admin', color: 'bg-purple-500/15 text-purple-400' },
+  Admin: { label: 'Admin', color: 'bg-brand-500/15 text-brand-400' },
   Manager: { label: 'Manager', color: 'bg-blue-500/15 text-blue-400' },
   Cashier: { label: 'Cashier', color: 'bg-emerald-500/15 text-emerald-400' },
 }
@@ -204,7 +204,7 @@ function UserDialog({
             <Button type="button" variant="ghost" onClick={onClose} className="text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]">
               {t('common.cancel')}
             </Button>
-            <Button type="submit" disabled={isPending} className="bg-indigo-600 hover:bg-indigo-500">
+            <Button type="submit" disabled={isPending} className="bg-brand-600 hover:bg-brand-500">
               {isPending ? t('common.loading') : isEdit ? t('common.save') : t('common.create')}
             </Button>
           </div>
@@ -298,7 +298,7 @@ export function UsersTab() {
             <Button
               size="sm"
               onClick={openCreate}
-              className="h-7 gap-1.5 bg-indigo-600/90 hover:bg-indigo-500 text-xs"
+              className="h-7 gap-1.5 bg-brand-600/90 hover:bg-brand-500 text-xs"
             >
               <Plus className="h-3.5 w-3.5" />
               {t('common.add')}
@@ -337,7 +337,7 @@ export function UsersTab() {
                           <div className={cn(
                             'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold',
                             u.isActive
-                              ? 'bg-indigo-500/20 text-indigo-400 ring-1 ring-indigo-500/20'
+                              ? 'bg-brand-500/20 text-brand-400 ring-1 ring-brand-500/20'
                               : 'bg-slate-700/50 text-[hsl(var(--text-muted))]'
                           )}>
                             {u.fullName.charAt(0)}
@@ -372,7 +372,7 @@ export function UsersTab() {
                           <div className="flex items-center justify-center gap-1">
                             <button
                               onClick={() => openEdit(u)}
-                              className="rounded p-1 text-[hsl(var(--text-muted))] hover:text-indigo-400 hover:bg-indigo-500/10 transition-colors"
+                              className="rounded p-1 text-[hsl(var(--text-muted))] hover:text-brand-400 hover:bg-brand-500/10 transition-colors"
                             >
                               <Pencil className="h-3.5 w-3.5" />
                             </button>

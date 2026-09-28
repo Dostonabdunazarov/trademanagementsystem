@@ -65,7 +65,7 @@ export function ActivityFeed({ className }: { className?: string }) {
                 <div
                   className={cn(
                     'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg',
-                    positive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-indigo-500/10 text-indigo-400',
+                    positive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-brand-500/10 text-brand-400',
                   )}
                 >
                   {TYPE_ICONS[doc.type] ?? <ArrowUpFromLine className="h-3.5 w-3.5" />}

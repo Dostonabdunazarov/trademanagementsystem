@@ -57,7 +57,7 @@ export function QuantityDialog({
   const inputCls = cn(
     'h-9 w-full rounded-lg border border-border bg-secondary px-3 text-sm font-mono',
     'text-[hsl(var(--text-primary))] placeholder:text-[hsl(var(--text-muted))]',
-    'focus:outline-none focus:ring-1 focus:ring-indigo-500/60 focus:border-indigo-500/40',
+    'focus:outline-none focus:ring-1 focus:ring-brand-500/60 focus:border-brand-500/40',
     'transition-colors',
   )
 
@@ -144,11 +144,11 @@ export function QuantityDialog({
           <button
             onClick={handleConfirm}
             className={cn(
-              'flex-1 h-9 rounded-lg bg-indigo-600 text-sm font-medium text-white',
-              'hover:bg-indigo-500 active:bg-indigo-700 transition-colors',
+              'flex-1 h-9 rounded-lg bg-brand-600 text-sm font-medium text-white',
+              'hover:bg-brand-500 active:bg-brand-700 transition-colors',
             )}
           >
-            OK <span className="text-indigo-300 text-xs ml-1">Enter</span>
+            OK <span className="text-brand-300 text-xs ml-1">Enter</span>
           </button>
           <button
             onClick={onClose}

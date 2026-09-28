@@ -39,7 +39,7 @@ export function CounterpartyBalanceReport() {
               className={cn(
                 'rounded-md px-3 py-1.5 text-xs font-medium transition-all',
                 type === opt.value
-                  ? 'bg-indigo-500/15 text-indigo-400'
+                  ? 'bg-brand-500/15 text-brand-400'
                   : 'text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]',
               )}
             >
@@ -55,14 +55,14 @@ export function CounterpartyBalanceReport() {
             placeholder="Поиск по имени или телефону…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-9 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-sm text-[hsl(var(--text-primary))] placeholder:text-slate-600 focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+            className="h-9 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-sm text-[hsl(var(--text-primary))] placeholder:text-slate-600 focus:border-brand-500/50 focus:outline-none focus:ring-1 focus:ring-brand-500/30"
           />
         </div>
 
         <button
           onClick={() => refetch()}
           disabled={isFetching}
-          className="flex h-9 items-center gap-2 rounded-lg bg-indigo-500/10 px-4 text-sm font-medium text-indigo-400 ring-1 ring-indigo-500/30 transition-all hover:bg-indigo-500/20 disabled:opacity-50"
+          className="flex h-9 items-center gap-2 rounded-lg bg-brand-500/10 px-4 text-sm font-medium text-brand-400 ring-1 ring-brand-500/30 transition-all hover:bg-brand-500/20 disabled:opacity-50"
         >
           <RefreshCw className={cn('h-3.5 w-3.5', isFetching && 'animate-spin')} />
           Обновить
@@ -126,7 +126,7 @@ export function CounterpartyBalanceReport() {
                     <span className={cn(
                       'rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase',
                       row.type === 'Customer' ? 'bg-sky-500/10 text-sky-400' :
-                      row.type === 'Supplier' ? 'bg-violet-500/10 text-violet-400' :
+                      row.type === 'Supplier' ? 'bg-brand-500/10 text-brand-400' :
                       'bg-slate-500/10 text-[hsl(var(--text-muted))]'
                     )}>
                       {row.type === 'Customer' ? 'Клиент' : row.type === 'Supplier' ? 'Поставщик' : 'Оба'}

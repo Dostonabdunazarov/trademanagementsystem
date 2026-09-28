@@ -59,7 +59,7 @@ function CurrencyDialog({ open, onClose }: { open: boolean; onClose: () => void 
               type="checkbox"
               checked={form.isBase}
               onChange={(e) => setForm((f) => ({ ...f, isBase: e.target.checked }))}
-              className="accent-indigo-500"
+              className="accent-brand-500"
             />
             <span className="text-sm text-[hsl(var(--text-primary))]">{t('settings.isBase')}</span>
           </label>
@@ -67,7 +67,7 @@ function CurrencyDialog({ open, onClose }: { open: boolean; onClose: () => void 
             <Button type="button" variant="ghost" onClick={onClose} className="text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]">
               {t('common.cancel')}
             </Button>
-            <Button type="submit" disabled={createCurrency.isPending} className="bg-indigo-600 hover:bg-indigo-500">
+            <Button type="submit" disabled={createCurrency.isPending} className="bg-brand-600 hover:bg-brand-500">
               {createCurrency.isPending ? t('common.loading') : t('common.create')}
             </Button>
           </div>
@@ -171,7 +171,7 @@ function ExchangeRateDialog({
             <Button type="button" variant="ghost" onClick={onClose} className="text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]">
               {t('common.cancel')}
             </Button>
-            <Button type="submit" disabled={createRate.isPending} className="bg-indigo-600 hover:bg-indigo-500">
+            <Button type="submit" disabled={createRate.isPending} className="bg-brand-600 hover:bg-brand-500">
               {createRate.isPending ? t('common.loading') : t('common.add')}
             </Button>
           </div>
@@ -197,7 +197,7 @@ export function CurrenciesTab() {
           <Button
             size="sm"
             onClick={() => setShowCurrencyDialog(true)}
-            className="h-7 gap-1.5 bg-indigo-600/90 hover:bg-indigo-500 text-xs"
+            className="h-7 gap-1.5 bg-brand-600/90 hover:bg-brand-500 text-xs"
           >
             <Plus className="h-3.5 w-3.5" />
             {t('common.add')}
@@ -260,7 +260,7 @@ export function CurrenciesTab() {
           <Button
             size="sm"
             onClick={() => setShowRateDialog(true)}
-            className="h-7 gap-1.5 bg-indigo-600/90 hover:bg-indigo-500 text-xs"
+            className="h-7 gap-1.5 bg-brand-600/90 hover:bg-brand-500 text-xs"
           >
             <Plus className="h-3.5 w-3.5" />
             {t('settings.addRate')}

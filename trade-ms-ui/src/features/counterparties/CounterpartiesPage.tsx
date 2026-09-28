@@ -188,7 +188,7 @@ function CounterpartyFormDialog({
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="ghost" onClick={onClose} disabled={busy}>{t('common.cancel')}</Button>
-            <Button type="submit" disabled={busy} className="bg-indigo-600 hover:bg-indigo-700">
+            <Button type="submit" disabled={busy} className="bg-brand-600 hover:bg-brand-700">
               {busy ? t('common.loading') : isEdit ? t('common.save') : t('common.create')}
             </Button>
           </div>
@@ -267,7 +267,7 @@ export function CounterpartiesPage() {
               onClick={() => { setTypeFilter(opt.value); setPage(1) }}
               className={`px-3 py-1 text-sm rounded-md transition-colors ${
                 typeFilter === opt.value
-                  ? 'bg-indigo-600 text-white'
+                  ? 'bg-brand-600 text-white'
                   : 'text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]'
               }`}
             >
@@ -287,7 +287,7 @@ export function CounterpartiesPage() {
         {isAdmin && (
           <Button
             onClick={() => setFormDialog({ open: true, item: null })}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            className="bg-brand-600 hover:bg-brand-700 text-white"
           >
             + {t('counterparties.newCounterparty')}
           </Button>
@@ -366,7 +366,7 @@ export function CounterpartiesPage() {
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => setFormDialog({ open: true, item: c })}
-                          className="px-2 py-1 text-xs text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 rounded"
+                          className="px-2 py-1 text-xs text-brand-400 hover:text-brand-300 hover:bg-brand-500/10 rounded"
                         >
                           {t('common.edit')}
                         </button>
@@ -441,7 +441,7 @@ function TypeBadge({ type }: { type: string }) {
   const cfg: Record<string, string> = {
     Customer: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
     Supplier: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
-    Both: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
+    Both: 'bg-brand-500/20 text-brand-400 border-brand-500/30',
   }
   const typeLabels: Record<string, string> = {
     Customer: t('counterparties.Customer'),

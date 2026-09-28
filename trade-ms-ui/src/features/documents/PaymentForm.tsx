@@ -236,7 +236,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
   const inputCls = cn(
     'h-9 w-full rounded-lg border border-border bg-secondary px-3 text-sm text-[hsl(var(--text-primary))]',
     'placeholder:text-[hsl(var(--text-muted))]',
-    'focus:outline-none focus:ring-1 focus:ring-indigo-500/60 focus:border-indigo-500/40 transition-colors',
+    'focus:outline-none focus:ring-1 focus:ring-brand-500/60 focus:border-brand-500/40 transition-colors',
   )
 
   const labelCls = 'text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]'
@@ -293,8 +293,8 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
               onClick={handleConfirm}
               disabled={isBusy || isBlocked || !counterpartyId || !(parseFloat(amount) > 0)}
               className={cn(
-                'flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 h-8 text-xs text-white font-medium',
-                'hover:bg-indigo-500 active:bg-indigo-700 transition-colors',
+                'flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 h-8 text-xs text-white font-medium',
+                'hover:bg-brand-500 active:bg-brand-700 transition-colors',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
               )}>
               <CheckCircle className="h-3.5 w-3.5" />
@@ -353,7 +353,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
                       }}
                       className={cn(
                         'flex w-full items-center justify-between px-3 py-2 text-sm hover:bg-[hsl(var(--surface-2))] transition-colors',
-                        counterpartyId === cp.id ? 'text-indigo-400' : 'text-[hsl(var(--text-primary))]',
+                        counterpartyId === cp.id ? 'text-brand-400' : 'text-[hsl(var(--text-primary))]',
                       )}
                     >
                       <span className="truncate">{cp.name}</span>
@@ -445,7 +445,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
                   className={cn(
                     'flex-1 h-9 rounded-lg border text-xs font-medium transition-colors',
                     paymentMethod === value
-                      ? 'border-indigo-500/40 bg-indigo-500/15 text-indigo-400'
+                      ? 'border-brand-500/40 bg-brand-500/15 text-brand-400'
                       : 'border-border bg-secondary text-[hsl(var(--text-muted))]',
                     !isReadonly && paymentMethod !== value && 'hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))]',
                     isReadonly && 'cursor-default disabled:opacity-100',
@@ -489,7 +489,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
               className={cn(
                 'w-full rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-[hsl(var(--text-primary))]',
                 'placeholder:text-[hsl(var(--text-muted))] resize-none',
-                'focus:outline-none focus:ring-1 focus:ring-indigo-500/60 focus:border-indigo-500/40 transition-colors',
+                'focus:outline-none focus:ring-1 focus:ring-brand-500/60 focus:border-brand-500/40 transition-colors',
                 isReadonly && 'opacity-70 cursor-default',
               )}
             />
@@ -498,7 +498,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
           {/* Summary */}
           <div className="rounded-lg border border-[hsl(var(--border))] bg-background p-3 flex items-center justify-between">
             <span className="text-sm text-[hsl(var(--text-muted))]">{type === 'PayOut' ? t('payments.totalToPay') : t('payments.totalToReceive')}:</span>
-            <span className="font-mono font-semibold text-indigo-400 text-lg">
+            <span className="font-mono font-semibold text-brand-400 text-lg">
               {amount ? fmt(parseFloat(amount) || 0) : '0'} {selectedCurrency?.code ?? ''}
             </span>
           </div>

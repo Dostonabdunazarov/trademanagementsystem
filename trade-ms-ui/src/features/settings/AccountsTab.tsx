@@ -68,7 +68,7 @@ function AccountDialog({ open, onClose, branchId }: { open: boolean; onClose: ()
                     className={cn(
                       'flex items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-all',
                       form.type === type
-                        ? 'border-indigo-500/50 bg-indigo-500/10 text-indigo-300'
+                        ? 'border-brand-500/50 bg-brand-500/10 text-brand-300'
                         : 'border-border bg-background text-[hsl(var(--text-muted))] hover:border-white/20'
                     )}
                   >
@@ -101,7 +101,7 @@ function AccountDialog({ open, onClose, branchId }: { open: boolean; onClose: ()
             <Button type="button" variant="ghost" onClick={onClose} className="text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]">
               {t('common.cancel')}
             </Button>
-            <Button type="submit" disabled={createAccount.isPending || !branchId} className="bg-indigo-600 hover:bg-indigo-500">
+            <Button type="submit" disabled={createAccount.isPending || !branchId} className="bg-brand-600 hover:bg-brand-500">
               {createAccount.isPending ? t('common.loading') : t('common.create')}
             </Button>
           </div>
@@ -163,7 +163,7 @@ export function AccountsTab() {
           <Button
             size="sm"
             onClick={() => setShowDialog(true)}
-            className="h-7 gap-1.5 bg-indigo-600/90 hover:bg-indigo-500 text-xs"
+            className="h-7 gap-1.5 bg-brand-600/90 hover:bg-brand-500 text-xs"
           >
             <Plus className="h-3.5 w-3.5" />
             {t('common.add')}

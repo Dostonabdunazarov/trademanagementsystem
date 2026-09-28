@@ -42,7 +42,7 @@ export function SettingsPage() {
             className={cn(
               'flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-all -mb-px',
               activeTab === id
-                ? 'border-indigo-500 text-indigo-400'
+                ? 'border-brand-500 text-brand-400'
                 : 'border-transparent text-[hsl(var(--text-muted))] hover:text-slate-300 hover:border-white/20'
             )}
           >

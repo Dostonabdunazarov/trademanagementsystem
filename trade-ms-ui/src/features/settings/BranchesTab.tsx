@@ -52,7 +52,7 @@ function BranchDialog({ open, onClose }: { open: boolean; onClose: () => void })
             <Button type="button" variant="ghost" onClick={onClose} className="text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]">
               Отмена
             </Button>
-            <Button type="submit" disabled={createBranch.isPending} className="bg-indigo-600 hover:bg-indigo-500">
+            <Button type="submit" disabled={createBranch.isPending} className="bg-brand-600 hover:bg-brand-500">
               {createBranch.isPending ? 'Создание...' : 'Создать'}
             </Button>
           </div>
@@ -83,7 +83,7 @@ export function BranchesTab() {
           <Button
             size="sm"
             onClick={() => setShowDialog(true)}
-            className="h-7 gap-1.5 bg-indigo-600/90 hover:bg-indigo-500 text-xs"
+            className="h-7 gap-1.5 bg-brand-600/90 hover:bg-brand-500 text-xs"
           >
             <Plus className="h-3.5 w-3.5" />
             Добавить
@@ -113,7 +113,7 @@ export function BranchesTab() {
                   <tr key={b.id} className="border-b border-[hsl(var(--border))] hover:bg-[hsl(var(--surface-2))] transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-indigo-400 shrink-0" />
+                        <Building2 className="h-4 w-4 text-brand-400 shrink-0" />
                         <span className="text-[hsl(var(--text-primary))]">{b.name}</span>
                       </div>
                     </td>

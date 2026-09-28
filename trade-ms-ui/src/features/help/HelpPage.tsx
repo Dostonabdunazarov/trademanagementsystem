@@ -30,7 +30,7 @@ function Badge({ children, variant = 'default' }: { children: React.ReactNode; v
       'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
       variant === 'yellow' && 'bg-amber-500/15 text-amber-400',
       variant === 'green' && 'bg-emerald-500/15 text-emerald-400',
-      variant === 'default' && 'bg-indigo-500/15 text-indigo-400',
+      variant === 'default' && 'bg-brand-500/15 text-brand-400',
     )}>
       {children}
     </span>
@@ -42,7 +42,7 @@ function getSections(t: (key: string, options?: any) => string): Section[] {
     {
       id: 'getting-started',
       icon: Rocket,
-      iconColor: 'text-indigo-400',
+      iconColor: 'text-brand-400',
       title: t('help.gettingStarted'),
       articles: [
         {
@@ -166,7 +166,7 @@ function getSections(t: (key: string, options?: any) => string): Section[] {
     {
       id: 'dashboard',
       icon: LayoutDashboard,
-      iconColor: 'text-violet-400',
+      iconColor: 'text-brand-400',
       title: t('help.dashboardTitle'),
       articles: [
         {
@@ -363,7 +363,7 @@ function getSections(t: (key: string, options?: any) => string): Section[] {
     {
       id: 'products',
       icon: Package,
-      iconColor: 'text-indigo-400',
+      iconColor: 'text-brand-400',
       title: t('help.products'),
       articles: [
         {
@@ -435,7 +435,7 @@ function getSections(t: (key: string, options?: any) => string): Section[] {
     {
       id: 'reports',
       icon: BarChart3,
-      iconColor: 'text-violet-400',
+      iconColor: 'text-brand-400',
       title: t('help.reports'),
       articles: [
         {
@@ -606,7 +606,7 @@ export function HelpPage() {
                   className={cn(
                     'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors',
                     activeSection === s.id
-                      ? 'bg-indigo-500/10 text-indigo-300'
+                      ? 'bg-brand-500/10 text-brand-300'
                       : 'text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))]',
                   )}
                 >
@@ -624,8 +624,8 @@ export function HelpPage() {
         <div className="mx-auto max-w-3xl px-6 py-8">
           {/* Header */}
           <div className="mb-8 flex items-start gap-4">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-500/20 ring-1 ring-indigo-500/30">
-              <BookOpen className="h-5 w-5 text-indigo-400" strokeWidth={1.8} />
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500/20 ring-1 ring-brand-500/30">
+              <BookOpen className="h-5 w-5 text-brand-400" strokeWidth={1.8} />
             </div>
             <div>
               <h1 className="text-xl font-semibold text-[hsl(var(--text-primary))]">{t('help.title')}</h1>
@@ -641,7 +641,7 @@ export function HelpPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('help.searchPlaceholder')}
-              className="w-full rounded-xl border border-border bg-[hsl(var(--surface-2))] py-2.5 pl-10 pr-4 text-sm text-[hsl(var(--text-primary))] placeholder-slate-600 outline-none transition focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20"
+              className="w-full rounded-xl border border-border bg-[hsl(var(--surface-2))] py-2.5 pl-10 pr-4 text-sm text-[hsl(var(--text-primary))] placeholder-slate-600 outline-none transition focus:border-brand-500/50 focus:ring-2 focus:ring-brand-500/20"
             />
           </div>
 

@@ -38,7 +38,7 @@ export function StockBalanceReport() {
             placeholder="Поиск по товару, SKU, группе…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-9 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-sm text-[hsl(var(--text-primary))] placeholder:text-slate-600 focus:border-indigo-500/50 focus:outline-none focus:ring-1 focus:ring-indigo-500/30"
+            className="h-9 w-full rounded-lg border border-border bg-card pl-9 pr-3 text-sm text-[hsl(var(--text-primary))] placeholder:text-slate-600 focus:border-brand-500/50 focus:outline-none focus:ring-1 focus:ring-brand-500/30"
           />
         </div>
         <button
@@ -61,7 +61,7 @@ export function StockBalanceReport() {
         <button
           onClick={() => refetch()}
           disabled={isFetching}
-          className="flex h-9 items-center gap-2 rounded-lg bg-indigo-500/10 px-4 text-sm font-medium text-indigo-400 ring-1 ring-indigo-500/30 transition-all hover:bg-indigo-500/20 disabled:opacity-50"
+          className="flex h-9 items-center gap-2 rounded-lg bg-brand-500/10 px-4 text-sm font-medium text-brand-400 ring-1 ring-brand-500/30 transition-all hover:bg-brand-500/20 disabled:opacity-50"
         >
           <RefreshCw className={cn('h-3.5 w-3.5', isFetching && 'animate-spin')} />
           Обновить

@@ -58,7 +58,7 @@ export function TopProductsTable({ className }: { className?: string }) {
                   <div className="mt-1 flex items-center gap-2">
                     <div className="h-1 flex-1 overflow-hidden rounded-full bg-[hsl(var(--surface-2))]">
                       <div
-                        className="h-full rounded-full bg-indigo-500 transition-all duration-500"
+                        className="h-full rounded-full bg-brand-500 transition-all duration-500"
                         style={{ width: `${progress}%` }}
                       />
                     </div>
