@@ -162,7 +162,7 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
           onClick={() => setShowFilters((v) => !v)}
           className={cn(
             'inline-flex items-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))] hover:bg-[hsl(var(--surface-2))] transition-colors',
-            showFilters && 'border-brand-500/40 text-brand-500',
+            showFilters && 'border-brand-500/40 text-brand-400 light:text-brand-600',
           )}
         >
           <Filter className="h-4 w-4" />
@@ -334,7 +334,7 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
                   className={cn(
                     'h-7 min-w-[28px] rounded-md px-1 text-xs font-medium transition-colors',
                     n === page
-                      ? 'bg-brand-500/20 text-brand-500'
+                      ? 'bg-brand-500/20 text-brand-400 light:text-brand-600'
                       : 'text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))]',
                   )}
                 >

@@ -175,7 +175,7 @@ export function MainLayout() {
                     cn(
                       'group relative flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm transition-all duration-150',
                       isActive
-                        ? 'bg-gradient-to-r from-brand-500/15 to-brand-500/10 text-brand-600 dark:text-brand-400 font-semibold shadow-sm shadow-brand-500/10'
+                        ? 'bg-gradient-to-r from-brand-500/15 to-brand-500/10 text-brand-400 light:text-brand-600 font-semibold shadow-sm shadow-brand-500/10'
                         : 'nav-link-idle text-[hsl(var(--text-muted))] hover:font-semibold',
                     )
                   }
@@ -185,7 +185,7 @@ export function MainLayout() {
                       {isActive && (
                         <span className="absolute inset-y-1 left-0 w-0.5 rounded-r bg-gradient-to-b from-brand-500 to-brand-500" />
                       )}
-                      <Icon className={cn('nav-link-icon h-4 w-4 shrink-0 transition-colors', isActive ? 'text-brand-500' : 'text-[hsl(var(--text-muted))]')} strokeWidth={1.8} />
+                      <Icon className={cn('nav-link-icon h-4 w-4 shrink-0 transition-colors', isActive ? 'text-brand-400 light:text-brand-600' : 'text-[hsl(var(--text-muted))]')} strokeWidth={1.8} />
                       {sidebarOpen && <span className="truncate transition-all duration-150 group-hover:text-[0.9375rem]">{label}</span>}
                     </>
                   )}

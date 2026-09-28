@@ -60,7 +60,7 @@ export function AuditLogsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-brand-500" strokeWidth={1.8} />
+          <Shield className="h-5 w-5 text-brand-400 light:text-brand-600" strokeWidth={1.8} />
           <h1 className="text-lg font-semibold text-[hsl(var(--text-primary))]">
             {t('auditLogs.title')}
           </h1>
@@ -75,7 +75,7 @@ export function AuditLogsPage() {
           className={cn(
             'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors',
             showFilters
-              ? 'border-brand-500/40 bg-brand-500/10 text-brand-500'
+              ? 'border-brand-500/40 bg-brand-500/10 text-brand-400 light:text-brand-600'
               : 'border-[hsl(var(--border))] bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]',
           )}
         >
@@ -189,7 +189,7 @@ export function AuditLogsPage() {
                     {log.userEmail ?? '—'}
                   </td>
                   <td className="px-4 py-2.5">
-                    <span className="rounded bg-brand-500/10 px-2 py-0.5 font-mono text-[11px] text-brand-500">
+                    <span className="rounded bg-brand-500/10 px-2 py-0.5 font-mono text-[11px] text-brand-400 light:text-brand-600">
                       {log.action}
                     </span>
                   </td>

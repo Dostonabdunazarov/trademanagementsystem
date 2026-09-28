@@ -79,7 +79,7 @@ export function BranchSelector({ className }: { className?: string }) {
               className={cn(
                 'flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors',
                 selected === null
-                  ? 'bg-brand-500/10 text-brand-600 dark:text-brand-300'
+                  ? 'bg-brand-500/10 text-brand-300 light:text-brand-600'
                   : 'text-[hsl(var(--text-primary))] hover:bg-[hsl(var(--surface-2))]',
               )}
             >
@@ -94,7 +94,7 @@ export function BranchSelector({ className }: { className?: string }) {
               className={cn(
                 'flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors',
                 b.id === selected?.id
-                  ? 'bg-brand-500/10 text-brand-600 dark:text-brand-300'
+                  ? 'bg-brand-500/10 text-brand-300 light:text-brand-600'
                   : 'text-[hsl(var(--text-primary))] hover:bg-[hsl(var(--surface-2))]',
               )}
             >

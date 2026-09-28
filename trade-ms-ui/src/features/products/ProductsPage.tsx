@@ -63,7 +63,7 @@ function GroupNode({
       <div
         className={`flex items-center gap-1 px-2 py-1.5 rounded-lg mx-1 cursor-pointer text-sm transition-all duration-150 ${
           isSelected
-            ? 'bg-brand-500/15 text-brand-600 dark:text-brand-300 font-semibold shadow-sm shadow-brand-500/10'
+            ? 'bg-brand-500/15 text-brand-300 light:text-brand-600 font-semibold shadow-sm shadow-brand-500/10'
             : 'text-[hsl(var(--text-primary))] hover:bg-[hsl(var(--surface-2))]'
         }`}
         style={{ paddingLeft: `${8 + depth * 16}px` }}
@@ -454,7 +454,7 @@ export function ProductsPage() {
           {isAdmin && (
             <button
               onClick={() => setGroupDialog(true)}
-              className="w-6 h-6 flex items-center justify-center rounded-full bg-brand-500/15 text-brand-500 hover:bg-brand-500 hover:text-white transition-all duration-150 text-base leading-none font-bold"
+              className="w-6 h-6 flex items-center justify-center rounded-full bg-brand-500/15 text-brand-400 light:text-brand-600 hover:bg-brand-500 hover:text-white transition-all duration-150 text-base leading-none font-bold"
               title={t('products.createGroup')}
             >
               +
@@ -469,7 +469,7 @@ export function ProductsPage() {
               <div
                 className={`px-3 py-1.5 text-sm rounded-lg mx-1 cursor-pointer transition-all duration-150 ${
                   selectedGroup === null
-                    ? 'text-brand-600 dark:text-brand-300 bg-brand-500/15 font-semibold shadow-sm shadow-brand-500/10'
+                    ? 'text-brand-300 light:text-brand-600 bg-brand-500/15 font-semibold shadow-sm shadow-brand-500/10'
                     : 'text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-2))]'
                 }`}
                 onClick={() => selectGroup(null)}
@@ -550,12 +550,12 @@ export function ProductsPage() {
                     <TableCell className="py-2 text-[hsl(var(--text-muted))] text-xs tabular-nums font-medium">{(page - 1) * PAGE_SIZE + idx + 1}</TableCell>
                     <TableCell className="py-2 text-[hsl(var(--text-primary))]">{p.name}</TableCell>
                     <TableCell className="py-2 font-mono text-xs">
-                      <span className="px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-500 dark:text-brand-400">
+                      <span className="px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-400 light:text-brand-500">
                         {p.sku || '—'}
                       </span>
                     </TableCell>
                     <TableCell className="py-2">
-                      <span className="px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-600 dark:text-brand-400 text-xs font-medium">
+                      <span className="px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-400 light:text-brand-600 text-xs font-medium">
                         {t(`products.units.${p.unit}`, p.unit)}
                       </span>
                     </TableCell>
@@ -583,7 +583,7 @@ export function ProductsPage() {
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => setProductDialog({ open: true, item: p })}
-                            className="px-2 py-1 text-xs text-brand-500 hover:text-white hover:bg-brand-500 rounded transition-all duration-150"
+                            className="px-2 py-1 text-xs text-brand-400 light:text-brand-600 hover:text-white hover:bg-brand-500 rounded transition-all duration-150"
                           >
                             {t('common.edit')}
                           </button>
