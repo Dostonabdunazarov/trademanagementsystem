@@ -27,6 +27,12 @@ file record CpLineResp(Guid Id, string Name, string Type, decimal Balance);
 
 file record DocResp(long Id, string Type, string Status);
 
+file record DailyDashboardResp(string DateFrom, string DateTo, List<DailySalesResp> DailySales);
+file record DailySalesResp(string Date, decimal Revenue, decimal Profit);
+
+file record StockForecastResp(int LookbackDays, List<ForecastLineResp> Lines);
+file record ForecastLineResp(Guid ProductId, string ProductName, decimal Quantity, decimal SoldPerDay, decimal DaysLeft);
+
 [Collection("Integration")]
 public class ReportTests : SeededIntegrationTestBase
 {
@@ -35,11 +41,11 @@ public class ReportTests : SeededIntegrationTestBase
     public ReportTests(TradeApiFactory factory) : base(factory) { }
 
     private async Task CreateAndConfirm(string type, Guid counterpartyId, Guid productId,
-        decimal qty, decimal price)
+        decimal qty, decimal price, string date = "2026-05-31")
     {
         var resp = await Client.PostAsJsonAsync("/api/documents", new
         {
-            type, date = "2026-05-31", counterpartyId,
+            type, date, counterpartyId,
             currencyId = TestDataSeeder.CurrencyUzsId, exchangeRate = 1m, discountPercent = 0m,
             lines = new[] { new { productId, quantity = qty, price, discountPercent = 0m } }
         });
@@ -207,5 +213,53 @@ public class ReportTests : SeededIntegrationTestBase
 
         var body = await resp.Content.ReadFromJsonAsync<StockBalanceResp>(JsonOpts);
         body!.Lines.Should().Contain(l => l.ProductId == productId);
+    }
+
+    // Дневной ряд — ровно по дню на каждую дату периода, продажа попадает в свой день
+    [Fact]
+    public async Task GetDashboard_WithPeriod_ReturnsDailySalesForEachDay()
+    {
+        await AuthenticateAsync();
+        var productId = TestDataSeeder.GetProductId(45);
+        await CreateAndConfirm("Income", TestDataSeeder.GetSupplierId(0), productId, 50m, 12000m);
+        await CreateAndConfirm("Expense", TestDataSeeder.GetCustomerId(0), productId, 2m, 15000m);
+
+        var resp = await Client.GetAsync("/api/reports/dashboard?dateFrom=2026-05-01&dateTo=2026-05-31");
+        resp.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await resp.Content.ReadFromJsonAsync<DailyDashboardResp>(JsonOpts);
+        body!.DailySales.Should().HaveCount(31);
+        body.DailySales.Single(d => d.Date == "2026-05-31").Revenue.Should().BeGreaterThan(0);
+    }
+
+    // На длинном периоде дневной ряд не строится
+    [Fact]
+    public async Task GetDashboard_WithYearPeriod_ReturnsNoDailySales()
+    {
+        await AuthenticateAsync();
+        var resp = await Client.GetAsync("/api/reports/dashboard?dateFrom=2026-01-01&dateTo=2026-12-31");
+        var body = await resp.Content.ReadFromJsonAsync<DailyDashboardResp>(JsonOpts);
+        body!.DailySales.Should().BeEmpty();
+    }
+
+    // Прогноз: 30 шт. на складе, продано 30 за 30 дней → 1 шт./день → хватит на 30 дней
+    [Fact]
+    public async Task GetStockForecast_AfterRecentSales_ReturnsDaysLeft()
+    {
+        await AuthenticateAsync();
+        var productId = TestDataSeeder.GetProductId(46);
+        var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        await CreateAndConfirm("Income", TestDataSeeder.GetSupplierId(1), productId, 60m, 12000m, today);
+        await CreateAndConfirm("Expense", TestDataSeeder.GetCustomerId(1), productId, 30m, 15000m, today);
+
+        var resp = await Client.GetAsync("/api/reports/stock-forecast?days=30");
+        resp.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var body = await resp.Content.ReadFromJsonAsync<StockForecastResp>(JsonOpts);
+        body!.LookbackDays.Should().Be(30);
+        var line = body.Lines.Single(l => l.ProductId == productId);
+        line.Quantity.Should().Be(30m);
+        line.SoldPerDay.Should().Be(1m);
+        line.DaysLeft.Should().Be(30m);
     }
 }

@@ -130,6 +130,8 @@ public class GetDashboardSummaryQueryHandler(IAppDbContext db)
             ));
         }
 
+        var dailySales = await ComputeDailySales(request, periodFrom, periodTo, cancellationToken);
+
         return new DashboardSummaryDto(
             periodFrom, periodTo,
             current.Revenue, current.Profit, debtorDebt, stockItemCount,
@@ -141,7 +143,48 @@ public class GetDashboardSummaryQueryHandler(IAppDbContext db)
             PercentDelta(current.Profit, previous.Profit),
             PercentDelta(current.CashFlow, previous.CashFlow),
             PercentDelta(current.SalesCount, previous.SalesCount),
-            monthlySales);
+            monthlySales,
+            dailySales);
+    }
+
+    // Дневной ряд строим только для периодов до квартала: на году точки сливаются,
+    // там достаточно помесячного графика.
+    private const int MaxDailyPeriodDays = 92;
+
+    private async Task<IReadOnlyList<DailySalesDto>> ComputeDailySales(
+        GetDashboardSummaryQuery request, DateOnly from, DateOnly to, CancellationToken ct)
+    {
+        if (to < from || to.DayNumber - from.DayNumber + 1 > MaxDailyPeriodDays)
+            return [];
+
+        var raw = await db.DocumentLines
+            .Where(l =>
+                l.Document.CompanyId == request.CompanyId &&
+                l.Document.Status == DocumentStatus.Confirmed &&
+                l.Document.Type == DocumentType.Expense &&
+                l.Document.Date >= from &&
+                l.Document.Date <= to &&
+                (!request.BranchId.HasValue || l.Document.BranchId == request.BranchId.Value))
+            .GroupBy(l => l.Document.Date)
+            .Select(g => new
+            {
+                Date = g.Key,
+                Revenue = g.Sum(l => l.Total),
+                Cost = g.Sum(l => l.Quantity * l.Product.PriceBuy),
+            })
+            .ToListAsync(ct);
+
+        var byDate = raw.ToDictionary(r => r.Date);
+
+        // Полный ряд без пропусков: дни без продаж — нули, иначе линия графика «перепрыгивает» их.
+        var result = new List<DailySalesDto>(to.DayNumber - from.DayNumber + 1);
+        for (var d = from; d <= to; d = d.AddDays(1))
+        {
+            var found = byDate.GetValueOrDefault(d);
+            var revenue = found?.Revenue ?? 0m;
+            result.Add(new DailySalesDto(d, revenue, revenue - (found?.Cost ?? 0m)));
+        }
+        return result;
     }
 
     private async Task<PeriodStats> ComputePeriodStats(

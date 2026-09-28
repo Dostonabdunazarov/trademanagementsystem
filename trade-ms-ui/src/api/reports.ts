@@ -12,4 +12,7 @@ export const reportsApi = {
 
   getDashboardSummary: (params?: { branchId?: string; dateFrom?: string; dateTo?: string }) =>
     apiClient.get('/reports/dashboard', { params }).then((r) => r.data),
+
+  getStockForecast: (params?: { branchId?: string; days?: number; limit?: number }) =>
+    apiClient.get('/reports/stock-forecast', { params }).then((r) => r.data),
 }

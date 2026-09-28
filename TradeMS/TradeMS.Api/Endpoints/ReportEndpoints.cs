@@ -4,6 +4,7 @@ using TradeMS.Application.Features.Reports.Queries.GetCounterpartyBalance;
 using TradeMS.Application.Features.Reports.Queries.GetDashboardSummary;
 using TradeMS.Application.Features.Reports.Queries.GetSalesSummary;
 using TradeMS.Application.Features.Reports.Queries.GetStockBalance;
+using TradeMS.Application.Features.Reports.Queries.GetStockForecast;
 
 namespace TradeMS.Api.Endpoints;
 
@@ -40,6 +41,20 @@ public static class ReportEndpoints
             return Results.Ok(result);
         })
         .WithSummary("Stock balance per product (optionally filtered by branchId)");
+
+        group.MapGet("/stock-forecast", async (
+            Guid? branchId,
+            int? days,
+            int? limit,
+            ClaimsPrincipal user,
+            IMediator mediator) =>
+        {
+            var companyId = GetCompanyId(user);
+            var result = await mediator.Send(
+                new GetStockForecastQuery(companyId, branchId, days ?? 30, limit ?? 20));
+            return Results.Ok(result);
+        })
+        .WithSummary("Stock run-out forecast: average daily sales over the last N days and days of stock left");
 
         group.MapGet("/counterparty-balance", async (
             string? type,

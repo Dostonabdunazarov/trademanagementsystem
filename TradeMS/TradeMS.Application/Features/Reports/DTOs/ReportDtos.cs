@@ -79,7 +79,32 @@ public record DashboardSummaryDto(
     decimal? ProfitDelta,
     decimal? CashFlowDelta,
     decimal? SalesCountDelta,
-    IReadOnlyList<MonthlySalesDto> MonthlySales
+    IReadOnlyList<MonthlySalesDto> MonthlySales,
+    // Выручка и прибыль по дням выбранного периода (пусто, если период длиннее 92 дней)
+    IReadOnlyList<DailySalesDto> DailySales
+);
+
+public record DailySalesDto(
+    DateOnly Date,
+    decimal Revenue,
+    decimal Profit
+);
+
+/// <summary>Прогноз остатков: на сколько дней хватит товара при текущем темпе продаж.</summary>
+public record StockForecastDto(
+    int LookbackDays,
+    IReadOnlyList<StockForecastLineDto> Lines
+);
+
+public record StockForecastLineDto(
+    Guid ProductId,
+    string ProductName,
+    string Unit,
+    decimal Quantity,
+    // Средние продажи в день за LookbackDays (продажи минус возвраты клиентов)
+    decimal SoldPerDay,
+    // Сколько дней хватит остатка; 0 — товар уже закончился
+    decimal DaysLeft
 );
 
 public record MonthlySalesDto(

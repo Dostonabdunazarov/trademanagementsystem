@@ -84,6 +84,29 @@ export interface DashboardSummaryResponse {
   cashFlowDelta: number | null
   salesCountDelta: number | null
   monthlySales: MonthlySales[]
+  /** По дням выбранного периода; пусто, если период длиннее 92 дней. */
+  dailySales: DailySales[]
+}
+
+export interface DailySales {
+  date: string
+  revenue: number
+  profit: number
+}
+
+export interface StockForecastItem {
+  productId: string
+  productName: string
+  unit: string
+  quantity: number
+  soldPerDay: number
+  /** На сколько дней хватит остатка; 0 — уже закончился. */
+  daysLeft: number
+}
+
+export interface StockForecastResponse {
+  lookbackDays: number
+  lines: StockForecastItem[]
 }
 
 export function useSalesSummary(params?: { dateFrom?: string; dateTo?: string; branchId?: string }) {
@@ -112,6 +135,14 @@ export function useDashboardSummary(params?: { branchId?: string; dateFrom?: str
   return useQuery<DashboardSummaryResponse>({
     queryKey: ['reports', 'dashboard', params],
     queryFn: () => reportsApi.getDashboardSummary(params),
+    staleTime: 60_000,
+  })
+}
+
+export function useStockForecast(params?: { branchId?: string; days?: number; limit?: number }) {
+  return useQuery<StockForecastResponse>({
+    queryKey: ['reports', 'stock-forecast', params],
+    queryFn: () => reportsApi.getStockForecast(params),
     staleTime: 60_000,
   })
 }
