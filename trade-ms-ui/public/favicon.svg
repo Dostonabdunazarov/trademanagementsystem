@@ -1,24 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
   <defs>
     <linearGradient id="top" x1="6" y1="4" x2="26" y2="16" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#2bc4a0"/>
-      <stop offset="100%" stop-color="#14937a"/>
+      <stop offset="0%" stop-color="#a3bffa"/>
+      <stop offset="100%" stop-color="#7aa2f7"/>
     </linearGradient>
     <linearGradient id="left" x1="6" y1="10" x2="16" y2="28" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#0a7a5c"/>
-      <stop offset="100%" stop-color="#03644a"/>
+      <stop offset="0%" stop-color="#4f7ef0"/>
+      <stop offset="100%" stop-color="#3b6ee8"/>
     </linearGradient>
     <linearGradient id="right" x1="26" y1="10" x2="16" y2="28" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#054d39"/>
-      <stop offset="100%" stop-color="#043d2f"/>
+      <stop offset="0%" stop-color="#2f58c7"/>
+      <stop offset="100%" stop-color="#26479f"/>
     </linearGradient>
   </defs>
   <!-- Плитка: navy #050816 с тонкой зелёной кромкой -->
-  <rect x="0.5" y="0.5" width="31" height="31" rx="8" fill="#050816" stroke="#14937a" stroke-opacity="0.45"/>
+  <rect x="0.5" y="0.5" width="31" height="31" rx="8" fill="#050816" stroke="#7aa2f7" stroke-opacity="0.45"/>
   <!-- Коробка: верх, левая и правая грани -->
   <path d="M16 4L26 9.8L16 15.6L6 9.8Z" fill="url(#top)"/>
   <path d="M6 9.8L16 15.6V27.8L6 22Z" fill="url(#left)"/>
   <path d="M26 9.8V22L16 27.8V15.6Z" fill="url(#right)"/>
   <!-- Лента на крышке -->
-  <path d="M11 6.9L21 12.7" stroke="#e6fff7" stroke-opacity="0.85" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M11 6.9L21 12.7" stroke="#ffffff" stroke-opacity="0.85" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

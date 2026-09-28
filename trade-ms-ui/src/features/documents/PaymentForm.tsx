@@ -12,6 +12,7 @@ import { useCreateDocument, useConfirmDocument } from '@/api/hooks/useDocumentMu
 import { useDocument } from '@/api/hooks/useDocument'
 import { useAuthStore } from '@/store/auth.store'
 import { useUiStore } from '@/store/ui.store'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
 
@@ -403,16 +404,16 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
             </label>
             <label className="flex flex-col gap-1 w-24">
               <span className={labelCls}>{t('common.currency')}</span>
-              <select
-                value={currencyId}
-                onChange={(e) => handleCurrencyChange(e.target.value)}
-                disabled={isReadonly}
-                className={cn(inputCls, isReadonly && 'opacity-70 cursor-default')}
-              >
-                {currencies.map((c) => (
-                  <option key={c.id} value={c.id}>{c.code}</option>
-                ))}
-              </select>
+              <Select value={currencyId} onValueChange={handleCurrencyChange} disabled={isReadonly}>
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.code}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </label>
             {!isBaseCurrency && (
               <label className="flex flex-col gap-1 w-28">
@@ -470,15 +471,16 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
                 {existingDoc?.accountName ?? '—'}
               </div>
             ) : (
-              <select
-                value={accountId}
-                onChange={(e) => setAccountId(e.target.value)}
-                className={inputCls}
-              >
-                {accounts.map((acc) => (
-                  <option key={acc.id} value={acc.id}>{acc.name}</option>
-                ))}
-              </select>
+              <Select value={accountId} onValueChange={setAccountId}>
+                <SelectTrigger className="h-9">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {accounts.map((acc) => (
+                    <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             )}
           </label>
 

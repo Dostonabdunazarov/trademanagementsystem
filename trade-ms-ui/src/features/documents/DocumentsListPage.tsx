@@ -22,6 +22,7 @@ import { getApiErrorMessage } from '@/lib/apiError'
 import { useDocuments } from '@/api/hooks/useDocuments'
 import { useDeleteDocument, useConfirmDocument } from '@/api/hooks/useDocumentMutations'
 import { useUiStore } from '@/store/ui.store'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const PAGE_SIZE = 100
 
@@ -205,16 +206,21 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
           </div>
           <div className="flex flex-col gap-1">
             <label className="text-[11px] font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">{t('documents.filterByStatus')}</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => { setStatusFilter(e.target.value); setPage(1) }}
-              className="rounded-md border border-border bg-card px-3 py-1.5 text-sm text-[hsl(var(--text-primary))] focus:outline-none focus:ring-2 focus:ring-brand-500/50"
+            {/* Radix Select не допускает пустое значение — «все» кодируем как 'all'. */}
+            <Select
+              value={statusFilter || 'all'}
+              onValueChange={(v) => { setStatusFilter(v === 'all' ? '' : v); setPage(1) }}
             >
-              <option value="">{t('documents.allStatuses')}</option>
-              <option value="Draft">{t('status.Draft')}</option>
-              <option value="Confirmed">{t('status.Confirmed')}</option>
-              <option value="Cancelled">{t('status.Cancelled')}</option>
-            </select>
+              <SelectTrigger className="h-[34px] min-w-[10rem] bg-card">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('documents.allStatuses')}</SelectItem>
+                <SelectItem value="Draft">{t('status.Draft')}</SelectItem>
+                <SelectItem value="Confirmed">{t('status.Confirmed')}</SelectItem>
+                <SelectItem value="Cancelled">{t('status.Cancelled')}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           {(dateFrom || dateTo || statusFilter) && (
             <div className="flex items-end">

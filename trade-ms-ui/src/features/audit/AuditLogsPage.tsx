@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Shield, ChevronLeft, ChevronRight, Filter, CheckCircle2, XCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { fetchAuditLogs, type AuditLogsParams } from '@/api/auditLogs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const PAGE_SIZE = 500
 
@@ -118,15 +119,20 @@ export function AuditLogsPage() {
             </div>
             <div className="flex flex-col gap-1">
               <label className="text-[11px] font-medium text-[hsl(var(--text-muted))]">{t('common.status')}</label>
-              <select
-                value={filters.success}
-                onChange={(e) => setFilters((f) => ({ ...f, success: e.target.value as '' | 'true' | 'false' }))}
-                className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--background))] px-3 py-1.5 text-xs text-[hsl(var(--text-primary))] focus:outline-none focus:ring-1 focus:ring-brand-500"
+              {/* Radix Select не допускает пустое значение — «все» кодируем как 'all'. */}
+              <Select
+                value={filters.success || 'all'}
+                onValueChange={(v) => setFilters((f) => ({ ...f, success: (v === 'all' ? '' : v) as '' | 'true' | 'false' }))}
               >
-                <option value="">{t('common.all')}</option>
-                <option value="true">{t('auditLogs.successOnly')}</option>
-                <option value="false">{t('auditLogs.failedOnly')}</option>
-              </select>
+                <SelectTrigger className="h-8 min-w-[9rem] text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="text-xs">{t('common.all')}</SelectItem>
+                  <SelectItem value="true" className="text-xs">{t('auditLogs.successOnly')}</SelectItem>
+                  <SelectItem value="false" className="text-xs">{t('auditLogs.failedOnly')}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="mt-3 flex gap-2">

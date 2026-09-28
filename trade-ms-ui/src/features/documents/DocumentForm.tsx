@@ -18,6 +18,7 @@ import { useDocument } from '@/api/hooks/useDocument'
 import { useAuthStore } from '@/store/auth.store'
 import { useUiStore } from '@/store/ui.store'
 import { useStockBalance } from '@/api/hooks/useReports'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
 
@@ -540,24 +541,24 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
         {/* Currency */}
         <label className="flex flex-col gap-1 min-w-[100px]">
           <span className="text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('common.currency')}</span>
-          <select
+          <Select
             value={state.currencyId}
-            onChange={(e) => {
+            onValueChange={(id) => {
               if (isReadonly) return
-              const cur = (currencies ?? []).find((c) => c.id === e.target.value)
+              const cur = (currencies ?? []).find((c) => c.id === id)
               if (cur) form.setCurrency(cur.id, cur.code, cur.isBase ? 1 : state.exchangeRate)
             }}
             disabled={isReadonly}
-            className={cn(
-              'h-8 rounded-lg border border-border bg-secondary px-2.5 text-xs text-[hsl(var(--text-primary))]',
-              'focus:outline-none focus:ring-1 focus:ring-brand-500/60 transition-colors',
-              isReadonly && 'opacity-70 cursor-default',
-            )}
           >
-            {(currencies ?? []).map((c) => (
-              <option key={c.id} value={c.id}>{c.code}</option>
-            ))}
-          </select>
+            <SelectTrigger className="h-8 px-2.5 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(currencies ?? []).map((c) => (
+                <SelectItem key={c.id} value={c.id} className="text-xs">{c.code}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </label>
 
         {/* Exchange rate */}
