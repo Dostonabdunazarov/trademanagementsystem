@@ -138,7 +138,7 @@ export function AuditLogsPage() {
           <div className="mt-3 flex gap-2">
             <button
               onClick={applyFilters}
-              className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-medium text-white hover:bg-brand-600 transition-colors"
+              className="rounded-lg bg-brand-500 px-4 py-1.5 text-xs font-medium text-brand-fg hover:bg-brand-600 transition-colors"
             >
               {t('reports.apply')}
             </button>

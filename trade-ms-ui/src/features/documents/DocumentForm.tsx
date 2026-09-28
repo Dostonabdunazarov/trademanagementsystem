@@ -403,7 +403,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
           {existingDoc && (
             <span className={cn(
               'rounded px-1.5 py-0.5 text-[10px] font-medium border',
-              existingDoc.status === 'Draft' && 'border-amber-500/30 bg-amber-500/10 text-amber-400',
+              existingDoc.status === 'Draft' && 'border-orange-500/30 bg-orange-500/10 text-orange-400',
               existingDoc.status === 'Confirmed' && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400',
               existingDoc.status === 'Cancelled' && 'border-red-500/30 bg-red-500/10 text-red-400',
             )}>
@@ -411,7 +411,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
             </span>
           )}
           {!existingDoc && savedDocId && (
-            <span className="rounded px-1.5 py-0.5 text-[10px] font-medium border border-amber-500/30 bg-amber-500/10 text-amber-400">
+            <span className="rounded px-1.5 py-0.5 text-[10px] font-medium border border-orange-500/30 bg-orange-500/10 text-orange-400">
               Draft #{savedDocId}
             </span>
           )}
@@ -419,7 +419,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
         {!isReadonly && (
           <div className="flex items-center gap-2">
             {isBlocked && (
-              <span className="flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 h-8 text-xs text-amber-400">
+              <span className="flex items-center gap-1.5 rounded-lg border border-orange-500/40 bg-orange-500/10 px-3 h-8 text-xs text-orange-400">
                 <AlertCircle className="h-3.5 w-3.5 shrink-0" />
                 Выберите филиал в хидере
               </span>
@@ -440,7 +440,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
               onClick={handleConfirm}
               disabled={isSaving || isConfirming || isBlocked}
               className={cn(
-                'flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 h-8 text-xs text-white font-medium',
+                'flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 h-8 text-xs text-brand-fg font-medium',
                 'hover:bg-brand-500 active:bg-brand-700 transition-colors',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
               )}

@@ -455,7 +455,7 @@ export function ProductsPage() {
           {isAdmin && (
             <button
               onClick={() => setGroupDialog(true)}
-              className="w-6 h-6 flex items-center justify-center rounded-full bg-brand-500/15 text-brand-400 light:text-brand-600 hover:bg-brand-500 hover:text-white transition-all duration-150 text-base leading-none font-bold"
+              className="w-6 h-6 flex items-center justify-center rounded-full bg-brand-500/15 text-brand-400 light:text-brand-600 hover:bg-brand-500 hover:text-brand-fg transition-all duration-150 text-base leading-none font-bold"
               title={t('products.createGroup')}
             >
               +
@@ -505,7 +505,7 @@ export function ProductsPage() {
           {isAdmin && (
             <Button
               onClick={() => setProductDialog({ open: true, item: null })}
-              className="btn-primary-gradient bg-brand-600 hover:bg-brand-700 text-white transition-all duration-200"
+              className="btn-primary-gradient bg-brand-600 hover:bg-brand-700 text-brand-fg transition-all duration-200"
             >
               + {t('products.newProduct')}
             </Button>
@@ -584,7 +584,7 @@ export function ProductsPage() {
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => setProductDialog({ open: true, item: p })}
-                            className="px-2 py-1 text-xs text-brand-400 light:text-brand-600 hover:text-white hover:bg-brand-500 rounded transition-all duration-150"
+                            className="px-2 py-1 text-xs text-brand-400 light:text-brand-600 hover:text-brand-fg hover:bg-brand-500 rounded transition-all duration-150"
                           >
                             {t('common.edit')}
                           </button>

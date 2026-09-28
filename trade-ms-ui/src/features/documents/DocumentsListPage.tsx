@@ -32,7 +32,7 @@ const STATUS_ICONS: Record<string, React.ElementType> = {
   Cancelled: XCircle,
 }
 const STATUS_CLS: Record<string, string> = {
-  Draft: 'text-amber-400 bg-amber-400/10',
+  Draft: 'text-orange-400 bg-orange-400/10',
   Confirmed: 'text-emerald-400 bg-emerald-400/10',
   Cancelled: 'text-red-400 bg-red-400/10',
 }
@@ -142,7 +142,7 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
         </div>
         <button
           onClick={() => navigate(createPath)}
-          className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-white hover:bg-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+          className="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-3 py-2 text-sm font-medium text-brand-fg hover:bg-brand-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
         >
           <Plus className="h-4 w-4" />
           {t('documents.createNew')}
@@ -170,7 +170,7 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
           <Filter className="h-4 w-4" />
           {t('common.filter')}
           {(dateFrom || dateTo || statusFilter) && (
-            <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-semibold text-white">
+            <span className="ml-1 flex h-4 w-4 items-center justify-center rounded-full bg-brand-500 text-[10px] font-semibold text-brand-fg">
               {[dateFrom, dateTo, statusFilter].filter(Boolean).length}
             </span>
           )}

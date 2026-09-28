@@ -51,7 +51,7 @@ export function DashboardPage() {
       value: isLoading ? '…' : formatNumber(data?.debtorDebt ?? 0),
       delta: undefined,
       icon: Users,
-      iconColor: 'text-amber-400',
+      iconColor: 'text-orange-400',
     },
     {
       title: `${t('dashboard.creditorDebt')} · ${t('dashboard.debtTotalHint')}`,

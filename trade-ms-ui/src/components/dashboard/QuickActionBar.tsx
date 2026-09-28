@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils'
 const ACTION_KEYS = [
   { key: 'F1', labelKey: 'dashboard.actionExpense', to: '/expense', icon: ArrowUpFromLine, color: 'hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20' },
   { key: 'F2', labelKey: 'dashboard.actionIncome', to: '/income', icon: ArrowDownToLine, color: 'hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-emerald-500/20' },
-  { key: 'F3', labelKey: 'dashboard.actionReturnCustomer', to: '/return-customer', icon: RotateCcw, color: 'hover:bg-amber-500/10 hover:text-amber-400 hover:border-amber-500/20' },
+  { key: 'F3', labelKey: 'dashboard.actionReturnCustomer', to: '/return-customer', icon: RotateCcw, color: 'hover:bg-orange-500/10 hover:text-orange-400 hover:border-orange-500/20' },
   { key: 'F4', labelKey: 'dashboard.actionReturnSupplier', to: '/return-supplier', icon: RefreshCw, color: 'hover:bg-orange-500/10 hover:text-orange-400 hover:border-orange-500/20' },
   { key: 'F5', labelKey: 'dashboard.actionPayOut', to: '/pay-out', icon: Banknote, color: 'hover:bg-brand-500/10 hover:text-brand-400 hover:border-brand-500/20' },
   { key: 'F6', labelKey: 'dashboard.actionPayIn', to: '/pay-in', icon: Wallet, color: 'hover:bg-brand-500/10 hover:text-brand-400 hover:border-brand-500/20' },

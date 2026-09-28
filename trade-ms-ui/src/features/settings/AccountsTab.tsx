@@ -95,7 +95,7 @@ function AccountDialog({ open, onClose, branchId }: { open: boolean; onClose: ()
             </Select>
           </div>
           {!branchId && (
-            <p className="text-xs text-amber-400">{t('settings.selectBranchFirst')}</p>
+            <p className="text-xs text-orange-400">{t('settings.selectBranchFirst')}</p>
           )}
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="ghost" onClick={onClose} className="text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]">

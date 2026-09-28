@@ -227,7 +227,7 @@ export function CurrenciesTab() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <span className="font-mono font-semibold text-[hsl(var(--text-primary))]">{c.code}</span>
-                        {c.isBase && <Star className="h-3.5 w-3.5 text-amber-400 fill-amber-400" />}
+                        {c.isBase && <Star className="h-3.5 w-3.5 text-orange-400 fill-orange-400" />}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-[hsl(var(--text-primary))]">{c.name}</td>
@@ -235,7 +235,7 @@ export function CurrenciesTab() {
                       <Badge className={cn(
                         'text-[10px] px-1.5 py-0 border-0',
                         c.isBase
-                          ? 'bg-amber-500/15 text-amber-400'
+                          ? 'bg-orange-500/15 text-orange-400'
                           : 'bg-slate-700/50 text-[hsl(var(--text-muted))]'
                       )}>
                         {c.isBase ? t('settings.isBase') : t('common.currency')}

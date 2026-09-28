@@ -144,7 +144,7 @@ export function QuantityDialog({
           <button
             onClick={handleConfirm}
             className={cn(
-              'flex-1 h-9 rounded-lg bg-brand-600 text-sm font-medium text-white',
+              'flex-1 h-9 rounded-lg bg-brand-600 text-sm font-medium text-brand-fg',
               'hover:bg-brand-500 active:bg-brand-700 transition-colors',
             )}
           >

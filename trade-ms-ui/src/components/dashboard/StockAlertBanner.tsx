@@ -20,19 +20,19 @@ export function StockAlertBanner({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-4 light:border-amber-300 light:bg-amber-50',
+        'flex items-start gap-3 rounded-xl border border-orange-500/20 bg-orange-500/5 p-4 light:border-orange-300 light:bg-orange-50',
         className,
       )}
       role="alert"
     >
-      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-400 light:text-amber-600" />
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-400 light:text-orange-600" />
       <div className="flex-1">
-        <p className="text-sm font-medium text-amber-300 light:text-amber-800">{t('dashboard.stockAlerts')}</p>
+        <p className="text-sm font-medium text-orange-300 light:text-orange-800">{t('dashboard.stockAlerts')}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {lowItems.map(({ productId, productName, quantity, unit }) => (
             <span
               key={productId}
-              className="rounded-full border border-amber-500/20 bg-amber-500/10 px-2.5 py-0.5 text-xs text-amber-300 light:border-amber-300 light:bg-amber-100 light:text-amber-900"
+              className="rounded-full border border-orange-500/20 bg-orange-500/10 px-2.5 py-0.5 text-xs text-orange-300 light:border-orange-300 light:bg-orange-100 light:text-orange-900"
             >
               {productName} — <span className="font-mono font-semibold">{quantity} {unit}</span>
             </span>
@@ -41,7 +41,7 @@ export function StockAlertBanner({ className }: { className?: string }) {
       </div>
       <button
         onClick={() => setDismissed(true)}
-        className="shrink-0 rounded-md p-1 text-amber-500 hover:bg-amber-500/10 hover:text-amber-300 light:text-amber-700 light:hover:bg-amber-100 light:hover:text-amber-900 transition-colors"
+        className="shrink-0 rounded-md p-1 text-orange-500 hover:bg-orange-500/10 hover:text-orange-300 light:text-orange-700 light:hover:bg-orange-100 light:hover:text-orange-900 transition-colors"
         aria-label={t('common.close')}
       >
         <X className="h-3.5 w-3.5" />

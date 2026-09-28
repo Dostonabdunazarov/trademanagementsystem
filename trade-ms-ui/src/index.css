@@ -4,22 +4,24 @@
 @custom-variant light (&:where(.light, .light *));
 
 /*
-  Палитра «Graphite & Emerald»: нейтральный графит + изумрудный акцент.
-  Зелёный держим на нейтральном (не синем) фоне — на navy он спорит с фоном.
-  500/600 — заливка кнопок с белым текстом, 400 — акцентный текст на тёмном фоне.
+  Палитра «Navy & Gold»: тёмно-синий фон #050816 + золотой акцент.
+  В тёмной теме заливка акцента яркая, поэтому текст на ней тёмный (brand-fg);
+  в светлой — тёмное золото с белым текстом. Шкала переопределяется в html.light.
 */
 @theme {
-  --color-brand-50: #ecfdf5;
-  --color-brand-100: #d1fae5;
-  --color-brand-200: #a7f3d0;
-  --color-brand-300: #6ee7b7;
-  --color-brand-400: #34d399;
-  --color-brand-500: #059669;
-  --color-brand-600: #047857;
-  --color-brand-700: #065f46;
-  --color-brand-800: #064e3b;
-  --color-brand-900: #053b2e;
-  --color-brand-950: #022c22;
+  --color-brand-50: #fffaeb;
+  --color-brand-100: #fef0c7;
+  --color-brand-200: #fde08a;
+  --color-brand-300: #fcd679;
+  --color-brand-400: #f7c75e;
+  --color-brand-500: #f5b83d;
+  --color-brand-600: #e5a526;
+  --color-brand-700: #c98a12;
+  --color-brand-800: #a86b0c;
+  --color-brand-900: #7a4a05;
+  --color-brand-950: #4a2c03;
+  /* Текст на заливке bg-brand-500/600/700. */
+  --color-brand-fg: #1a1204;
 }
 
 @theme inline {
@@ -56,72 +58,75 @@
 }
 
 @layer base {
-  /* Тёмная тема (по умолчанию) — графит с едва заметным холодным подтоном. */
+  /* Тёмная тема (по умолчанию) — тёмно-синий «Tokyo Night». */
   :root {
-    --background: 200 13% 5%;
-    --foreground: 200 6% 91%;
-    --surface: 195 10% 7%;
-    --surface-2: 200 9% 11%;
-    --border: 0 0% 100% / 0.07;
-    --accent: 161 94% 30%;
-    --accent-glow: 158 64% 52% / 0.12;
+    --background: 229 63% 5%;
+    --foreground: 226 40% 93%;
+    --surface: 229 50% 9%;
+    --surface-2: 229 40% 15%;
+    --border: 232 100% 79% / 0.1;
+    --accent: 40 90% 60%;
+    --accent-glow: 40 90% 60% / 0.12;
     --success: 160 84% 39%;
-    --warning: 38 92% 50%;
-    --danger: 350 89% 60%;
-    --text-primary: 200 6% 91%;
-    --text-muted: 200 5% 56%;
+    --warning: 27 96% 61%;
+    --danger: 351 95% 71%;
+    --text-primary: 226 40% 93%;
+    --text-muted: 229 15% 60%;
 
-    --card: 195 10% 7%;
-    --card-foreground: 200 6% 91%;
-    --popover: 195 10% 8%;
-    --popover-foreground: 200 6% 91%;
-    --primary: 161 94% 30%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 200 9% 11%;
-    --secondary-foreground: 200 6% 91%;
-    --muted: 200 9% 11%;
-    --muted-foreground: 200 5% 56%;
-    --destructive: 350 89% 60%;
+    --card: 229 50% 9%;
+    --card-foreground: 226 40% 93%;
+    --popover: 229 48% 10%;
+    --popover-foreground: 226 40% 93%;
+    --primary: 40 90% 60%;
+    --primary-foreground: 40 73% 6%;
+    --secondary: 229 40% 15%;
+    --secondary-foreground: 226 40% 93%;
+    --muted: 229 40% 15%;
+    --muted-foreground: 229 15% 60%;
+    --destructive: 351 95% 71%;
     --destructive-foreground: 0 0% 100%;
-    --input: 200 9% 11%;
-    --ring: 158 64% 52%;
+    --input: 229 40% 15%;
+    --ring: 41 90% 67%;
     --radius: 0.5rem;
   }
 
-  /* Светлая тема — белые панели на светло-сером, тот же изумруд. */
+  /* Светлая тема — белые панели, тёмно-синий текст, тёмное золото. */
   html.light {
-    /* Светлые ступени акцента в UI красят текст и иконки (text-brand-300/400):
-       на белом они нечитаемы, поэтому в светлой теме это тёмный изумруд. */
-    --color-brand-300: #059669;
-    --color-brand-400: #047857;
+    /* На белом яркое золото нечитаемо: вся шкала сдвинута в тёмную сторону. */
+    --color-brand-300: #b26d06;
+    --color-brand-400: #9a5d05;
+    --color-brand-500: #b26d06;
+    --color-brand-600: #955a04;
+    --color-brand-700: #7a4a05;
+    --color-brand-fg: #ffffff;
 
     --background: 0 0% 100%;
-    --foreground: 170 20% 8%;
+    --foreground: 229 55% 13%;
     --surface: 0 0% 100%;
-    --surface-2: 180 8% 96%;
-    --border: 180 10% 10% / 0.09;
-    --accent: 161 94% 30%;
-    --accent-glow: 161 94% 30% / 0.1;
-    --success: 142 72% 29%;
-    --warning: 32 95% 44%;
+    --surface-2: 230 30% 96%;
+    --border: 230 30% 20% / 0.09;
+    --accent: 36 93% 36%;
+    --accent-glow: 36 93% 36% / 0.1;
+    --success: 161 94% 30%;
+    --warning: 21 90% 48%;
     --danger: 347 77% 50%;
-    --text-primary: 170 20% 8%;
-    --text-muted: 180 5% 40%;
+    --text-primary: 229 55% 13%;
+    --text-muted: 230 17% 44%;
 
     --card: 0 0% 100%;
-    --card-foreground: 170 20% 8%;
+    --card-foreground: 229 55% 13%;
     --popover: 0 0% 100%;
-    --popover-foreground: 170 20% 8%;
-    --primary: 161 94% 30%;
+    --popover-foreground: 229 55% 13%;
+    --primary: 36 93% 36%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 180 8% 94%;
-    --secondary-foreground: 170 20% 8%;
-    --muted: 180 8% 94%;
-    --muted-foreground: 180 5% 40%;
+    --secondary: 230 30% 94%;
+    --secondary-foreground: 229 55% 13%;
+    --muted: 230 30% 94%;
+    --muted-foreground: 230 17% 44%;
     --destructive: 347 77% 50%;
     --destructive-foreground: 0 0% 100%;
-    --input: 180 8% 94%;
-    --ring: 161 94% 30%;
+    --input: 230 30% 94%;
+    --ring: 36 93% 36%;
   }
 
   html {
@@ -156,13 +161,13 @@
 /* ── Accent Border Glow (Вариант 4) ───────────────────────────────────────── */
 
 aside {
-  border-right: 1px solid rgba(52, 211, 153, 0.16);
-  box-shadow: 4px 0 24px rgba(16, 185, 129, 0.06);
+  border-right: 1px solid rgba(245, 184, 61, 0.16);
+  box-shadow: 4px 0 24px rgba(245, 184, 61, 0.05);
 }
 
 header {
-  border-bottom: 1px solid rgba(52, 211, 153, 0.14);
-  box-shadow: 0 4px 24px rgba(16, 185, 129, 0.05);
+  border-bottom: 1px solid rgba(245, 184, 61, 0.14);
+  box-shadow: 0 4px 24px rgba(245, 184, 61, 0.04);
 }
 
 /* ── Light theme component overrides ─────────────────────────────────────── */
@@ -170,44 +175,44 @@ header {
 /* Sidebar */
 html.light aside {
   background-color: #ffffff !important;
-  border-right-color: rgba(5, 150, 105, 0.22) !important;
-  box-shadow: 4px 0 20px rgba(5, 150, 105, 0.07) !important;
+  border-right-color: rgba(178, 109, 6, 0.22) !important;
+  box-shadow: 4px 0 20px rgba(178, 109, 6, 0.06) !important;
 }
 
 /* Topbar */
 html.light header {
   background-color: #ffffff !important;
-  border-bottom-color: rgba(5, 150, 105, 0.2) !important;
-  box-shadow: 0 4px 20px rgba(5, 150, 105, 0.06) !important;
+  border-bottom-color: rgba(178, 109, 6, 0.2) !important;
+  box-shadow: 0 4px 20px rgba(178, 109, 6, 0.05) !important;
 }
 
 /* Table header row */
 html.light thead tr {
-  background-image: linear-gradient(90deg, #f0faf6 0%, #f5f8f7 100%);
+  background-image: linear-gradient(90deg, #fdf6e7 0%, #f5f6fb 100%);
 }
 
 /* Table row hover */
 html.light tbody tr:hover {
-  background-color: rgba(5, 150, 105, 0.04) !important;
+  background-color: rgba(178, 109, 6, 0.04) !important;
 }
 
 /* Toolbar / card areas */
 html.light .bg-card {
   background-color: rgba(255, 255, 255, 0.88) !important;
   backdrop-filter: blur(10px);
-  box-shadow: 0 1px 3px rgba(16, 24, 22, 0.04), 0 4px 16px rgba(16, 24, 22, 0.04);
+  box-shadow: 0 1px 3px rgba(15, 22, 51, 0.04), 0 4px 16px rgba(15, 22, 51, 0.04);
 }
 
 /* Primary gradient button */
 html.light .btn-primary-gradient {
-  background-image: linear-gradient(135deg, #059669 0%, #0b8f6f 50%, #0d9488 100%) !important;
-  background-color: #059669 !important;
-  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.32) !important;
+  background-image: linear-gradient(135deg, #b26d06 0%, #c27a0a 50%, #cf8a14 100%) !important;
+  background-color: #b26d06 !important;
+  box-shadow: 0 4px 14px rgba(178, 109, 6, 0.3) !important;
   border: none !important;
 }
 html.light .btn-primary-gradient:hover {
-  background-image: linear-gradient(135deg, #047857 0%, #07765f 50%, #0f766e 100%) !important;
-  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4) !important;
+  background-image: linear-gradient(135deg, #955a04 0%, #a36607 50%, #b0730c 100%) !important;
+  box-shadow: 0 6px 20px rgba(178, 109, 6, 0.38) !important;
   transform: translateY(-1px);
 }
 
@@ -217,12 +222,12 @@ html.light input[type="number"],
 html.light input[type="email"],
 html.light input[type="password"],
 html.light input:not([type]) {
-  background-color: #f6f8f7 !important;
-  border-color: rgba(16, 24, 22, 0.12) !important;
+  background-color: #f7f8fc !important;
+  border-color: rgba(15, 22, 51, 0.12) !important;
 }
 html.light input:focus {
-  border-color: #059669 !important;
-  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15) !important;
+  border-color: #b26d06 !important;
+  box-shadow: 0 0 0 3px rgba(178, 109, 6, 0.15) !important;
   outline: none !important;
 }
 
@@ -230,17 +235,17 @@ html.light input:focus {
 html.light ::-webkit-scrollbar { width: 6px; height: 6px; }
 html.light ::-webkit-scrollbar-track { background: transparent; }
 html.light ::-webkit-scrollbar-thumb {
-  background: rgba(16, 24, 22, 0.16);
+  background: rgba(15, 22, 51, 0.16);
   border-radius: 3px;
 }
 html.light ::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 24, 22, 0.28);
+  background: rgba(15, 22, 51, 0.28);
 }
 
 /* Selection */
 html.light ::selection {
-  background: rgba(5, 150, 105, 0.18);
-  color: #065f46;
+  background: rgba(245, 184, 61, 0.28);
+  color: #7a4a05;
 }
 
 /* Sidebar nav links — hover effect (theme-aware, overrides utility colors) */
@@ -250,12 +255,12 @@ html.light ::selection {
 /* Dark theme (default, no .light class): text brightens on hover */
 .nav-link-idle:hover,
 .nav-link-idle:hover .nav-link-icon {
-  color: #e6e8e9 !important;
+  color: #e4e8f5 !important;
 }
 /* Light theme: text turns black on hover */
 html.light .nav-link-idle:hover,
 html.light .nav-link-idle:hover .nav-link-icon {
-  color: #0f1716 !important;
+  color: #0f1633 !important;
 }
 
 /* Появление dropdown-меню (замена tailwindcss-animate). */

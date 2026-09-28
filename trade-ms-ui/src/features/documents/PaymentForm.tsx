@@ -274,7 +274,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
           {existingDoc && (
             <span className={cn(
               'rounded px-1.5 py-0.5 text-[10px] font-medium border',
-              existingDoc.status === 'Draft' && 'border-amber-500/30 bg-amber-500/10 text-amber-400',
+              existingDoc.status === 'Draft' && 'border-orange-500/30 bg-orange-500/10 text-orange-400',
               existingDoc.status === 'Confirmed' && 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400',
               existingDoc.status === 'Cancelled' && 'border-red-500/30 bg-red-500/10 text-red-400',
             )}>
@@ -299,7 +299,7 @@ export function PaymentForm({ type, title, className, isLoading = false }: Payme
               onClick={handleConfirm}
               disabled={isBusy || isBlocked || !counterpartyId || !(parseFloat(amount) > 0)}
               className={cn(
-                'flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 h-8 text-xs text-white font-medium',
+                'flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 h-8 text-xs text-brand-fg font-medium',
                 'hover:bg-brand-500 active:bg-brand-700 transition-colors',
                 'disabled:opacity-50 disabled:cursor-not-allowed',
               )}>

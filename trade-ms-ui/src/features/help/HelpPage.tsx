@@ -28,7 +28,7 @@ function Badge({ children, variant = 'default' }: { children: React.ReactNode; v
   return (
     <span className={cn(
       'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
-      variant === 'yellow' && 'bg-amber-500/15 text-amber-400',
+      variant === 'yellow' && 'bg-orange-500/15 text-orange-400',
       variant === 'green' && 'bg-emerald-500/15 text-emerald-400',
       variant === 'default' && 'bg-brand-500/15 text-brand-400',
     )}>
@@ -401,7 +401,7 @@ function getSections(t: (key: string, options?: any) => string): Section[] {
     {
       id: 'counterparties',
       icon: Users,
-      iconColor: 'text-amber-400',
+      iconColor: 'text-orange-400',
       title: t('help.counterparties'),
       articles: [
         {

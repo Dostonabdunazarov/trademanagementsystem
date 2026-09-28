@@ -43,7 +43,7 @@ export function TopProductsTable({ className }: { className?: string }) {
                 <span
                   className={cn(
                     'flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold',
-                    rank === 1 ? 'bg-amber-500/20 text-amber-400' : 'bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))]',
+                    rank === 1 ? 'bg-orange-500/20 text-orange-400' : 'bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))]',
                   )}
                 >
                   {rank}

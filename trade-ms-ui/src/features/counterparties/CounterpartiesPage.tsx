@@ -268,7 +268,7 @@ export function CounterpartiesPage() {
               onClick={() => { setTypeFilter(opt.value); setPage(1) }}
               className={`px-3 py-1 text-sm rounded-md transition-colors ${
                 typeFilter === opt.value
-                  ? 'bg-brand-600 text-white'
+                  ? 'bg-brand-600 text-brand-fg'
                   : 'text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]'
               }`}
             >
@@ -288,7 +288,7 @@ export function CounterpartiesPage() {
         {isAdmin && (
           <Button
             onClick={() => setFormDialog({ open: true, item: null })}
-            className="bg-brand-600 hover:bg-brand-700 text-white"
+            className="bg-brand-600 hover:bg-brand-700 text-brand-fg"
           >
             + {t('counterparties.newCounterparty')}
           </Button>
@@ -441,7 +441,7 @@ function TypeBadge({ type }: { type: string }) {
   const { t } = useTranslation()
   const cfg: Record<string, string> = {
     Customer: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-    Supplier: 'bg-amber-500/20 text-amber-400 border-amber-500/30',
+    Supplier: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
     Both: 'bg-brand-500/20 text-brand-400 border-brand-500/30',
   }
   const typeLabels: Record<string, string> = {

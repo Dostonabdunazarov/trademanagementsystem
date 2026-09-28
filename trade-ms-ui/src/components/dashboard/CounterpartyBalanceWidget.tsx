@@ -5,7 +5,7 @@ import { useCounterpartyBalance } from '@/api/hooks/useReports'
 
 const RISK_STYLES = {
   high: { bar: 'bg-red-500', icon: <AlertTriangle className="h-3 w-3 text-red-400" />, label: 'text-red-400' },
-  medium: { bar: 'bg-amber-500', icon: <AlertTriangle className="h-3 w-3 text-amber-400" />, label: 'text-amber-400' },
+  medium: { bar: 'bg-orange-500', icon: <AlertTriangle className="h-3 w-3 text-orange-400" />, label: 'text-orange-400' },
   low: { bar: 'bg-emerald-500', icon: <CheckCircle2 className="h-3 w-3 text-emerald-400" />, label: 'text-emerald-400' },
 }
 
