@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type CSSProperties } from 'react'
 import { TrendingUp, DollarSign, Users, CreditCard } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { MetricCard } from '@/components/dashboard/MetricCard'
@@ -32,7 +32,8 @@ export function DashboardPage() {
   const metrics = [
     {
       title: t('dashboard.revenueMonth'),
-      value: isLoading ? '…' : formatNumber(data?.revenue ?? 0),
+      value: '…',
+      amount: isLoading ? undefined : (data?.revenue ?? 0),
       delta: delta(data?.revenueDelta),
       deltaLabel: vsPrev,
       icon: TrendingUp,
@@ -40,7 +41,8 @@ export function DashboardPage() {
     },
     {
       title: t('dashboard.profitMonth'),
-      value: isLoading ? '…' : formatNumber(data?.profit ?? 0),
+      value: '…',
+      amount: isLoading ? undefined : (data?.profit ?? 0),
       delta: delta(data?.profitDelta),
       deltaLabel: vsPrev,
       icon: DollarSign,
@@ -48,14 +50,16 @@ export function DashboardPage() {
     },
     {
       title: `${t('dashboard.debtorDebt')} · ${t('dashboard.debtTotalHint')}`,
-      value: isLoading ? '…' : formatNumber(data?.debtorDebt ?? 0),
+      value: '…',
+      amount: isLoading ? undefined : (data?.debtorDebt ?? 0),
       delta: undefined,
       icon: Users,
       iconColor: 'text-orange-400',
     },
     {
       title: `${t('dashboard.creditorDebt')} · ${t('dashboard.debtTotalHint')}`,
-      value: isLoading ? '…' : formatNumber(data?.creditorDebt ?? 0),
+      value: '…',
+      amount: isLoading ? undefined : (data?.creditorDebt ?? 0),
       delta: undefined,
       icon: CreditCard,
       iconColor: 'text-rose-400',
@@ -80,25 +84,31 @@ export function DashboardPage() {
 
       {/* Metric cards — 4-col */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {metrics.map((m) => (
-          <MetricCard key={m.title} {...m} />
+        {metrics.map((m, i) => (
+          <MetricCard
+            key={m.title}
+            {...m}
+            formatAmount={formatNumber}
+            className="anim-rise"
+            style={{ '--delay': `${i * 70}ms` } as CSSProperties}
+          />
         ))}
       </div>
 
       {/* Row 2: Revenue chart + Counterparty widget */}
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
-        <RevenueChart className="lg:col-span-8" monthlySales={data?.monthlySales} loading={isLoading} />
-        <CounterpartyBalanceWidget className="lg:col-span-4" />
+        <RevenueChart className="anim-rise [--delay:280ms] lg:col-span-8" monthlySales={data?.monthlySales} loading={isLoading} />
+        <CounterpartyBalanceWidget className="anim-rise [--delay:350ms] lg:col-span-4" />
       </div>
 
       {/* Row 3: TopProducts + ActivityFeed */}
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
-        <TopProductsTable className="lg:col-span-7" />
-        <ActivityFeed className="lg:col-span-5" />
+        <TopProductsTable className="anim-rise [--delay:420ms] lg:col-span-7" />
+        <ActivityFeed className="anim-rise [--delay:490ms] lg:col-span-5" />
       </div>
 
       {/* Row 4: Stock alert banner */}
-      <StockAlertBanner className="mt-4" />
+      <StockAlertBanner className="anim-rise [--delay:560ms] mt-4" />
 
       {/* Floating quick action bar */}
       <QuickActionBar />

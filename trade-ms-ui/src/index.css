@@ -88,6 +88,10 @@
     --input: 229 40% 15%;
     --ring: 187 92% 69%;
     --radius: 0.5rem;
+
+    /* Столбцы выручки — приглушённый циан: чистый акцент на больших площадях слепит. */
+    --chart-revenue: #2b8ba8;
+    --chart-profit: #f59e0b;
   }
 
   /* Светлая тема — белые панели, тёмно-синий текст, тёмный циан. */
@@ -127,6 +131,9 @@
     --destructive-foreground: 0 0% 100%;
     --input: 230 30% 94%;
     --ring: 192 82% 31%;
+
+    --chart-revenue: #1f7f99;
+    --chart-profit: #d97706;
   }
 
   html {
@@ -377,4 +384,38 @@ html.light .nav-link-idle:hover .nav-link-icon {
 @media (prefers-reduced-motion: reduce) {
   .date-picker-content, .date-picker-content[data-state="closed"] { animation: none; }
   .date-picker { --rdp-animation_duration: 0s; }
+}
+
+/* ── Анимации дашборда ─────────────────────────────────────────────────────
+   Задержка каскада задаётся через --delay в style элемента. */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.anim-rise {
+  animation: rise-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+@keyframes grow-x {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.anim-grow-x {
+  transform-origin: left center;
+  animation: grow-x 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-rise, .anim-grow-x { animation: none; }
+}
+@keyframes draw-line {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+.anim-draw {
+  stroke-dasharray: 1;
+  animation: draw-line 1.4s cubic-bezier(0.65, 0, 0.35, 1) 0.3s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .anim-draw { animation: none; stroke-dasharray: none; }
 }

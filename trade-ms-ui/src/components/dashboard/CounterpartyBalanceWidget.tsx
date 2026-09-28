@@ -1,4 +1,5 @@
-﻿import { AlertTriangle, CheckCircle2 } from 'lucide-react'
+﻿import type { CSSProperties } from 'react'
+import { AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useCounterpartyBalance } from '@/api/hooks/useReports'
@@ -49,11 +50,11 @@ export function CounterpartyBalanceWidget({ className }: { className?: string })
         <p className="text-xs text-[hsl(var(--text-muted))]">{t('dashboard.noDebtors')}</p>
       ) : (
         <div className="space-y-3">
-          {debtors.map(({ id, name, balance }) => {
+          {debtors.map(({ id, name, balance }, i) => {
             const risk = riskLevel(balance, maxBalance)
             const r = RISK_STYLES[risk]
             return (
-              <div key={id}>
+              <div key={id} className="anim-rise" style={{ '--delay': `${450 + i * 80}ms` } as CSSProperties}>
                 <div className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-1.5">
                     {r.icon}
@@ -63,8 +64,8 @@ export function CounterpartyBalanceWidget({ className }: { className?: string })
                 </div>
                 <div className="mt-1 h-1 overflow-hidden rounded-full bg-[hsl(var(--surface-2))]">
                   <div
-                    className={cn('h-full rounded-full transition-all duration-500', r.bar)}
-                    style={{ width: `${(balance / maxBalance) * 100}%` }}
+                    className={cn('anim-grow-x h-full rounded-full transition-all duration-500', r.bar)}
+                    style={{ width: `${(balance / maxBalance) * 100}%`, '--delay': `${550 + i * 80}ms` } as CSSProperties}
                   />
                 </div>
               </div>

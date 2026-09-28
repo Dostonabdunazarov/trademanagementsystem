@@ -1,4 +1,5 @@
-﻿import { useTranslation } from 'react-i18next'
+﻿import type { CSSProperties } from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useSalesSummary } from '@/api/hooks/useReports'
 import { format, subDays } from 'date-fns'
@@ -39,7 +40,7 @@ export function TopProductsTable({ className }: { className?: string }) {
             const rank = idx + 1
             const progress = Math.round((revenue / maxRevenue) * 100)
             return (
-              <div key={productId} className="flex items-center gap-3">
+              <div key={productId} className="anim-rise flex items-center gap-3" style={{ '--delay': `${500 + idx * 80}ms` } as CSSProperties}>
                 <span
                   className={cn(
                     'flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold',
@@ -58,8 +59,8 @@ export function TopProductsTable({ className }: { className?: string }) {
                   <div className="mt-1 flex items-center gap-2">
                     <div className="h-1 flex-1 overflow-hidden rounded-full bg-[hsl(var(--surface-2))]">
                       <div
-                        className="h-full rounded-full bg-brand-500 transition-all duration-500"
-                        style={{ width: `${progress}%` }}
+                        className="anim-grow-x h-full rounded-full bg-brand-500 transition-all duration-500"
+                        style={{ width: `${progress}%`, '--delay': `${600 + idx * 80}ms` } as CSSProperties}
                       />
                     </div>
                     <span className="shrink-0 font-mono text-[10px] tabular-nums text-[hsl(var(--text-muted))]">

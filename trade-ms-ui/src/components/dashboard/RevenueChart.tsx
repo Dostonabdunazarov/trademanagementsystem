@@ -14,8 +14,9 @@ import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/utils/format'
 import type { MonthlySales } from '@/api/hooks/useReports'
 
-const REVENUE_COLOR = '#22D3EE' // циан — фирменный акцент
-const PROFIT_COLOR = '#F59E0B' // amber — контраст с циановыми столбцами
+// Цвета из темы (index.css): для светлой и тёмной свои оттенки.
+const REVENUE_COLOR = 'var(--chart-revenue)'
+const PROFIT_COLOR = 'var(--chart-profit)'
 
 /** Компактный формат оси Y: 57 000 000 → «57 млн» */
 function formatAxis(value: number): string {
@@ -91,8 +92,8 @@ export function RevenueChart({ className, loading, monthlySales }: Props) {
         <ComposedChart data={monthlySales} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
           <defs>
             <linearGradient id="revenue-bar" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={REVENUE_COLOR} stopOpacity={0.95} />
-              <stop offset="100%" stopColor={REVENUE_COLOR} stopOpacity={0.55} />
+              <stop offset="0%" style={{ stopColor: REVENUE_COLOR, stopOpacity: 0.9 }} />
+              <stop offset="100%" style={{ stopColor: REVENUE_COLOR, stopOpacity: 0.35 }} />
             </linearGradient>
           </defs>
 
@@ -123,7 +124,9 @@ export function RevenueChart({ className, loading, monthlySales }: Props) {
             fill="url(#revenue-bar)"
             radius={[4, 4, 0, 0]}
             maxBarSize={36}
-            isAnimationActive={false}
+            // Столбцы вырастают снизу; линия прибыли рисуется следом.
+            animationDuration={900}
+            animationEasing="ease-out"
           />
 
           <Line
@@ -133,7 +136,9 @@ export function RevenueChart({ className, loading, monthlySales }: Props) {
             strokeWidth={2.5}
             dot={{ r: 3, fill: PROFIT_COLOR, strokeWidth: 0 }}
             activeDot={{ r: 5, strokeWidth: 2, stroke: 'hsl(var(--card))' }}
-            isAnimationActive={false}
+            animationBegin={450}
+            animationDuration={1000}
+            animationEasing="ease-in-out"
           />
         </ComposedChart>
       </ResponsiveContainer>

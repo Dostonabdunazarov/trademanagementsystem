@@ -1,16 +1,22 @@
+import type { CSSProperties } from 'react'
 import { type LucideIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
+import { useCountUp } from '@/lib/useCountUp'
 
 interface MetricCardProps {
   title: string
   value: string
+  /** Числовое значение: если задано, показывается с анимацией счёта (value тогда не нужен). */
+  amount?: number
+  formatAmount?: (n: number) => string
   delta?: number
   deltaLabel?: string
   icon: LucideIcon
   iconColor?: string
   loading?: boolean
   className?: string
+  style?: CSSProperties
 }
 
 function Sparkline({ positive }: { positive: boolean }) {
@@ -26,6 +32,8 @@ function Sparkline({ positive }: { positive: boolean }) {
         </linearGradient>
       </defs>
       <polyline
+        pathLength={1}
+        className="anim-draw"
         points={points}
         fill="none"
         stroke={positive ? '#10B981' : '#EF4444'}
@@ -37,15 +45,23 @@ function Sparkline({ positive }: { positive: boolean }) {
   )
 }
 
+function AnimatedAmount({ amount, format }: { amount: number; format: (n: number) => string }) {
+  const shown = useCountUp(amount)
+  return <>{format(Math.round(shown))}</>
+}
+
 export function MetricCard({
   title,
   value,
+  amount,
+  formatAmount = (n) => n.toLocaleString('ru-RU'),
   delta,
   deltaLabel,
   icon: Icon,
   iconColor = 'text-brand-400',
   loading,
   className,
+  style,
 }: MetricCardProps) {
   const { t } = useTranslation()
   if (loading) {
@@ -66,11 +82,14 @@ export function MetricCard({
         'group relative overflow-hidden rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--surface))] p-5 transition-all duration-200 hover:border-[hsl(var(--border))]/[2] hover:bg-[hsl(var(--surface-2))]',
         className,
       )}
+      style={style}
     >
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs font-medium text-[hsl(var(--text-muted))]">{title}</p>
-          <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-[hsl(var(--text-primary))]">{value}</p>
+          <p className="mt-1 font-mono text-2xl font-semibold tabular-nums text-[hsl(var(--text-primary))]">
+            {amount !== undefined ? <AnimatedAmount amount={amount} format={formatAmount} /> : value}
+          </p>
           {delta !== undefined && (
             <p
               className={cn(

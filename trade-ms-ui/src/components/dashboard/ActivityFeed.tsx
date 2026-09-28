@@ -1,4 +1,5 @@
-﻿import { ArrowUpFromLine, ArrowDownToLine, RotateCcw, Banknote, Wallet } from 'lucide-react'
+﻿import type { CSSProperties } from 'react'
+import { ArrowUpFromLine, ArrowDownToLine, RotateCcw, Banknote, Wallet } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useDocuments } from '@/api/hooks/useDocuments'
@@ -55,12 +56,13 @@ export function ActivityFeed({ className }: { className?: string }) {
         <p className="text-xs text-[hsl(var(--text-muted))]">{t('dashboard.noActivity')}</p>
       ) : (
         <div className="space-y-1">
-          {items.map((doc) => {
+          {items.map((doc, i) => {
             const positive = INCOME_TYPES.has(doc.type)
             return (
               <div
                 key={doc.id}
-                className="flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-[hsl(var(--surface-2))]"
+                className="anim-rise flex items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-[hsl(var(--surface-2))]"
+                style={{ '--delay': `${550 + i * 45}ms` } as CSSProperties}
               >
                 <div
                   className={cn(
