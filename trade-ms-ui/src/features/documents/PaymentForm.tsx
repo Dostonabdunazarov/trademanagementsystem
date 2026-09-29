@@ -21,8 +21,9 @@ function fmt(n: number): string {
   return n.toLocaleString('ru-RU', { maximumFractionDigits: 2 })
 }
 
+// «Приём оплаты» (PayIn) — деньги от клиента, «Выплата» (PayOut) — деньги поставщику.
 function counterpartyTypeFor(type: DocumentType): 'Customer' | 'Supplier' {
-  return type === 'PayIn' ? 'Supplier' : 'Customer'
+  return type === 'PayOut' ? 'Supplier' : 'Customer'
 }
 
 /* ─── Skeleton ────────────────────────────────────────────────────────────── */

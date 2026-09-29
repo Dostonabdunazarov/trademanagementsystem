@@ -42,37 +42,34 @@ public class GetDashboardSummaryQueryHandler(IAppDbContext db)
             ? current.Revenue / current.SalesCount
             : 0m;
 
-        // Debtor debt: Expense − ReturnFromCustomer − PayOut, filtered by branch if set
-        // (mirrors the Balance logic in ConfirmDocumentCommandHandler)
+        // Долги считаем той же таблицей знаков, что и Balance контрагента
+        // (ConfirmDocumentCommandHandler): Expense, ReturnToSupplier, PayOut — плюс,
+        // Income, ReturnFromCustomer, PayIn — минус. Документы берутся все, по типу
+        // контрагента: так сумма совпадает с балансами, но фильтруется по филиалу.
+
+        // Дебиторка: сколько нам должны клиенты (сальдо по всем клиентам)
         var debtorDebt = await db.Documents
             .Where(d =>
                 d.CompanyId == request.CompanyId &&
                 d.Status == DocumentStatus.Confirmed &&
                 d.Counterparty!.Type == CounterpartyType.Customer &&
-                d.Type != DocumentType.Income &&
-                d.Type != DocumentType.ReturnToSupplier &&
-                d.Type != DocumentType.PayIn &&
                 (!request.BranchId.HasValue || d.BranchId == request.BranchId.Value))
             .SumAsync(d =>
-                d.Type == DocumentType.Expense
+                d.Type == DocumentType.Expense || d.Type == DocumentType.ReturnToSupplier || d.Type == DocumentType.PayOut
                     ? d.TotalAmountBase
                     : -d.TotalAmountBase,
                 cancellationToken);
 
-        // Creditor debt: what we owe suppliers — mirror of the debtor logic.
-        // Income increases our debt; ReturnToSupplier and PayIn reduce it. Returned as a
-        // positive amount (how much we owe).
-        var creditorDebt = await db.Documents
+        // Кредиторка: сколько мы должны поставщикам — тот же знак, взятый с минусом,
+        // чтобы долг был положительным числом.
+        var creditorDebt = -await db.Documents
             .Where(d =>
                 d.CompanyId == request.CompanyId &&
                 d.Status == DocumentStatus.Confirmed &&
                 d.Counterparty!.Type == CounterpartyType.Supplier &&
-                (d.Type == DocumentType.Income ||
-                 d.Type == DocumentType.ReturnToSupplier ||
-                 d.Type == DocumentType.PayIn) &&
                 (!request.BranchId.HasValue || d.BranchId == request.BranchId.Value))
             .SumAsync(d =>
-                d.Type == DocumentType.Income
+                d.Type == DocumentType.Expense || d.Type == DocumentType.ReturnToSupplier || d.Type == DocumentType.PayOut
                     ? d.TotalAmountBase
                     : -d.TotalAmountBase,
                 cancellationToken);

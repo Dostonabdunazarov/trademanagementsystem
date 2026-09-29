@@ -150,10 +150,14 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
         //
         // Expense            → Balance += totalBase  (клиент задолжал)
         // ReturnFromCustomer → Balance -= totalBase  (долг клиента уменьшился)
-        // PayOut             → Balance -= totalBase  (клиент заплатил)
+        // PayIn              → Balance -= totalBase  («Приём оплаты»: клиент заплатил нам)
         // Income             → Balance -= totalBase  (мы задолжали поставщику)
         // ReturnToSupplier   → Balance += totalBase  (наш долг уменьшился)
-        // PayIn              → Balance += totalBase  (мы заплатили поставщику)
+        // PayOut             → Balance += totalBase  («Выплата»: мы заплатили поставщику)
+        //
+        // Знак совпадает с движением кассы ниже: PayIn — деньги пришли, PayOut — ушли.
+        // Та же таблица знаков — в CancelDocumentCommandHandler (с обратным знаком),
+        // GetDashboardSummaryQueryHandler и миграции FixPaymentBalanceSemantics.
 
         if (doc.CounterpartyId.HasValue)
         {
@@ -165,10 +169,10 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
                 {
                     DocumentType.Expense            => +doc.TotalAmountBase,
                     DocumentType.ReturnFromCustomer => -doc.TotalAmountBase,
-                    DocumentType.PayOut             => -doc.TotalAmountBase,
+                    DocumentType.PayIn              => -doc.TotalAmountBase,
                     DocumentType.Income             => -doc.TotalAmountBase,
                     DocumentType.ReturnToSupplier   => +doc.TotalAmountBase,
-                    DocumentType.PayIn              => +doc.TotalAmountBase,
+                    DocumentType.PayOut             => +doc.TotalAmountBase,
                     _ => 0m
                 };
 

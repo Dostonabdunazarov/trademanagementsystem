@@ -105,10 +105,10 @@ public class CancelDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
             {
                 DocumentType.Expense            => -doc.TotalAmountBase,
                 DocumentType.ReturnFromCustomer => +doc.TotalAmountBase,
-                DocumentType.PayOut             => +doc.TotalAmountBase,
+                DocumentType.PayIn              => +doc.TotalAmountBase,
                 DocumentType.Income             => +doc.TotalAmountBase,
                 DocumentType.ReturnToSupplier   => -doc.TotalAmountBase,
-                DocumentType.PayIn              => -doc.TotalAmountBase,
+                DocumentType.PayOut             => -doc.TotalAmountBase,
                 _ => 0m
             };
 

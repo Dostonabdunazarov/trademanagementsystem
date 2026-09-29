@@ -34,10 +34,10 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
         return draft.Id;
     }
 
-    // 2.7 — PayOut с покупателем → баланс покупателя уменьшился
-    // PayOut: Balance -= TotalAmountBase (покупатель заплатил нам)
+    // 2.7 — «Приём оплаты» (PayIn) от покупателя → баланс покупателя уменьшился
+    // PayIn: Balance -= TotalAmountBase (покупатель заплатил нам)
     [Fact]
-    public async Task ConfirmPayOut_WithCustomer_DecreasesCustomerBalance()
+    public async Task ConfirmPayIn_WithCustomer_DecreasesCustomerBalance()
     {
         await AuthenticateAsync();
         var productId = TestDataSeeder.GetProductId(30);
@@ -48,10 +48,10 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
         await CreateAndConfirm("Income", supplierId, productId, 20m, 12000m);
         await CreateAndConfirm("Expense", customerId, productId, 10m, 15000m);
 
-        // PayOut: customer pays 80000 (payment amount carried in `amount`, not lines)
+        // PayIn: customer pays 80000 (payment amount carried in `amount`, not lines)
         var payResp = await Client.PostAsJsonAsync("/api/documents", new
         {
-            type = "PayOut",
+            type = "PayIn",
             date = "2026-05-31",
             counterpartyId = customerId,
             currencyId = TestDataSeeder.CurrencyUzsId,
@@ -68,10 +68,10 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
         customer!.Balance.Should().Be(70_000m);
     }
 
-    // 2.7 — PayIn с поставщиком → баланс поставщика увеличился (наш долг уменьшился)
-    // PayIn: Balance += TotalAmountBase (мы платим поставщику)
+    // 2.7 — «Выплата» (PayOut) поставщику → баланс поставщика увеличился (наш долг уменьшился)
+    // PayOut: Balance += TotalAmountBase (мы платим поставщику)
     [Fact]
-    public async Task ConfirmPayIn_WithSupplier_IncreasesSupplierBalance()
+    public async Task ConfirmPayOut_WithSupplier_IncreasesSupplierBalance()
     {
         await AuthenticateAsync();
         var productId = TestDataSeeder.GetProductId(32);
@@ -80,10 +80,10 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
         // Income: supplier balance = -120000 (10 * 12000), we owe them
         await CreateAndConfirm("Income", supplierId, productId, 10m, 12000m);
 
-        // PayIn: we pay supplier 50000
+        // PayOut: we pay supplier 50000
         var payResp = await Client.PostAsJsonAsync("/api/documents", new
         {
-            type = "PayIn",
+            type = "PayOut",
             date = "2026-05-31",
             counterpartyId = supplierId,
             currencyId = TestDataSeeder.CurrencyUzsId,
@@ -113,10 +113,10 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
         await CreateAndConfirm("Income", supplierId, productId, 20m, 12000m);
         await CreateAndConfirm("Expense", customerId, productId, 4m, 50_000m);
 
-        // First payment: 75000
+        // First payment from the customer: 75000
         var p1Resp = await Client.PostAsJsonAsync("/api/documents", new
         {
-            type = "PayOut",
+            type = "PayIn",
             date = "2026-05-31",
             counterpartyId = customerId,
             currencyId = TestDataSeeder.CurrencyUzsId,
@@ -128,10 +128,10 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
         var p1 = await p1Resp.Content.ReadFromJsonAsync<DocResp>(JsonOpts);
         await Client.PostAsync($"/api/documents/{p1!.Id}/confirm", null);
 
-        // Second payment: 50000
+        // Second payment from the customer: 50000
         var p2Resp = await Client.PostAsJsonAsync("/api/documents", new
         {
-            type = "PayOut",
+            type = "PayIn",
             date = "2026-05-31",
             counterpartyId = customerId,
             currencyId = TestDataSeeder.CurrencyUzsId,
@@ -179,5 +179,41 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
             .Where(s => s.ProductId == productId && s.BranchId == TestDataSeeder.BranchMainId)
             .FirstOrDefaultAsync();
         stock!.Quantity.Should().Be(10m);
+    }
+
+    // Отмена «Приёма оплаты» возвращает долг клиента
+    [Fact]
+    public async Task CancelPayIn_RestoresCustomerDebt()
+    {
+        await AuthenticateAsync();
+        var productId = TestDataSeeder.GetProductId(36);
+        var supplierId = TestDataSeeder.GetSupplierId(3);
+        var customerId = TestDataSeeder.GetCustomerId(3);
+
+        // Expense: customer owes 100000 (2 * 50000)
+        await CreateAndConfirm("Income", supplierId, productId, 10m, 12000m);
+        await CreateAndConfirm("Expense", customerId, productId, 2m, 50_000m);
+
+        var payResp = await Client.PostAsJsonAsync("/api/documents", new
+        {
+            type = "PayIn",
+            date = "2026-05-31",
+            counterpartyId = customerId,
+            currencyId = TestDataSeeder.CurrencyUzsId,
+            exchangeRate = 1m,
+            discountPercent = 0m,
+            amount = 40_000m,
+            lines = Array.Empty<object>()
+        });
+        var pay = await payResp.Content.ReadFromJsonAsync<DocResp>(JsonOpts);
+        await Client.PostAsync($"/api/documents/{pay!.Id}/confirm", null);
+
+        Db.ChangeTracker.Clear();
+        (await Db.Counterparties.FindAsync(customerId))!.Balance.Should().Be(60_000m);
+
+        await Client.PostAsync($"/api/documents/{pay.Id}/cancel", null);
+
+        Db.ChangeTracker.Clear();
+        (await Db.Counterparties.FindAsync(customerId))!.Balance.Should().Be(100_000m);
     }
 }

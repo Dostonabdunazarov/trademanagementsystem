@@ -28,7 +28,7 @@ function fmt(n: number): string {
 }
 
 function counterpartyTypeFor(type: DocumentType): 'Customer' | 'Supplier' {
-  return type === 'Income' || type === 'ReturnToSupplier' || type === 'PayIn'
+  return type === 'Income' || type === 'ReturnToSupplier' || type === 'PayOut'
     ? 'Supplier'
     : 'Customer'
 }
