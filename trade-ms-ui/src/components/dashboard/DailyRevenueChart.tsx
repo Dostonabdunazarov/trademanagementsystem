@@ -6,7 +6,7 @@ import { format, parseISO } from 'date-fns'
 import type { DailySales } from '@/api/hooks/useReports'
 import { formatCompact, formatCurrency } from '@/utils/format'
 import { ChartCard, ChartEmpty, ChartTooltipBox } from './ChartCard'
-import { AXIS_TICK, GRID_STROKE } from './chartStyles'
+import { AXIS_TICK, GRID_STROKE, TOOLTIP_WRAPPER } from './chartStyles'
 
 interface Props {
   dailySales?: DailySales[]
@@ -58,7 +58,7 @@ export function DailyRevenueChart({ dailySales, loading, className, style }: Pro
             <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 3" />
             <XAxis dataKey="day" tick={AXIS_TICK} tickLine={false} axisLine={{ stroke: GRID_STROKE }} interval="preserveStartEnd" minTickGap={12} dy={6} />
             <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} width={56} tickFormatter={formatCompact} />
-            <Tooltip cursor={{ stroke: 'hsl(var(--text-muted))', strokeDasharray: '3 3' }} content={tooltip} />
+            <Tooltip wrapperStyle={TOOLTIP_WRAPPER} cursor={{ stroke: 'hsl(var(--text-muted))', strokeDasharray: '3 3' }} content={tooltip} />
             <Area
               type="monotone"
               dataKey="revenue"

@@ -13,6 +13,7 @@ import type { TooltipContentProps } from 'recharts'
 import { cn } from '@/lib/utils'
 import { formatCurrency } from '@/utils/format'
 import type { MonthlySales } from '@/api/hooks/useReports'
+import { TOOLTIP_WRAPPER } from './chartStyles'
 
 // Цвета из темы (index.css): для светлой и тёмной свои оттенки.
 const REVENUE_COLOR = 'var(--chart-revenue)'
@@ -35,7 +36,7 @@ function renderTooltip(
   const revenue = Number(payload.find((p) => p.dataKey === 'revenue')?.value ?? 0)
   const profit = Number(payload.find((p) => p.dataKey === 'profit')?.value ?? 0)
   return (
-    <div className="rounded-lg border border-[hsl(var(--border))] bg-card px-3 py-2 shadow-lg">
+    <div className="chart-tooltip rounded-lg border border-[hsl(var(--border))] px-3 py-2 shadow-lg">
       <div className="mb-1.5 text-xs font-semibold text-[hsl(var(--text-primary))]">{label}</div>
       <div className="flex items-center gap-2 text-xs">
         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: REVENUE_COLOR }} />
@@ -115,6 +116,7 @@ export function RevenueChart({ className, loading, monthlySales }: Props) {
           />
 
           <Tooltip
+            wrapperStyle={TOOLTIP_WRAPPER}
             cursor={{ fill: 'hsl(var(--surface-2))', opacity: 0.4 }}
             content={(props) => renderTooltip(props, revenueLabel, profitLabel)}
           />

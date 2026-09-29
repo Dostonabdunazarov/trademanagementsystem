@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import type { SalesSummaryItem } from '@/api/hooks/useReports'
 import { formatCompact, formatCurrency, formatPercent } from '@/utils/format'
 import { ChartCard, ChartEmpty, ChartTooltipBox } from './ChartCard'
-import { AXIS_TICK, GRID_STROKE } from './chartStyles'
+import { AXIS_TICK, GRID_STROKE, TOOLTIP_WRAPPER } from './chartStyles'
 
 interface Props {
   lines?: SalesSummaryItem[]
@@ -111,7 +111,7 @@ export function ProductProfitChart({ lines, loading, className, style }: Props) 
               strokeDasharray="4 4"
               label={{ value: t('dashboard.avgMarginLine', { value: formatPercent(avg) }), position: 'insideTopRight', fontSize: 10, fill: 'hsl(var(--text-muted))' }}
             />
-            <Tooltip cursor={{ strokeDasharray: '3 3', stroke: 'hsl(var(--text-muted))' }} content={tooltip} />
+            <Tooltip wrapperStyle={TOOLTIP_WRAPPER} cursor={{ strokeDasharray: '3 3', stroke: 'hsl(var(--text-muted))' }} content={tooltip} />
             <Scatter data={points} animationDuration={900} animationEasing="ease-out">
               {points.map((p) => <Cell key={p.name} fill={colorOf(p.margin)} fillOpacity={0.75} stroke={colorOf(p.margin)} />)}
             </Scatter>

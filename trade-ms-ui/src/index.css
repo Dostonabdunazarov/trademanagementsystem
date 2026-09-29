@@ -432,3 +432,10 @@ html.light .nav-link-idle:hover .nav-link-icon {
 @media (prefers-reduced-motion: reduce) {
   .anim-draw { animation: none; stroke-dasharray: none; }
 }
+
+/* Тултипы графиков: полупрозрачное стекло с размытием — подписи под ним не мешают читать. */
+.chart-tooltip {
+  background-color: hsl(var(--card) / 0.78);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+}

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import type { SalesSummaryItem } from '@/api/hooks/useReports'
 import { formatCompact, formatCurrency, formatPercent } from '@/utils/format'
 import { ChartCard, ChartEmpty, ChartTooltipBox } from './ChartCard'
+import { TOOLTIP_WRAPPER } from './chartStyles'
 
 const TOP = 5
 const COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)', 'var(--chart-6)']
@@ -73,7 +74,7 @@ export function SalesStructureChart({ lines, loading, className, style }: Props)
                 >
                   {slices.map((s) => <Cell key={s.name} fill={s.color} />)}
                 </Pie>
-                <Tooltip content={tooltip} />
+                <Tooltip wrapperStyle={TOOLTIP_WRAPPER} content={tooltip} />
               </PieChart>
             </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">

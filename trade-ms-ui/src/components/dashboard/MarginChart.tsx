@@ -6,7 +6,7 @@ import type { MonthlySales } from '@/api/hooks/useReports'
 import { formatCurrency, formatPercent } from '@/utils/format'
 import { cn } from '@/lib/utils'
 import { ChartCard, ChartEmpty, ChartTooltipBox } from './ChartCard'
-import { AXIS_TICK, GRID_STROKE } from './chartStyles'
+import { AXIS_TICK, GRID_STROKE, TOOLTIP_WRAPPER } from './chartStyles'
 
 interface Props {
   monthlySales?: MonthlySales[]
@@ -72,7 +72,7 @@ export function MarginChart({ monthlySales, loading, className, style }: Props) 
             <XAxis dataKey="monthLabel" tick={AXIS_TICK} tickLine={false} axisLine={{ stroke: GRID_STROKE }} interval="preserveStartEnd" dy={6} />
             <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} width={40} tickFormatter={(v: number) => `${v}%`} />
             <ReferenceLine y={avg} stroke="var(--chart-4)" strokeOpacity={0.5} strokeDasharray="4 4" />
-            <Tooltip cursor={{ stroke: 'hsl(var(--text-muted))', strokeDasharray: '3 3' }} content={tooltip} />
+            <Tooltip wrapperStyle={TOOLTIP_WRAPPER} cursor={{ stroke: 'hsl(var(--text-muted))', strokeDasharray: '3 3' }} content={tooltip} />
             <Area
               type="monotone"
               dataKey="margin"
