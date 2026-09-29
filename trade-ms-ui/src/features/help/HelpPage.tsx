@@ -621,7 +621,7 @@ export function HelpPage() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className="mx-auto max-w-3xl px-6 py-8">
+        <div className="mx-auto max-w-6xl px-6 py-8">
           {/* Header */}
           <div className="mb-8 flex items-start gap-4">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-500/20 ring-1 ring-brand-500/30">
