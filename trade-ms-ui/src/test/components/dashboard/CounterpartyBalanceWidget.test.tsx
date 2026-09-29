@@ -60,4 +60,32 @@ describe('CounterpartyBalanceWidget', () => {
     })
     expect(screen.queryByText('Контрагент 6')).not.toBeInTheDocument()
   })
+
+  it('красит должника по кредитному лимиту, а не по сравнению с крупнейшим', async () => {
+    const line = (name: string, balance: number, creditLimit: number) =>
+      ({ id: name, name, type: 'Customer', phone: null, balance, creditLimit })
+    server.use(
+      http.get('http://localhost:5000/api/reports/counterparty-balance', () =>
+        HttpResponse.json({
+          totalDebit: 0,
+          totalCredit: 0,
+          lines: [
+            line('Крупный в лимите', 100_000_000, 200_000_000),
+            line('Превысил', 5_000_000, 1_000_000),
+            line('У лимита', 900_000, 1_000_000),
+            line('Без лимита', 300_000, 0),
+          ],
+        })
+      )
+    )
+    renderWithProviders(<CounterpartyBalanceWidget />)
+    await waitFor(() => {
+      expect(screen.getByText('Превысил')).toBeInTheDocument()
+    })
+    const riskOf = (name: string) => screen.getByText(name).closest('[data-risk]')?.getAttribute('data-risk')
+    expect(riskOf('Крупный в лимите')).toBe('ok')
+    expect(riskOf('Превысил')).toBe('over')
+    expect(riskOf('У лимита')).toBe('near')
+    expect(riskOf('Без лимита')).toBe('noLimit')
+  })
 })
