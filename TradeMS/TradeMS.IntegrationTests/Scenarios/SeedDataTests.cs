@@ -53,10 +53,11 @@ public class SeedDataTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task Seed_Creates_Three_Users()
+    public async Task Seed_Creates_Four_Users()
     {
         var users = await Db.Users.Where(u => u.CompanyId == TestDataSeeder.CompanyId).ToListAsync();
-        users.Should().HaveCount(3);
+        users.Should().HaveCount(4);
+        users.Should().Contain(u => u.Email == TestDataSeeder.AdminNoBranchEmail);
         users.Should().Contain(u => u.Email == TestDataSeeder.AdminEmail);
         users.Should().Contain(u => u.Email == TestDataSeeder.ManagerEmail);
         users.Should().Contain(u => u.Email == TestDataSeeder.CashierEmail);

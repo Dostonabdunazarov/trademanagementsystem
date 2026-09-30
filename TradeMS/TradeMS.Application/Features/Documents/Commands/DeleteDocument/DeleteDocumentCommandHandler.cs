@@ -20,7 +20,7 @@ public class DeleteDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
             ?? throw new KeyNotFoundException($"Document {request.Id} not found");
 
         if (request.BranchId.HasValue && doc.BranchId != request.BranchId.Value)
-            throw new UnauthorizedAccessException("Access to this document is not allowed");
+            throw new ForbiddenAccessException("Access to this document is not allowed");
 
         if (doc.Status != DocumentStatus.Draft)
             throw new BusinessException(DocumentErrorCodes.NotDraft, "Only Draft documents can be deleted",

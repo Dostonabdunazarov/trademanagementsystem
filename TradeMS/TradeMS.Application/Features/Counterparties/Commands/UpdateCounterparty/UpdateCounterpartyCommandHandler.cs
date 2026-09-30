@@ -14,7 +14,7 @@ public class UpdateCounterpartyCommandHandler(IAppDbContext db, IAuditLogger aud
     {
         var counterparty = await db.Counterparties
             .FirstOrDefaultAsync(
-                c => c.Id == request.Id && c.CompanyId == request.CompanyId,
+                c => c.Id == request.Id && c.CompanyId == request.CompanyId && c.DeletedAt == null,
                 cancellationToken)
             ?? throw new KeyNotFoundException($"Counterparty {request.Id} not found");
 

@@ -17,7 +17,7 @@ public class GetCounterpartyBalanceQueryHandler(IAppDbContext db)
 
         if (!string.IsNullOrWhiteSpace(request.Type) &&
             Enum.TryParse<CounterpartyType>(request.Type, true, out var cpType))
-            query = query.Where(c => c.Type == cpType);
+            query = query.Where(c => c.Type == cpType || c.Type == CounterpartyType.Both);
 
         var raw = await query
             .OrderBy(c => c.Name)

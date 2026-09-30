@@ -50,11 +50,13 @@
 
 ### Документы
 
-**`documents`** — `Id` (**bigint**), `CompanyId`, `BranchId`, `Type` (`DocumentType`), `Number`, `Date`, `CounterpartyId?`, `CurrencyId`, `ExchangeRate` (по умолч. 1), `TotalAmount`, `TotalAmountBase`, `DiscountPercent`, `DiscountAmount`, `Note?`, `Amount?`, `PaymentMethod?`, `AccountId?`, `Status` (`DocumentStatus`, по умолч. `Draft`), `CreatedBy`, `CreatedAt`, `ConfirmedAt?`.
+**`documents`** — `Id` (**bigint**), `CompanyId`, `BranchId`, `Type` (`DocumentType`), `Number`, `Date`, `CounterpartyId?`, `CurrencyId`, `ExchangeRate` (по умолч. 1), `TotalAmount`, `TotalAmountBase`, `DiscountPercent`, `DiscountAmount`, `Note?`, `Amount?`, `PaymentMethod?`, `AccountId?`, `Status` (`DocumentStatus`, по умолч. `Draft`), `CreatedBy`, `CreatedAt`, `ConfirmedAt?`, `UpdatedAt?`. Уникальный индекс `(CompanyId, Number)`.
 
 Поля `Amount`, `PaymentMethod`, `AccountId` используются документами-оплатами (`PayOut`/`PayIn`).
 
-**`document_lines`** — строки товара. `Id` (bigint), `DocumentId`, `ProductId`, `Quantity`, `Price`, `DiscountPercent`, `DiscountPrice`, `Total`.
+**`document_lines`** — строки товара. `Id` (bigint), `DocumentId`, `ProductId`, `Quantity`, `Price`, `DiscountPercent`, `DiscountPrice`, `Total`, `TotalBase` (выручка в базовой валюте со скидкой документа), `CostBase` (себестоимость в базовой валюте) — два последних заполняются при проведении и используются отчётами.
+
+**`document_counters`** — последний выданный номер документа. PK `(CompanyId, Type, Year)`, `LastNumber`.
 
 **`payments`** — оплаты по документу. `Id` (bigint), `DocumentId`, `CounterpartyId`, `Amount`, `CurrencyId`, `ExchangeRate`, `AmountBase`, `PaymentMethod`, `AccountId?`.
 
@@ -74,7 +76,7 @@
 
 ## Оптимистичная блокировка
 
-Системный столбец PostgreSQL `xmin` смаппен как row-version (`.IsRowVersion()`) на трёх сущностях с денормализованными накопительными полями: **`counterparties`** (`Balance`), **`stock`** (`Quantity`), **`accounts`** (`Balance`). Это защищает от потери обновлений при конкурентном проведении/отмене документов — схема при этом не меняется. См. [`AppDbContext.cs`](../TradeMS/TradeMS.Infrastructure/Persistence/AppDbContext.cs) (строки с `xmin`).
+Системный столбец PostgreSQL `xmin` смаппен как row-version (`.IsRowVersion()`) на сущностях с денормализованными накопительными полями — **`counterparties`** (`Balance`), **`stock`** (`Quantity`), **`accounts`** (`Balance`) — и на **`documents`** (правка черновика vs проведение). Это защищает от потери обновлений при конкурентном проведении/отмене документов — схема при этом не меняется. См. [`AppDbContext.cs`](../TradeMS/TradeMS.Infrastructure/Persistence/AppDbContext.cs) (строки с `xmin`).
 
 ## Миграции
 

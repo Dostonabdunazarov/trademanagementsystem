@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using TradeMS.Application.Common.Exceptions;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Application.Features.Accounts.DTOs;
 using TradeMS.Domain.Entities;
@@ -12,9 +13,12 @@ public class CreateAccountCommandHandler(IAppDbContext db, IAuditLogger auditLog
     public async Task<AccountDto> Handle(
         CreateAccountCommand request, CancellationToken cancellationToken)
     {
+        if (!await db.Branches.AnyAsync(b => b.Id == request.BranchId && b.CompanyId == request.CompanyId, cancellationToken))
+            throw new BusinessException(DocumentErrorCodes.InvalidBranch, "Branch not found");
+
         var currency = await db.Currencies
             .FirstOrDefaultAsync(c => c.Id == request.CurrencyId, cancellationToken)
-            ?? throw new KeyNotFoundException($"Currency {request.CurrencyId} not found");
+            ?? throw new BusinessException(DocumentErrorCodes.InvalidCurrency, "Currency not found");
 
         var account = new Account
         {

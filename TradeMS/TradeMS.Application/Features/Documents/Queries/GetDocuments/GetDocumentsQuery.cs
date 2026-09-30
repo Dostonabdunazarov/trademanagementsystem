@@ -11,7 +11,8 @@ public record GetDocumentsQuery(
     int Page,
     int PageSize,
     string? Status = null,
-    Guid? BranchId = null
+    Guid? BranchId = null,
+    string? Search = null
 ) : IRequest<GetDocumentsResult>;
 
 public record GetDocumentsResult(

@@ -12,6 +12,8 @@ export function StockAlertBanner({ className }: { className?: string }) {
   const [dismissed, setDismissed] = useState(false)
   const { activeBranch } = useUiStore()
   const { data } = useStockBalance(activeBranch?.id)
+  // Без выбранного филиала один товар приходит строкой на каждый филиал.
+  const showBranch = !activeBranch
 
   const lowItems = (data?.lines ?? []).filter((item) => item.quantity <= LOW_STOCK_THRESHOLD)
 
@@ -29,12 +31,13 @@ export function StockAlertBanner({ className }: { className?: string }) {
       <div className="flex-1">
         <p className="text-sm font-medium text-orange-300 light:text-orange-800">{t('dashboard.stockAlerts')}</p>
         <div className="mt-2 flex flex-wrap gap-2">
-          {lowItems.map(({ productId, productName, quantity, unit }) => (
+          {lowItems.map(({ productId, productName, quantity, unit, branchId, branchName }) => (
             <span
-              key={productId}
+              key={`${productId}:${branchId}`}
               className="rounded-full border border-orange-500/20 bg-orange-500/10 px-2.5 py-0.5 text-xs text-orange-300 light:border-orange-300 light:bg-orange-100 light:text-orange-900"
             >
-              {productName} — <span className="font-mono font-semibold">{quantity} {unit}</span>
+              {productName}{showBranch && branchName ? ` (${branchName})` : ''} —{' '}
+              <span className="font-mono font-semibold">{quantity} {t(`products.units.${unit}`, { defaultValue: unit })}</span>
             </span>
           ))}
         </div>

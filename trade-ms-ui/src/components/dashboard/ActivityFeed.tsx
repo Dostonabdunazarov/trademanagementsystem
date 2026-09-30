@@ -1,9 +1,10 @@
-﻿import type { CSSProperties } from 'react'
+import type { CSSProperties } from 'react'
 import { ArrowUpFromLine, ArrowDownToLine, RotateCcw, Banknote, Wallet } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { useDocuments } from '@/api/hooks/useDocuments'
 import { formatNumber } from '@/utils/format'
+import { useUiStore } from '@/store/ui.store'
 
 const TYPE_ICONS: Record<string, React.ReactNode> = {
   Expense: <ArrowUpFromLine className="h-3.5 w-3.5" />,
@@ -25,7 +26,8 @@ function formatTime(createdAt: string | null | undefined) {
 
 export function ActivityFeed({ className }: { className?: string }) {
   const { t } = useTranslation()
-  const { data, isLoading } = useDocuments({ page: 1, pageSize: 10 })
+  const activeBranch = useUiStore((s) => s.activeBranch)
+  const { data, isLoading } = useDocuments({ page: 1, pageSize: 10, branchId: activeBranch?.id })
 
   const TYPE_LABELS: Record<string, string> = {
     Expense: t('dashboard.typeExpense'),

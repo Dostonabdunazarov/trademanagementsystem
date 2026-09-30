@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using MediatR;
+using TradeMS.Api.Infrastructure;
 using TradeMS.Application.Features.Documents.Commands.CancelDocument;
 using TradeMS.Application.Features.Documents.Commands.ConfirmDocument;
 using TradeMS.Application.Features.Documents.Commands.CreateDocument;
@@ -26,65 +27,46 @@ public static class DocumentEndpoints
             DateOnly? dateTo,
             string? status,
             Guid? branchId,
+            string? search,
             int? page,
             int? pageSize,
             ClaimsPrincipal user,
             IMediator mediator) =>
         {
-            var companyId = GetCompanyId(user);
-            var role = user.FindFirstValue(ClaimTypes.Role);
-
-            // Non-admin users can only see their own branch
-            var effectiveBranchId = role == "Admin"
-                ? branchId
-                : TryGetBranchId(user);
-
             var result = await mediator.Send(new GetDocumentsQuery(
-                companyId, type, dateFrom, dateTo,
-                Math.Max(1, page ?? 1),
-                Math.Max(1, pageSize ?? 20),
-                status, effectiveBranchId));
+                user.GetCompanyId(), type, dateFrom, dateTo,
+                ClaimsPrincipalExtensions.ClampPage(page),
+                ClaimsPrincipalExtensions.ClampPageSize(pageSize),
+                status, user.BranchScope(branchId), search));
             return Results.Ok(result);
         })
-        .WithSummary("Get documents list (paginated, filterable by type/date)");
+        .WithSummary("Get documents list (paginated, filterable by type/date/status, search by number or counterparty)");
 
         group.MapGet("/{id:long}", async (long id, ClaimsPrincipal user, IMediator mediator) =>
         {
-            var companyId = GetCompanyId(user);
-            var result = await mediator.Send(new GetDocumentByIdQuery(id, companyId));
+            var result = await mediator.Send(new GetDocumentByIdQuery(id, user.GetCompanyId(), user.BranchScope()));
             return result is null ? Results.NotFound() : Results.Ok(result);
         })
         .WithSummary("Get document by ID");
 
         group.MapPost("/", async (CreateDocumentRequest req, ClaimsPrincipal user, IMediator mediator) =>
         {
-            var companyId = GetCompanyId(user);
-            var userId    = GetUserId(user);
-            var role      = user.FindFirstValue(ClaimTypes.Role);
-
-            Guid branchId;
-            if (role == "Admin")
-            {
-                if (req.BranchId is null || req.BranchId == Guid.Empty)
-                    return Results.BadRequest("BranchId is required for Admin");
-                branchId = req.BranchId.Value;
-            }
-            else
-            {
-                var tokenBranch = TryGetBranchId(user);
-                if (tokenBranch is null)
-                    return Results.BadRequest("User is not assigned to a branch");
-                branchId = tokenBranch.Value;
-            }
+            // Admin выбирает филиал документа в UI (или берётся его филиал из токена, как для касс);
+            // остальные всегда создают в своём филиале.
+            var branchId = user.IsAdmin()
+                ? (req.BranchId is { } b && b != Guid.Empty ? b : user.GetTokenBranchId())
+                : user.BranchScope();
+            if (branchId is null || branchId == Guid.Empty)
+                return Results.BadRequest("BranchId is required for Admin");
 
             if (!Enum.TryParse<DocumentType>(req.Type, true, out var docType))
                 return Results.BadRequest($"Unknown document type: {req.Type}");
 
             var result = await mediator.Send(new CreateDocumentCommand(
-                companyId, branchId, userId,
+                user.GetCompanyId(), branchId.Value, user.GetUserId(),
                 docType, req.Date, req.CounterpartyId,
                 req.CurrencyId, req.ExchangeRate, req.DiscountPercent,
-                req.Note, req.Lines, req.Amount, req.PaymentMethod, req.AccountId));
+                req.Note, req.Lines ?? [], req.Amount, req.PaymentMethod, req.AccountId));
 
             return Results.Created($"/documents/{result.Id}", result);
         })
@@ -92,72 +74,37 @@ public static class DocumentEndpoints
 
         group.MapPut("/{id:long}", async (long id, UpdateDocumentRequest req, ClaimsPrincipal user, IMediator mediator) =>
         {
-            var companyId = GetCompanyId(user);
-            var role = user.FindFirstValue(ClaimTypes.Role);
-            var branchId = role == "Admin" ? null : TryGetBranchId(user);
-
             var result = await mediator.Send(new UpdateDocumentCommand(
-                id, companyId, branchId, req.Date, req.CounterpartyId,
+                id, user.GetCompanyId(), user.BranchScope(), req.Date, req.CounterpartyId,
                 req.CurrencyId, req.ExchangeRate, req.DiscountPercent,
-                req.Note, req.Lines));
+                req.Note, req.Lines ?? [], req.Amount, req.PaymentMethod, req.AccountId));
             return Results.Ok(result);
         })
-        .WithSummary("Update document draft");
+        .WithSummary("Update document draft (goods: lines; payments: amount/paymentMethod/accountId)");
 
         group.MapPost("/{id:long}/confirm", async (long id, ClaimsPrincipal user, IMediator mediator) =>
         {
-            var companyId = GetCompanyId(user);
-            var role = user.FindFirstValue(ClaimTypes.Role);
-            var branchId = role == "Admin" ? null : TryGetBranchId(user);
-
-            var result = await mediator.Send(new ConfirmDocumentCommand(id, companyId, branchId));
+            var result = await mediator.Send(new ConfirmDocumentCommand(id, user.GetCompanyId(), user.BranchScope()));
             return Results.Ok(result);
         })
         .WithSummary("Confirm document (updates stock and counterparty balance)");
 
         group.MapPost("/{id:long}/cancel", async (long id, ClaimsPrincipal user, IMediator mediator) =>
         {
-            var companyId = GetCompanyId(user);
-            var role = user.FindFirstValue(ClaimTypes.Role);
-            var branchId = role == "Admin" ? null : TryGetBranchId(user);
-
-            var result = await mediator.Send(new CancelDocumentCommand(id, companyId, branchId));
+            var result = await mediator.Send(new CancelDocumentCommand(id, user.GetCompanyId(), user.BranchScope()));
             return Results.Ok(result);
         })
+        // Отмена проведённого документа откатывает склад и деньги — не для кассира.
+        .RequireAuthorization(p => p.RequireRole("Admin", "Manager"))
         .WithSummary("Cancel a confirmed document (reverses stock, balances and payment)");
 
         group.MapDelete("/{id:long}", async (long id, ClaimsPrincipal user, IMediator mediator) =>
         {
-            var companyId = GetCompanyId(user);
-            var role = user.FindFirstValue(ClaimTypes.Role);
-            var branchId = role == "Admin" ? null : TryGetBranchId(user);
-
-            await mediator.Send(new DeleteDocumentCommand(id, companyId, branchId));
+            await mediator.Send(new DeleteDocumentCommand(id, user.GetCompanyId(), user.BranchScope()));
             return Results.NoContent();
         })
         .WithSummary("Delete document (Draft only)");
 
         return app;
-    }
-
-    private static Guid GetCompanyId(ClaimsPrincipal user)
-    {
-        var value = user.FindFirstValue("company_id")
-            ?? throw new UnauthorizedAccessException("company_id claim missing");
-        return Guid.Parse(value);
-    }
-
-    private static Guid? TryGetBranchId(ClaimsPrincipal user)
-    {
-        var value = user.FindFirstValue("branch_id");
-        return !string.IsNullOrEmpty(value) ? Guid.Parse(value) : null;
-    }
-
-    private static Guid GetUserId(ClaimsPrincipal user)
-    {
-        var value = user.FindFirstValue(ClaimTypes.NameIdentifier)
-                 ?? user.FindFirstValue("sub")
-                 ?? throw new UnauthorizedAccessException("user id claim missing");
-        return Guid.Parse(value);
     }
 }

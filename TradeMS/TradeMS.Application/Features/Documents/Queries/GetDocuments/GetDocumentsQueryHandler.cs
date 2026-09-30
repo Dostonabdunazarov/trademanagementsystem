@@ -13,8 +13,6 @@ public class GetDocumentsQueryHandler(IAppDbContext db)
         GetDocumentsQuery request, CancellationToken cancellationToken)
     {
         var query = db.Documents
-            .Include(d => d.Counterparty)
-            .Include(d => d.Currency)
             .Where(d => d.CompanyId == request.CompanyId);
 
         if (!string.IsNullOrWhiteSpace(request.Type) &&
@@ -34,6 +32,14 @@ public class GetDocumentsQueryHandler(IAppDbContext db)
         if (request.BranchId.HasValue)
             query = query.Where(d => d.BranchId == request.BranchId.Value);
 
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var pattern = $"%{EscapeLike(request.Search.Trim().ToLowerInvariant())}%";
+            query = query.Where(d =>
+                EF.Functions.Like(d.Number.ToLower(), pattern, @"\") ||
+                (d.Counterparty != null && EF.Functions.Like(d.Counterparty.Name.ToLower(), pattern, @"\")));
+        }
+
         var total = await query.CountAsync(cancellationToken);
 
         var items = await query
@@ -46,9 +52,11 @@ public class GetDocumentsQueryHandler(IAppDbContext db)
                 d.Type.ToString(),
                 d.Number,
                 d.Date,
+                d.CounterpartyId,
                 d.Counterparty != null ? d.Counterparty.Name : null,
                 d.Currency.Code,
                 d.TotalAmount,
+                d.TotalAmountBase,
                 d.DiscountAmount,
                 d.Status.ToString(),
                 d.CreatedAt
@@ -57,4 +65,7 @@ public class GetDocumentsQueryHandler(IAppDbContext db)
 
         return new GetDocumentsResult(items, total, request.Page, request.PageSize);
     }
+
+    private static string EscapeLike(string value) =>
+        value.Replace(@"\", @"\\").Replace("%", @"\%").Replace("_", @"\_");
 }

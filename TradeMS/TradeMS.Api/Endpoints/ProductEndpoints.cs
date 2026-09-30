@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using MediatR;
+using TradeMS.Api.Infrastructure;
 using TradeMS.Application.Features.Products.Commands.CreateProduct;
 using TradeMS.Application.Features.Products.Commands.DeleteProduct;
 using TradeMS.Application.Features.Products.Commands.UpdateProduct;
@@ -27,7 +28,7 @@ public static class ProductEndpoints
         {
             var companyId = GetCompanyId(user);
             var result = await mediator.Send(
-                new GetProductsQuery(companyId, search, groupId, Math.Max(1, page ?? 1), Math.Max(1, pageSize ?? 20)));
+                new GetProductsQuery(companyId, search, groupId, ClaimsPrincipalExtensions.ClampPage(page), ClaimsPrincipalExtensions.ClampPageSize(pageSize)));
             return Results.Ok(result);
         })
         .WithSummary("Get products list (paginated)");

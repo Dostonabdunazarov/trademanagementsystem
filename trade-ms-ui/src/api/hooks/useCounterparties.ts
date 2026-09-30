@@ -1,13 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
 import { counterpartiesApi } from '../counterparties'
 
+export type CounterpartyType = 'Customer' | 'Supplier' | 'Both'
+
+/** CounterpartyDto на бэкенде. */
 export interface CounterpartyDto {
   id: string
+  companyId: string
+  type: CounterpartyType
   name: string
-  type: string
   phone: string | null
-  balance: number
+  address: string | null
   creditLimit: number
+  balance: number
+  createdAt: string
 }
 
 export interface CounterpartiesPage {
@@ -17,6 +23,10 @@ export interface CounterpartiesPage {
   pageSize: number
 }
 
+/**
+ * `type=Customer` возвращает и Customer, и Both; `type=Supplier` — Supplier и Both
+ * (фильтр на сервере), поэтому клиентских обходов не нужно.
+ */
 export function useCounterparties(
   type?: 'Customer' | 'Supplier',
   search?: string,

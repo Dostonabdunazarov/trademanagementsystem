@@ -1,25 +1,38 @@
-﻿import { useState, useCallback, useRef, useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { Trash2, ChevronDown, ChevronRight, Search, Save, CheckCircle, Loader2, AlertCircle } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { Trash2, ChevronDown, ChevronRight, Search, Save, CheckCircle, Loader2, AlertCircle, XCircle } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { getApiErrorMessage } from '@/lib/apiError'
+import { useDebouncedValue } from '@/lib/useDebouncedValue'
+import { money } from '@/utils/money'
 import type { DocumentType } from '@/types/document'
 import { useDocumentForm } from './useDocumentForm'
 import { QuantityDialog } from './QuantityDialog'
+import { CounterpartyCombobox } from './CounterpartyCombobox'
 import { useProductGroups } from '@/api/hooks/useProductGroups'
 import type { ProductGroupDto } from '@/api/hooks/useProductGroups'
 import { useProducts } from '@/api/hooks/useProducts'
 import type { ProductDto } from '@/api/hooks/useProducts'
-import { useCounterparties } from '@/api/hooks/useCounterparties'
+import type { CounterpartyDto } from '@/api/hooks/useCounterparties'
 import { useCurrencies } from '@/api/hooks/useCurrencies'
-import { useCreateDocument, useUpdateDocument, useConfirmDocument } from '@/api/hooks/useDocumentMutations'
+import { useExchangeRateOn } from '@/api/hooks/useExchangeRates'
+import {
+  useCreateDocument,
+  useUpdateDocument,
+  useConfirmDocument,
+  useCancelDocument,
+  type CreateDocumentPayload,
+  type UpdateDocumentPayload,
+} from '@/api/hooks/useDocumentMutations'
 import { useDocument } from '@/api/hooks/useDocument'
 import { useAuthStore } from '@/store/auth.store'
 import { useUiStore } from '@/store/ui.store'
 import { useStockBalance } from '@/api/hooks/useReports'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DatePicker } from '@/components/ui/date-picker'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 
 /* ─── helpers ─────────────────────────────────────────────────────────────── */
 
@@ -37,13 +50,6 @@ function defaultPriceFor(type: DocumentType, product: ProductDto): number {
   return type === 'Income' || type === 'ReturnToSupplier'
     ? product.priceBuy
     : product.priceSell
-}
-
-/* ─── Toast ───────────────────────────────────────────────────────────────── */
-
-interface ToastState {
-  message: string
-  type: 'success' | 'error'
 }
 
 /* ─── Product Group Tree ──────────────────────────────────────────────────── */
@@ -129,33 +135,54 @@ interface DocumentFormProps {
 
 /* ─── Main Component ──────────────────────────────────────────────────────── */
 
-export function DocumentForm({ type, title, className }: DocumentFormProps) {
+/**
+ * Форма товарного документа. `?id=` открывает существующий документ: черновик
+ * редактируется и проводится **этот же** документ, проведённый — только просмотр.
+ * `key` по id пересоздаёт форму при переходе между документами и после проведения.
+ */
+export function DocumentForm(props: DocumentFormProps) {
+  const [searchParams] = useSearchParams()
+  const urlId = searchParams.get('id')
+  const parsed = urlId ? Number.parseInt(urlId, 10) : NaN
+  const editId = Number.isFinite(parsed) ? parsed : null
+  return <DocumentFormBody key={editId ?? 'new'} {...props} editId={editId} />
+}
+
+function DocumentFormBody({ type, title, className, editId }: DocumentFormProps & { editId: number | null }) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
+  const location = useLocation()
   const form = useDocumentForm(type)
   const { state } = form
 
-  // Load existing document from URL ?id=
-  const [searchParams] = useSearchParams()
-  const urlId = searchParams.get('id')
-  const editId = urlId ? parseInt(urlId, 10) : null
   const { data: existingDoc, isLoading: docLoading } = useDocument(editId)
   const formLoaded = useRef(false)
 
+  const { data: currencies, isLoading: currenciesLoading } = useCurrencies()
+  const baseCurrency = currencies?.find((c) => c.isBase)
+
   useEffect(() => {
     if (!existingDoc || formLoaded.current) return
-    form.setDate(existingDoc.date.slice(0, 10))
-    if (existingDoc.counterpartyId) form.setCounterparty(existingDoc.counterpartyId, existingDoc.counterpartyName ?? '')
-    form.setCurrency(existingDoc.currencyId, existingDoc.currencyCode, existingDoc.exchangeRate)
-    form.setDiscount(existingDoc.discountPercent)
-    form.setNote(existingDoc.note ?? '')
-    for (const l of existingDoc.lines) {
-      form.addLine(
-        { id: l.productId, name: l.productName, unit: l.unit },
-        l.quantity, l.price, l.discountPercent,
-      )
-    }
     formLoaded.current = true
-  }, [existingDoc]) // eslint-disable-line react-hooks/exhaustive-deps
+    form.load({
+      date: existingDoc.date.slice(0, 10),
+      counterpartyId: existingDoc.counterpartyId ?? '',
+      counterpartyName: existingDoc.counterpartyName ?? '',
+      currencyId: existingDoc.currencyId,
+      currencyCode: existingDoc.currencyCode,
+      exchangeRate: existingDoc.exchangeRate,
+      discountPercent: existingDoc.discountPercent,
+      note: existingDoc.note ?? '',
+      lines: existingDoc.lines.map((l) => ({
+        productId: l.productId,
+        productName: l.productName,
+        unit: l.unit,
+        quantity: l.quantity,
+        price: l.price,
+        discountPercent: l.discountPercent,
+      })),
+    })
+  }, [existingDoc, form])
 
   const isReadonly = !!existingDoc && existingDoc.status !== 'Draft'
 
@@ -163,112 +190,95 @@ export function DocumentForm({ type, title, className }: DocumentFormProps) {
   const { data: groupsData, isLoading: groupsLoading } = useProductGroups()
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null)
   const [productSearch, setProductSearch] = useState('')
+  const debouncedProductSearch = useDebouncedValue(productSearch, 250)
   const { data: productsData, isLoading: productsLoading } = useProducts({
     groupId: activeGroupId,
-    search: productSearch || undefined,
-    pageSize: 1000,
+    search: debouncedProductSearch || undefined,
+    pageSize: 200,
   })
 
   const cpType = counterpartyTypeFor(type)
-  const [cpSearch, setCpSearch] = useState('')
-  const { data: cpData } = useCounterparties(cpType, cpSearch || undefined)
-  const [cpOpen, setCpOpen] = useState(false)
-  const cpRef = useRef<HTMLDivElement>(null)
+  const [selectedCp, setSelectedCp] = useState<CounterpartyDto | null>(null)
 
-  const { data: currencies, isLoading: currenciesLoading } = useCurrencies()
-
-  // Admin branch selection
-  const { user } = useAuthStore()
-  const { activeBranch } = useUiStore()
+  // Branch & role
+  const user = useAuthStore((s) => s.user)
+  const activeBranch = useUiStore((s) => s.activeBranch)
   const isAdmin = user?.role === 'Admin'
+  const canCancel = user?.role === 'Admin' || user?.role === 'Manager'
   const adminNoBranch = isAdmin && !activeBranch
 
   // Stock check for outbound document types; also show stock for Income
-const { data: stockData } = useStockBalance(activeBranch?.id)
+  const { data: stockData } = useStockBalance(activeBranch?.id)
   const stockByProductId = (stockData?.lines ?? []).reduce<Map<string, number>>((map, l) => {
-    map.set(l.productId, (map.get(l.productId) ?? 0) + l.quantity)
-    return map
-  }, new Map())
+      map.set(l.productId, (map.get(l.productId) ?? 0) + l.quantity)
+      return map
+    }, new Map())
+
+  // Курс: по умолчанию — курс из «Валюты и курсы» на дату документа (так же его
+  // возьмёт сервер при проведении); ручной ввод имеет приоритет до смены валюты/даты.
+  const isBaseCurrency = !baseCurrency || state.currencyId === baseCurrency.id
+  const [rateManual, setRateManual] = useState(false)
+  const { rate: autoRate, isLoading: rateLoading } = useExchangeRateOn(
+    isBaseCurrency ? undefined : state.currencyId,
+    baseCurrency?.id,
+    state.date,
+  )
+  const effectiveRate = isBaseCurrency ? 1 : rateManual ? state.exchangeRate : autoRate ?? state.exchangeRate
+  const totalInBase = money(form.totalWithDiscount * effectiveRate)
 
   // Mutations
   const createDoc = useCreateDocument()
   const updateDoc = useUpdateDocument()
   const confirmDoc = useConfirmDocument()
+  const cancelDoc = useCancelDocument()
 
   // Saved document id (after first save as Draft, or pre-filled from URL)
   const [savedDocId, setSavedDocId] = useState<number | null>(editId)
+  const [cancelOpen, setCancelOpen] = useState(false)
 
-  // Toast
-  const [toast, setToast] = useState<ToastState | null>(null)
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const showToast = useCallback((message: string, type: 'success' | 'error') => {
-    setToast({ message, type })
-    if (toastTimer.current) clearTimeout(toastTimer.current)
-    // Ошибку нужно успеть прочитать — держим её дольше, чем сообщение об успехе.
-    toastTimer.current = setTimeout(() => setToast(null), type === 'error' ? 7000 : 3500)
-  }, [])
-  useEffect(() => () => { if (toastTimer.current) clearTimeout(toastTimer.current) }, [])
+  const showError = (message: string) => {
+    toast.error(message, { duration: 7000 })
+  }
 
   // Product dialog
   const [selectedProduct, setSelectedProduct] = useState<ProductDto | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  // Close counterparty dropdown on outside click
-  useEffect(() => {
-    function handler(e: MouseEvent) {
-      if (cpRef.current && !cpRef.current.contains(e.target as Node)) setCpOpen(false)
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
   // Initialise currency defaults from API
   useEffect(() => {
+    if (editId != null) return
     if (currencies && currencies.length > 0 && !state.currencyId) {
       const base = currencies.find((c) => c.isBase) ?? currencies[0]
       form.setCurrency(base.id, base.code, 1)
     }
-  }, [currencies]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [currencies, state.currencyId, editId, form])
 
   const groups = groupsData ?? []
   const products = productsData?.items ?? []
-  const counterparties = cpData?.items ?? []
-  const selectedCp = counterparties.find((c) => c.id === state.counterpartyId) ?? null
-  const baseCurrency = currencies?.find((c) => c.isBase)
-  const isBaseCurrency = !baseCurrency || state.currencyId === baseCurrency?.id
 
   /* ── handlers ── */
 
   const isOutbound = type === 'Expense' || type === 'ReturnToSupplier'
 
-  const handleProductDblClick = useCallback((p: ProductDto) => {
+  const openProduct = (p: ProductDto) => {
     if (isOutbound) {
       const qty = stockByProductId.get(p.id) ?? 0
       if (qty <= 0) {
-        showToast(t('errors.outOfStock', { product: p.name }), 'error')
+        showError(t('errors.outOfStock', { product: p.name }))
         return
       }
     }
     setSelectedProduct(p)
     setDialogOpen(true)
-  }, [isOutbound, stockByProductId, showToast, t])
+  }
 
-  const handleProductKeyDown = useCallback((e: React.KeyboardEvent, p: ProductDto) => {
+  const handleProductKeyDown = (e: React.KeyboardEvent, p: ProductDto) => {
     if (e.key !== 'Enter') return
     e.preventDefault()
-    if (isOutbound) {
-      const qty = stockByProductId.get(p.id) ?? 0
-      if (qty <= 0) {
-        showToast(t('errors.outOfStock', { product: p.name }), 'error')
-        return
-      }
-    }
-    setSelectedProduct(p)
-    setDialogOpen(true)
-  }, [isOutbound, stockByProductId, showToast, t])
+    openProduct(p)
+  }
 
-  const handleDialogConfirm = useCallback(
-    (qty: number, price: number, discount: number) => {
+  const handleDialogConfirm = (qty: number, price: number, discount: number) => {
       if (!selectedProduct) return
       form.addLine(
         { id: selectedProduct.id, name: selectedProduct.name, unit: selectedProduct.unit },
@@ -276,17 +286,13 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
       )
       setDialogOpen(false)
       setSelectedProduct(null)
-    },
-    [selectedProduct, form],
-  )
+    }
 
-  const buildPayload = useCallback(() => ({
-    type,
+  const buildUpdatePayload = (): UpdateDocumentPayload => ({
     date: state.date,
-    ...(isAdmin ? { branchId: activeBranch?.id ?? null } : {}),
     counterpartyId: state.counterpartyId || null,
     currencyId: state.currencyId,
-    exchangeRate: state.exchangeRate,
+    exchangeRate: effectiveRate,
     discountPercent: state.discountPercent,
     note: state.note || null,
     lines: state.lines.map((l) => ({
@@ -295,13 +301,26 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
       price: l.price,
       discountPercent: l.discountPercent,
     })),
-  }), [type, state, isAdmin, activeBranch])
+  })
+
+  const buildCreatePayload = (): CreateDocumentPayload => ({
+    ...buildUpdatePayload(),
+    type,
+    ...(isAdmin ? { branchId: activeBranch?.id ?? null } : {}),
+  })
 
   /** Проверка перед отправкой: возвращает текст первой ошибки или null. */
-  const validate = useCallback((forConfirm: boolean): string | null => {
+  const validate = (forConfirm: boolean): string | null => {
     if (state.lines.length === 0) return t('errors.codes.linesRequired')
     if (!state.counterpartyId) return t('documents.counterpartyRequired')
     if (!state.currencyId) return t('errors.codes.currencyRequired')
+    for (const [idx, l] of state.lines.entries()) {
+      if (!(l.quantity > 0)) return t('errors.line', { n: idx + 1, message: t('errors.codes.lineQuantityPositive') })
+      if (l.unit === 'Pcs' && !Number.isInteger(l.quantity)) {
+        return t('errors.line', { n: idx + 1, message: t('errors.codes.lineQuantityInteger') })
+      }
+      if (l.price < 0) return t('errors.line', { n: idx + 1, message: t('errors.codes.linePriceNonNegative') })
+    }
 
     // Для расхода проверяем остатки заранее, чтобы назвать товар и цифры,
     // не дожидаясь отказа сервера. Сервер всё равно проверяет сам.
@@ -324,52 +343,69 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
       }
     }
     return null
-  }, [state, isOutbound, stockData, stockByProductId, t])
+  }
 
-  const handleSaveDraft = useCallback(async () => {
+  const handleSaveDraft = async () => {
     const invalid = validate(false)
     if (invalid) {
-      showToast(invalid, 'error')
+      showError(invalid)
       return
     }
     try {
-      const payload = buildPayload()
       if (savedDocId) {
-        await updateDoc.mutateAsync({ id: savedDocId, data: payload })
-        showToast(t('documents.draftSaved'), 'success')
+        await updateDoc.mutateAsync({ id: savedDocId, data: buildUpdatePayload() })
       } else {
-        const result = await createDoc.mutateAsync(payload) as { id: number }
+        const result = await createDoc.mutateAsync(buildCreatePayload())
         setSavedDocId(result.id)
-        showToast(t('documents.draftSaved'), 'success')
       }
+      toast.success(t('documents.draftSaved'))
     } catch (err) {
-      showToast(getApiErrorMessage(err, t), 'error')
+      showError(getApiErrorMessage(err, t))
     }
-  }, [validate, savedDocId, buildPayload, createDoc, updateDoc, showToast, t])
+  }
 
-  const handleConfirm = useCallback(async () => {
+  const handleConfirm = async () => {
     const invalid = validate(true)
     if (invalid) {
-      showToast(invalid, 'error')
+      showError(invalid)
       return
     }
     try {
       let docId = savedDocId
       if (!docId) {
-        const created = await createDoc.mutateAsync(buildPayload()) as { id: number }
+        const created = await createDoc.mutateAsync(buildCreatePayload())
         docId = created.id
         setSavedDocId(docId)
       } else {
-        await updateDoc.mutateAsync({ id: docId, data: buildPayload() })
+        await updateDoc.mutateAsync({ id: docId, data: buildUpdatePayload() })
       }
       await confirmDoc.mutateAsync(docId)
-      showToast(t('documents.confirmed'), 'success')
-      form.clearForm()
-      setSavedDocId(null)
+      toast.success(t('documents.confirmed'))
+      if (editId != null) {
+        // Открыт по ?id= — уходим на чистую форму, а не остаёмся на пустой форме со старым id.
+        navigate(location.pathname, { replace: true })
+      } else {
+        form.clearForm()
+        setSelectedCp(null)
+        setRateManual(false)
+        setSavedDocId(null)
+      }
     } catch (err) {
-      showToast(getApiErrorMessage(err, t), 'error')
+      showError(getApiErrorMessage(err, t))
     }
-  }, [validate, savedDocId, buildPayload, createDoc, updateDoc, confirmDoc, showToast, form, t])
+  }
+
+  const handleCancelDocument = async () => {
+    if (!existingDoc) return
+    try {
+      await cancelDoc.mutateAsync(existingDoc.id)
+      toast.success(t('documents.cancelled'))
+    } catch (err) {
+      showError(getApiErrorMessage(err, t))
+    } finally {
+      setCancelOpen(false)
+    }
+  }
 
   const isSaving = createDoc.isPending || updateDoc.isPending
   const isConfirming = confirmDoc.isPending
@@ -381,24 +417,8 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
   return (
     <div className={cn('flex flex-col h-full bg-background text-[hsl(var(--text-primary))] relative', className)}>
 
-      {/* ── Toast ── */}
-      {toast && (
-        <div className={cn(
-          'absolute top-14 right-4 z-50 flex max-w-md items-start gap-2 rounded-lg border px-4 py-2.5 text-xs shadow-xl whitespace-pre-line',
-          'transition-all animate-in fade-in slide-in-from-top-2',
-          toast.type === 'success'
-            ? 'border-emerald-600 bg-emerald-700 text-white'
-            : 'border-red-600 bg-red-700 text-white',
-        )}>
-          {toast.type === 'error'
-            ? <AlertCircle className="mt-px h-3.5 w-3.5 shrink-0" />
-            : <CheckCircle className="mt-px h-3.5 w-3.5 shrink-0" />}
-          {toast.message}
-        </div>
-      )}
-
       {/* ── Page title + actions ── */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-4 pt-4 pb-2">
         <div className="flex items-center gap-2">
           <h1 className="text-base font-semibold text-[hsl(var(--text-primary))]">{title}</h1>
           {existingDoc && (
@@ -413,19 +433,34 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
           )}
           {!existingDoc && savedDocId && (
             <span className="rounded px-1.5 py-0.5 text-[10px] font-medium border border-orange-500/30 bg-orange-500/10 text-orange-400">
-              Draft #{savedDocId}
+              {t('status.Draft')} #{savedDocId}
             </span>
           )}
         </div>
+        {existingDoc?.status === 'Confirmed' && canCancel && (
+          <button
+            type="button"
+            onClick={() => setCancelOpen(true)}
+            disabled={cancelDoc.isPending}
+            className={cn(
+              'flex items-center gap-1.5 rounded-lg border border-red-500/40 bg-red-500/10 px-3 h-8 text-xs text-red-400',
+              'hover:bg-red-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed',
+            )}
+          >
+            {cancelDoc.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <XCircle className="h-3.5 w-3.5" />}
+            {t('documents.cancelDocument')}
+          </button>
+        )}
         {!isReadonly && (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {isBlocked && (
               <span className="flex items-center gap-1.5 rounded-lg border border-orange-500/40 bg-orange-500/10 px-3 h-8 text-xs text-orange-400">
                 <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                Выберите филиал в хидере
+                {t('settings.selectBranchFirst')}
               </span>
             )}
             <button
+              type="button"
               onClick={handleSaveDraft}
               disabled={isSaving || isConfirming || isBlocked}
               className={cn(
@@ -438,6 +473,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
               {t('documents.saveDraft')}
             </button>
             <button
+              type="button"
               onClick={handleConfirm}
               disabled={isSaving || isConfirming || isBlocked}
               className={cn(
@@ -462,66 +498,33 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
           <span className="text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('common.date')}</span>
           <DatePicker
             value={state.date}
-            onChange={(v) => !isReadonly && form.setDate(v)}
+            onChange={(v) => { if (!isReadonly) { form.setDate(v); setRateManual(false) } }}
             disabled={isReadonly}
           />
         </div>
 
         {/* Counterparty combobox */}
-        <div className="flex flex-col gap-1 flex-1 min-w-[180px]" ref={cpRef}>
+        <div className="flex flex-col gap-1 flex-1 min-w-[180px]">
           <span className="text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">
             {cpType === 'Customer' ? t('counterparties.Customer') : t('counterparties.Supplier')}
           </span>
-          <div className="relative">
-            <input
-              type="text"
-              placeholder={t('documents.selectCounterparty')}
-              value={cpOpen ? cpSearch : (state.counterpartyName || '')}
-              onFocus={() => { if (!isReadonly) { setCpSearch(''); setCpOpen(true) } }}
-              onChange={(e) => { if (!isReadonly) { setCpSearch(e.target.value); setCpOpen(true) } }}
-              readOnly={isReadonly}
-              className={cn(
-                'h-8 w-full rounded-lg border border-border bg-secondary px-2.5 text-xs text-[hsl(var(--text-primary))]',
-                'placeholder:text-[hsl(var(--text-muted))]',
-                'focus:outline-none focus:ring-1 focus:ring-brand-500/60 transition-colors',
-                isReadonly && 'opacity-70 cursor-default',
-              )}
-            />
-            {cpOpen && counterparties.length > 0 && (
-              <div className={cn(
-                'absolute top-full left-0 right-0 mt-1 z-20 rounded-lg border border-border',
-                'bg-card/95 backdrop-blur-xl shadow-xl max-h-48 overflow-y-auto',
-              )}>
-                {counterparties.map((cp) => (
-                  <button
-                    key={cp.id}
-                    onMouseDown={(e) => {
-                      e.preventDefault()
-                      form.setCounterparty(cp.id, cp.name)
-                      setCpSearch('')
-                      setCpOpen(false)
-                    }}
-                    className={cn(
-                      'flex w-full items-center justify-between px-3 py-2 text-xs hover:bg-[hsl(var(--surface-2))] transition-colors',
-                      state.counterpartyId === cp.id ? 'text-brand-400' : 'text-[hsl(var(--text-primary))]',
-                    )}
-                  >
-                    <span className="truncate">{cp.name}</span>
-                    <span className={cn(
-                      'font-mono ml-2 shrink-0',
-                      cp.balance > 0 ? 'text-red-400' : cp.balance < 0 ? 'text-emerald-400' : 'text-[hsl(var(--text-muted))]',
-                    )}>
-                      {fmt(cp.balance)}
-                    </span>
-                  </button>
-                ))}
-              </div>
+          <CounterpartyCombobox
+            type={cpType}
+            selectedId={state.counterpartyId}
+            selectedName={state.counterpartyName}
+            onSelect={(cp) => { form.setCounterparty(cp.id, cp.name); setSelectedCp(cp) }}
+            readOnly={isReadonly}
+            label={cpType === 'Customer' ? t('counterparties.Customer') : t('counterparties.Supplier')}
+            className={cn(
+              'h-8 w-full rounded-lg border border-border bg-secondary px-2.5 text-xs text-[hsl(var(--text-primary))]',
+              'placeholder:text-[hsl(var(--text-muted))]',
+              'focus:outline-none focus:ring-1 focus:ring-brand-500/60 transition-colors',
             )}
-          </div>
+          />
         </div>
 
         {/* Balance */}
-        {selectedCp && (
+        {selectedCp && selectedCp.id === state.counterpartyId && (
           <div className="flex flex-col gap-1">
             <span className="text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('counterparties.balance')}</span>
             <div className={cn(
@@ -541,7 +544,10 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
             onValueChange={(id) => {
               if (isReadonly) return
               const cur = (currencies ?? []).find((c) => c.id === id)
-              if (cur) form.setCurrency(cur.id, cur.code, cur.isBase ? 1 : state.exchangeRate)
+              if (cur) {
+                form.setCurrency(cur.id, cur.code, cur.isBase ? 1 : state.exchangeRate)
+                setRateManual(false)
+              }
             }}
             disabled={isReadonly}
           >
@@ -564,8 +570,12 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
               type="number"
               min="0"
               step="1"
-              value={state.exchangeRate}
-              onChange={(e) => !isReadonly && form.setCurrency(state.currencyId, state.currencyCode, parseFloat(e.target.value) || 1)}
+              value={effectiveRate}
+              onChange={(e) => {
+                if (isReadonly) return
+                form.setExchangeRate(parseFloat(e.target.value) || 1)
+                setRateManual(true)
+              }}
               readOnly={isReadonly}
               className={cn(
                 'h-8 w-full rounded-lg border border-border bg-secondary px-2.5 text-xs text-[hsl(var(--text-primary))] font-mono',
@@ -573,6 +583,9 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
                 isReadonly && 'opacity-70 cursor-default',
               )}
             />
+            {!isReadonly && !rateManual && !rateLoading && autoRate == null && (
+              <span className="text-[10px] text-orange-400">{t('documents.rateNotFound')}</span>
+            )}
           </label>
         )}
 
@@ -581,7 +594,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
           <span className="text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('documents.comment')}</span>
           <input
             type="text"
-            placeholder="..."
+            placeholder={t('payments.noteOptional')}
             value={state.note}
             onChange={(e) => !isReadonly && form.setNote(e.target.value)}
             readOnly={isReadonly}
@@ -659,7 +672,7 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
               </thead>
               <tbody>
                 {productsLoading ? (
-                  <tr><td colSpan={3} className="px-2 py-4 text-center text-xs text-[hsl(var(--text-muted))]">Загрузка...</td></tr>
+                  <tr><td colSpan={3} className="px-2 py-4 text-center text-xs text-[hsl(var(--text-muted))]">{t('common.loading')}</td></tr>
                 ) : products.length === 0 ? (
                   <tr><td colSpan={3} className="px-2 py-6 text-center text-xs text-[hsl(var(--text-muted))]">{t('products.noProducts')}</td></tr>
                 ) : (
@@ -667,13 +680,13 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
                     <tr
                       key={p.id}
                       tabIndex={0}
-                      onDoubleClick={() => handleProductDblClick(p)}
+                      onDoubleClick={() => openProduct(p)}
                       onKeyDown={(e) => handleProductKeyDown(e, p)}
                       className={cn(
                         'border-b border-[hsl(var(--border))] cursor-pointer outline-none transition-colors',
                         'hover:bg-[hsl(var(--surface-2))] focus:bg-brand-500/10 focus:text-brand-300',
                       )}
-                      title="Двойной клик или Enter"
+                      title={t('documents.addProductHint')}
                     >
                       <td className="px-2 py-1.5 text-[hsl(var(--text-primary))]">
                         <span>{p.name}</span>
@@ -763,8 +776,15 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
                     <td className="px-2 py-1.5 text-center">
                       {!isReadonly && (
                         <button
+                          type="button"
                           onClick={() => form.removeLine(line.id)}
-                          className="opacity-0 group-hover:opacity-100 rounded p-0.5 text-[hsl(var(--text-muted))] hover:text-red-400 hover:bg-red-500/10 transition-all"
+                          aria-label={t('documents.removeLine', { product: line.productName })}
+                          title={t('common.remove')}
+                          className={cn(
+                            'rounded p-0.5 text-[hsl(var(--text-muted))] hover:text-red-400 hover:bg-red-500/10 transition-all',
+                            // На тач-экранах и с клавиатуры кнопка видна всегда, мышью — при наведении.
+                            'md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100',
+                          )}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -794,17 +814,18 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
               </div>
               {!isBaseCurrency && (
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-[hsl(var(--text-muted))]">{t('common.currency')}:</span>
+                  <span className="text-[hsl(var(--text-muted))]">{t('payments.inBaseCurrency')}:</span>
                   <span className="font-mono tabular-nums text-[hsl(var(--text-muted))]">
-                    {fmt(form.totalInBase)} {baseCurrency?.code}
+                    {fmt(totalInBase)} {baseCurrency?.code}
                   </span>
                 </div>
               )}
               <div className="flex items-center justify-between gap-4">
                 <span className="text-[hsl(var(--text-muted))] flex items-center gap-2">
-                  {t('common.amount')} (%):
+                  {t('documents.discount')} (%):
                   <input
                     type="number" min="0" max="100" step="0.5"
+                    aria-label={t('documents.discount')}
                     value={state.discountPercent}
                     onChange={(e) => !isReadonly && form.setDiscount(parseFloat(e.target.value) || 0)}
                     readOnly={isReadonly}
@@ -831,9 +852,9 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
       </div>
 
       {/* ── Quantity Dialog ── */}
-      {selectedProduct && (
+      {selectedProduct && dialogOpen && (
         <QuantityDialog
-          open={dialogOpen}
+          key={selectedProduct.id}
           productName={selectedProduct.name}
           stock={stockByProductId?.get(selectedProduct.id) ?? 0}
           unit={selectedProduct.unit}
@@ -842,6 +863,16 @@ const { data: stockData } = useStockBalance(activeBranch?.id)
           onClose={() => { setDialogOpen(false); setSelectedProduct(null) }}
         />
       )}
+
+      <ConfirmDialog
+        open={cancelOpen}
+        title={t('documents.cancelDocumentTitle', { number: existingDoc?.number ?? '' })}
+        description={t('documents.cancelDocumentDesc')}
+        confirmLabel={t('documents.cancelDocument')}
+        busy={cancelDoc.isPending}
+        onConfirm={handleCancelDocument}
+        onClose={() => setCancelOpen(false)}
+      />
     </div>
   )
 }

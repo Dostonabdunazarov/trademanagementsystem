@@ -42,7 +42,7 @@ public static class CurrencyEndpoints
             var result = await mediator.Send(new GetExchangeRatesQuery(date));
             return Results.Ok(result);
         })
-        .WithSummary("Get exchange rates. Without ?date= returns latest rate per pair");
+        .WithSummary("Get exchange rates: latest rate per pair, or latest on or before ?date=");
 
         rates.MapPost("/", async (CreateExchangeRateRequest req, IMediator mediator) =>
         {

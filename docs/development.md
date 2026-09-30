@@ -48,7 +48,12 @@ VITE_API_URL=http://localhost:5000/api
 
 ## Тесты
 
-- **Бэкенд:** `TradeMS.IntegrationTests` — интеграционные тесты на `WebApplicationFactory` (`TradeApiFactory`, `IntegrationTestBase`, `SeededIntegrationTestBase`). Запуск: `dotnet test` из `TradeMS/`.
+- **Бэкенд:** `TradeMS.IntegrationTests` — интеграционные тесты на `WebApplicationFactory` (`TradeApiFactory`, `IntegrationTestBase`, `SeededIntegrationTestBase`). Запуск: `dotnet test` из `TradeMS/` — по умолчанию поднимает PostgreSQL в Docker (Testcontainers).
+  Без Docker можно указать **пустую тестовую** БД (она очищается Respawn между тестами — не рабочую!):
+  ```bash
+  TRADEMS_TEST_DB="Host=127.0.0.1;Port=6543;Database=tradems_test;Username=postgres" dotnet test TradeMS.slnx
+  ```
+  Кластер для этого можно поднять из установленного PostgreSQL: `initdb -D <dir> -U postgres -A trust -E UTF8 --locale-provider=icu --icu-locale=und --locale=C` (ICU нужен, чтобы `lower()` работал с кириллицей, как в проде), затем `pg_ctl -D <dir> -o "-p 6543 -c listen_addresses=127.0.0.1" start`. На Windows порт не должен попадать в `netsh interface ipv4 show excludedportrange protocol=tcp`.
 - **Фронтенд:** Vitest + Testing Library, API мокируется через **MSW** ([`src/test/msw/`](../trade-ms-ui/src/test/msw)). Настройка — [`src/test/setup.ts`](../trade-ms-ui/src/test/setup.ts), конфиг — `vitest.config.ts` (`jsdom`).
 
 ## Переменные окружения

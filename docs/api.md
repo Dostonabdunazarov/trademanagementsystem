@@ -80,12 +80,12 @@ REST API на ASP.NET Core Minimal API. Все прикладные эндпои
 
 | Метод | Маршрут | Назначение | Доступ |
 |---|---|---|---|
-| GET | `/api/documents` | Список. Параметры: `type`, `dateFrom`, `dateTo`, `status`, `branchId`, `page`, `pageSize` | Auth |
+| GET | `/api/documents` | Список. Параметры: `type`, `dateFrom`, `dateTo`, `status`, `branchId` (только Admin), `search` (номер или контрагент), `page`, `pageSize` (≤ 200) | Auth |
 | GET | `/api/documents/{id:long}` | Документ по id | Auth |
 | POST | `/api/documents` | Создать черновик | Auth |
-| PUT | `/api/documents/{id:long}` | Обновить черновик | Auth |
+| PUT | `/api/documents/{id:long}` | Обновить черновик: товарный — `lines`; платёжный — `amount`, `paymentMethod`, `accountId` (`lines: []`) | Auth |
 | POST | `/api/documents/{id:long}/confirm` | Провести (обновляет склад и баланс контрагента) | Auth |
-| POST | `/api/documents/{id:long}/cancel` | Отменить проведённый (откат склада, балансов, оплаты) | Auth |
+| POST | `/api/documents/{id:long}/cancel` | Отменить проведённый (откат склада, балансов, оплаты) | Admin, Manager |
 | DELETE | `/api/documents/{id:long}` | Удалить (только `Draft`) | Auth |
 
 Бизнес-правила проведения/отмены — в [Бизнес-логике документов](documents.md).
@@ -103,7 +103,7 @@ REST API на ASP.NET Core Minimal API. Все прикладные эндпои
 
 | Метод | Маршрут | Назначение | Доступ |
 |---|---|---|---|
-| GET | `/api/accounts` | Кассы и банковские счета (опц. `branchId`) | Auth |
+| GET | `/api/accounts` | Кассы и банковские счета (опц. `branchId`; не-админ — только свой филиал) | Auth |
 | POST | `/api/accounts` | Создать кассу/счёт | Admin |
 | DELETE | `/api/accounts/{id:guid}` | Удалить счёт | Admin |
 
@@ -111,7 +111,7 @@ REST API на ASP.NET Core Minimal API. Все прикладные эндпои
 
 | Метод | Маршрут | Назначение | Доступ |
 |---|---|---|---|
-| GET | `/api/users` | Список пользователей компании | Auth |
+| GET | `/api/users` | Список пользователей компании | Admin |
 | POST | `/api/users` | Создать пользователя | Admin |
 | PUT | `/api/users/{id:guid}` | Обновить пользователя | Admin |
 | DELETE | `/api/users/{id:guid}` | Мягкое удаление | Admin |

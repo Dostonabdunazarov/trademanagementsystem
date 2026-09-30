@@ -39,6 +39,7 @@ export function getApiErrorMessage(err: unknown, t: TFunction, fallback?: string
     if (text) return text
   }
 
+  if (status === 429) return t('errors.tooManyRequests')
   if (status === 401) return t('errors.unauthorized')
   if (status === 403) return t('errors.forbidden')
   if (status === 404) return t('errors.notFound')

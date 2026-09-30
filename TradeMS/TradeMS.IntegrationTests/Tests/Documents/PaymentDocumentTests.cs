@@ -58,6 +58,7 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
             exchangeRate = 1m,
             discountPercent = 0m,
             amount = 80_000m,
+            accountId = TestDataSeeder.AccountCashId,
             lines = Array.Empty<object>()
         });
         var payDraft = await payResp.Content.ReadFromJsonAsync<DocResp>(JsonOpts);
@@ -90,6 +91,7 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
             exchangeRate = 1m,
             discountPercent = 0m,
             amount = 50_000m,
+            accountId = TestDataSeeder.AccountCashId,
             lines = Array.Empty<object>()
         });
         var payDraft = await payResp.Content.ReadFromJsonAsync<DocResp>(JsonOpts);
@@ -123,6 +125,7 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
             exchangeRate = 1m,
             discountPercent = 0m,
             amount = 75_000m,
+            accountId = TestDataSeeder.AccountCashId,
             lines = Array.Empty<object>()
         });
         var p1 = await p1Resp.Content.ReadFromJsonAsync<DocResp>(JsonOpts);
@@ -138,6 +141,7 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
             exchangeRate = 1m,
             discountPercent = 0m,
             amount = 50_000m,
+            accountId = TestDataSeeder.AccountCashId,
             lines = Array.Empty<object>()
         });
         var p2 = await p2Resp.Content.ReadFromJsonAsync<DocResp>(JsonOpts);
@@ -169,6 +173,7 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
             exchangeRate = 1m,
             discountPercent = 0m,
             amount = 30_000m,
+            accountId = TestDataSeeder.AccountCashId,
             lines = Array.Empty<object>()
         });
         var payDraft = await payResp.Content.ReadFromJsonAsync<DocResp>(JsonOpts);
@@ -203,6 +208,7 @@ public class PaymentDocumentTests : SeededIntegrationTestBase
             exchangeRate = 1m,
             discountPercent = 0m,
             amount = 40_000m,
+            accountId = TestDataSeeder.AccountCashId,
             lines = Array.Empty<object>()
         });
         var pay = await payResp.Content.ReadFromJsonAsync<DocResp>(JsonOpts);

@@ -1,41 +1,8 @@
 import { useMemo, useState } from 'react'
-import {
-  format,
-  startOfMonth,
-  endOfMonth,
-  startOfQuarter,
-  endOfQuarter,
-  startOfYear,
-  endOfYear,
-  subMonths,
-} from 'date-fns'
+import { presetRange, type PeriodRange, type PresetKey } from './period'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { DatePicker } from '@/components/ui/date-picker'
-
-export interface PeriodRange {
-  dateFrom: string
-  dateTo: string
-}
-
-type PresetKey = 'thisMonth' | 'lastMonth' | 'quarter' | 'year' | 'custom'
-
-const fmt = (d: Date) => format(d, 'yyyy-MM-dd')
-
-function presetRange(key: Exclude<PresetKey, 'custom'>, now: Date): PeriodRange {
-  switch (key) {
-    case 'thisMonth':
-      return { dateFrom: fmt(startOfMonth(now)), dateTo: fmt(endOfMonth(now)) }
-    case 'lastMonth': {
-      const prev = subMonths(now, 1)
-      return { dateFrom: fmt(startOfMonth(prev)), dateTo: fmt(endOfMonth(prev)) }
-    }
-    case 'quarter':
-      return { dateFrom: fmt(startOfQuarter(now)), dateTo: fmt(endOfQuarter(now)) }
-    case 'year':
-      return { dateFrom: fmt(startOfYear(now)), dateTo: fmt(endOfYear(now)) }
-  }
-}
 
 interface PeriodFilterProps {
   value: PeriodRange
@@ -110,9 +77,4 @@ export function PeriodFilter({ value, onChange, className }: PeriodFilterProps) 
       </div>
     </div>
   )
-}
-
-export function defaultPeriod(): PeriodRange {
-  const now = new Date()
-  return presetRange('thisMonth', now)
 }

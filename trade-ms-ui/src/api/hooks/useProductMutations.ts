@@ -1,14 +1,19 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query'
 import { productsApi } from '../products'
 
+/** CreateProductRequest на бэкенде (UpdateProductRequest — то же плюс isActive). */
 export interface CreateProductDto {
+  groupId: string | null
   name: string
-  sku?: string
+  sku: string | null
+  barcode: string | null
   unit: string
   priceSell: number
   priceBuy: number
   currencyId: string
-  groupId?: string | null
+}
+
+export interface UpdateProductDto extends CreateProductDto {
   isActive: boolean
 }
 
@@ -17,20 +22,26 @@ export interface CreateProductGroupDto {
   parentId?: string | null
 }
 
+function invalidate(qc: QueryClient) {
+  qc.invalidateQueries({ queryKey: ['products'] })
+  // Названия и цены товаров есть в отчётах по складу и продажам.
+  qc.invalidateQueries({ queryKey: ['reports'] })
+}
+
 export function useCreateProduct() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: CreateProductDto) => productsApi.create(data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['products'] }),
+    onSuccess: () => invalidate(qc),
   })
 }
 
 export function useUpdateProduct() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: CreateProductDto }) =>
+    mutationFn: ({ id, data }: { id: string; data: UpdateProductDto }) =>
       productsApi.update(id, data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['products'] }),
+    onSuccess: () => invalidate(qc),
   })
 }
 
@@ -38,7 +49,7 @@ export function useDeleteProduct() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => productsApi.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['products'] }),
+    onSuccess: () => invalidate(qc),
   })
 }
 
@@ -46,6 +57,9 @@ export function useCreateProductGroup() {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (data: CreateProductGroupDto) => productsApi.createGroup(data),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['product-groups'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['product-groups'] })
+      qc.invalidateQueries({ queryKey: ['reports'] })
+    },
   })
 }

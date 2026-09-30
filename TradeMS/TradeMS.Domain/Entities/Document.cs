@@ -25,6 +25,7 @@ public class Document
     public Guid CreatedBy { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? ConfirmedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     public Company Company { get; set; } = null!;
     public Branch Branch { get; set; } = null!;

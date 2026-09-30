@@ -1,28 +1,36 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { accountsApi } from '../accounts'
 
+/** AccountDto на бэкенде. */
 export interface AccountDto {
   id: string
+  companyId: string
+  branchId: string
   name: string
   type: 'Cash' | 'Bank'
   currencyId: string
   currencyCode: string
   balance: number
-  branchId: string
 }
 
+/** CreateAccountRequest на бэкенде. */
 export interface CreateAccountDto {
   name: string
   type: 'Cash' | 'Bank'
   currencyId: string
-  branchId: string
+  branchId?: string | null
 }
 
-export function useAccounts(branchId?: string) {
+/**
+ * Кассы. Для не-Admin сервер всегда отдаёт только кассы своего филиала;
+ * Admin фильтрует по `branchId`, если он передан.
+ */
+export function useAccounts(branchId?: string, options: { enabled?: boolean } = {}) {
   return useQuery<AccountDto[]>({
-    queryKey: ['accounts', branchId],
-    queryFn: () => accountsApi.getAll({ branchId }),
+    queryKey: ['accounts', branchId ?? null],
+    queryFn: () => accountsApi.getAll(branchId ? { branchId } : undefined),
     staleTime: 5 * 60_000,
+    enabled: options.enabled ?? true,
   })
 }
 

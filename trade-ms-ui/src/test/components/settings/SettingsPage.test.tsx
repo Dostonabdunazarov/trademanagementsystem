@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { server } from '../../msw/server'
 import { renderWithProviders } from '../../utils/renderWithProviders'
+import { loginAs } from '../../utils/auth'
 import { SettingsPage } from '@/features/settings/SettingsPage'
 
 function setupSettingsMocks() {
@@ -30,21 +31,23 @@ function setupSettingsMocks() {
 }
 
 describe('SettingsPage', () => {
-  it('рендерит все 4 таба', () => {
+  it('рендерит все 4 таба для Admin', () => {
+    loginAs('Admin')
     renderWithProviders(<SettingsPage />)
     // Используем точные тексты из ru.ts
-    expect(screen.getByRole('button', { name: /Валюты и курсы/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Кассы/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Филиалы/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Пользователи/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /Валюты и курсы/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /Кассы/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /Филиалы/i })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: /Пользователи/i })).toBeInTheDocument()
   })
 
   it('переключает на таб Филиалы и показывает данные', async () => {
+    loginAs('Admin')
     setupSettingsMocks()
     const user = userEvent.setup()
     renderWithProviders(<SettingsPage />)
 
-    await user.click(screen.getByRole('button', { name: /Филиалы/i }))
+    await user.click(screen.getByRole('tab', { name: /Филиалы/i }))
     await waitFor(() => {
       expect(screen.getByText('Главный офис')).toBeInTheDocument()
       expect(screen.getByText('Склад')).toBeInTheDocument()
@@ -52,11 +55,12 @@ describe('SettingsPage', () => {
   })
 
   it('переключает на таб Пользователи и показывает данные', async () => {
+    loginAs('Admin')
     setupSettingsMocks()
     const user = userEvent.setup()
     renderWithProviders(<SettingsPage />)
 
-    await user.click(screen.getByRole('button', { name: /Пользователи/i }))
+    await user.click(screen.getByRole('tab', { name: /Пользователи/i }))
     await waitFor(() => {
       expect(screen.getByText('Иван Иванов')).toBeInTheDocument()
       expect(screen.getByText('Петр Петров')).toBeInTheDocument()
@@ -69,5 +73,13 @@ describe('SettingsPage', () => {
       expect(screen.getByText('UZS')).toBeInTheDocument()
       expect(screen.getByText('USD')).toBeInTheDocument()
     })
+  })
+
+  it('скрывает вкладку «Пользователи» и админские кнопки от не-Admin', async () => {
+    loginAs('Manager')
+    renderWithProviders(<SettingsPage />)
+    expect(screen.queryByRole('tab', { name: /Пользователи/i })).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('UZS')).toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: /Добавить/i })).not.toBeInTheDocument()
   })
 })

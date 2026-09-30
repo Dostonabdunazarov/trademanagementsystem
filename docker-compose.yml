@@ -31,7 +31,8 @@ services:
       Jwt__Secret: ${JWT_SECRET}
       Jwt__Issuer: TradeMS
       Jwt__Audience: TradeMS
-      Jwt__ExpiryMinutes: "60"
+      # Короткий access-токен: смена роли/деактивация вступает в силу не позже чем через 15 минут.
+      Jwt__ExpiryMinutes: "15"
       Cors__AllowedOrigins__0: ${FRONTEND_ORIGIN}
       Seed__AdminEmail: ${ADMIN_EMAIL}
       Seed__AdminPassword: ${ADMIN_PASSWORD}

@@ -1,0 +1,10 @@
+**/bin/
+**/obj/
+**/*.user
+**/.vs/
+**/TestResults/
+TradeMS.IntegrationTests/
+**/appsettings.Development.json
+**/*.log
+.env
+.env.*

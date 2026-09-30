@@ -1,21 +1,25 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { AppLogoIcon } from '@/components/ui/AppLogo'
 import { LanguageSelect } from '@/components/ui/LanguageSelect'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import axios from 'axios'
 import { authApi } from '@/api/auth'
 import { useAuthStore } from '@/store/auth.store'
+import { useUiStore } from '@/store/ui.store'
+import { getApiErrorMessage } from '@/lib/apiError'
 import { cn } from '@/lib/utils'
 
 export function LoginPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const login = useAuthStore((s) => s.login)
+  const queryClient = useQueryClient()
   const [showPassword, setShowPassword] = useState(false)
 
   const schema = z.object({
@@ -34,11 +38,19 @@ export function LoginPage() {
   const mutation = useMutation({
     mutationFn: ({ email, password }: FormValues) => authApi.login(email, password),
     onSuccess: (data) => {
+      // Кэш и филиал предыдущего пользователя не должны достаться новому.
+      queryClient.removeQueries()
+      useUiStore.getState().clearActiveBranch()
       login(data)
       navigate('/', { replace: true })
     },
-    onError: () => {
-      setError('password', { message: t('auth.invalidCredentials') })
+    onError: (err) => {
+      // 401 на логине — всегда неверные данные (неактивный и заблокированный
+      // аккаунт сервер сознательно не отличает). 429, сеть и 5xx — свой текст.
+      const message = axios.isAxiosError(err) && err.response?.status === 401
+        ? t('auth.invalidCredentials')
+        : getApiErrorMessage(err, t)
+      setError('password', { message })
     },
   })
 
@@ -166,7 +178,7 @@ export function LoginPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-[hsl(var(--text-muted))]">
-          Торговля © {new Date().getFullYear()} — {t('auth.rights')}
+          {t('auth.title')} © {new Date().getFullYear()} — {t('auth.rights')}
         </p>
       </div>
     </div>

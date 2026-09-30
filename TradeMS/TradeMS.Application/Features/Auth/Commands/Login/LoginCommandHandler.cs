@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using TradeMS.Application.Common.Exceptions;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Application.Features.Auth.DTOs;
 using TradeMS.Domain.Entities;
@@ -12,21 +13,30 @@ public class LoginCommandHandler(IAppDbContext db, IJwtService jwtService, IAudi
     private const int MaxFailedAttempts = 5;
     private const int LockoutMinutes = 15;
 
+    // Хэш заведомо неверного пароля: для несуществующего email тоже выполняем BCrypt,
+    // чтобы по времени ответа нельзя было понять, есть ли такой пользователь.
+    private static readonly string DummyHash = BCrypt.Net.BCrypt.HashPassword(Guid.NewGuid().ToString());
+
     public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
+        var email = request.Email.Trim().ToLowerInvariant();
+
         var user = await db.Users
             .Include(u => u.Company)
-            .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == email && u.DeletedAt == null, cancellationToken);
 
         if (user is null)
         {
+            BCrypt.Net.BCrypt.Verify(request.Password, DummyHash);
             await auditLogger.LogAsync(AuditActions.LoginFail, success: false,
-                overrideEmail: request.Email,
+                overrideEmail: email,
                 errorMessage: "User not found",
                 cancellationToken: cancellationToken);
-            throw new UnauthorizedAccessException("Invalid credentials");
+            throw InvalidCredentials();
         }
 
+        // Все отказы отдаются клиенту одинаково — причина (нет пользователя, выключен,
+        // заблокирован, неверный пароль) видна только в аудите.
         if (!user.IsActive)
         {
             await auditLogger.LogAsync(AuditActions.LoginInactive, success: false,
@@ -34,7 +44,7 @@ public class LoginCommandHandler(IAppDbContext db, IJwtService jwtService, IAudi
                 overrideCompanyId: user.CompanyId,
                 errorMessage: "Account is inactive",
                 cancellationToken: cancellationToken);
-            throw new UnauthorizedAccessException("Invalid credentials");
+            throw InvalidCredentials();
         }
 
         if (user.LockoutUntil.HasValue && user.LockoutUntil > DateTime.UtcNow)
@@ -44,23 +54,30 @@ public class LoginCommandHandler(IAppDbContext db, IJwtService jwtService, IAudi
                 overrideCompanyId: user.CompanyId,
                 errorMessage: $"Locked until {user.LockoutUntil:u}",
                 cancellationToken: cancellationToken);
-            throw new UnauthorizedAccessException($"Account is locked. Try again after {user.LockoutUntil:HH:mm} UTC");
+            throw InvalidCredentials();
         }
 
         if (!BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
         {
-            user.FailedLoginCount++;
-            if (user.FailedLoginCount >= MaxFailedAttempts)
-                user.LockoutUntil = DateTime.UtcNow.AddMinutes(LockoutMinutes);
+            // Атомарный инкремент в БД: параллельные попытки не перетирают счётчик друг друга
+            // (read-modify-write в памяти позволял обойти лимит пачкой одновременных запросов).
+            var userId = user.Id;
+            await db.Users
+                .Where(u => u.Id == userId)
+                .ExecuteUpdateAsync(s => s.SetProperty(u => u.FailedLoginCount, u => u.FailedLoginCount + 1),
+                    cancellationToken);
 
-            await db.SaveChangesAsync(cancellationToken);
+            var lockoutUntil = DateTime.UtcNow.AddMinutes(LockoutMinutes);
+            await db.Users
+                .Where(u => u.Id == userId && u.FailedLoginCount >= MaxFailedAttempts)
+                .ExecuteUpdateAsync(s => s.SetProperty(u => u.LockoutUntil, lockoutUntil), cancellationToken);
 
             await auditLogger.LogAsync(AuditActions.LoginFail, success: false,
                 overrideUserId: user.Id, overrideEmail: user.Email,
                 overrideCompanyId: user.CompanyId,
-                errorMessage: $"Invalid password (attempt {user.FailedLoginCount})",
+                errorMessage: "Invalid password",
                 cancellationToken: cancellationToken);
-            throw new UnauthorizedAccessException("Invalid credentials");
+            throw InvalidCredentials();
         }
 
         user.FailedLoginCount = 0;
@@ -79,4 +96,6 @@ public class LoginCommandHandler(IAppDbContext db, IJwtService jwtService, IAudi
         var userDto = new AuthUserDto(user.Id, user.FullName, user.Email, user.Role.ToString(), user.CompanyId, user.Company.Name, user.BranchId);
         return new LoginResponse(accessToken, refreshToken, userDto);
     }
+
+    private static AuthenticationFailedException InvalidCredentials() => new("Invalid credentials");
 }

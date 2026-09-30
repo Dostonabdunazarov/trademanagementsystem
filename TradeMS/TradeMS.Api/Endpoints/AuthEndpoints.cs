@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using MediatR;
+using TradeMS.Api.Infrastructure;
 using TradeMS.Application.Features.Auth.Commands.Login;
 using TradeMS.Application.Features.Auth.Commands.Logout;
 using TradeMS.Application.Features.Auth.Commands.RefreshToken;
@@ -11,7 +12,7 @@ public static class AuthEndpoints
 {
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/auth").WithTags("Auth");
+        var group = app.MapGroup("/auth").WithTags("Auth").RequireRateLimiting("auth");
 
         group.MapPost("/login", async (LoginRequest req, IMediator mediator) =>
         {
@@ -31,10 +32,7 @@ public static class AuthEndpoints
 
         group.MapPost("/logout", async (ClaimsPrincipal user, IMediator mediator) =>
         {
-            var value = user.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? user.FindFirstValue("sub")
-                     ?? throw new UnauthorizedAccessException("user id claim missing");
-            await mediator.Send(new LogoutCommand(Guid.Parse(value)));
+            await mediator.Send(new LogoutCommand(user.GetUserId()));
             return Results.NoContent();
         })
         .RequireAuthorization()

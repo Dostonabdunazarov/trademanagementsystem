@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using MediatR;
+using TradeMS.Api.Infrastructure;
 using TradeMS.Application.Features.Accounts.Commands.CreateAccount;
 using TradeMS.Application.Features.Accounts.Commands.DeleteAccount;
 using TradeMS.Application.Features.Accounts.DTOs;
@@ -18,11 +19,11 @@ public static class AccountEndpoints
 
         group.MapGet("/", async (Guid? branchId, ClaimsPrincipal user, IMediator mediator) =>
         {
-            var companyId = GetCompanyId(user);
-            var result = await mediator.Send(new GetAccountsQuery(companyId, branchId));
+            // Не-админ видит только кассы своего филиала.
+            var result = await mediator.Send(new GetAccountsQuery(user.GetCompanyId(), user.BranchScope(branchId)));
             return Results.Ok(result);
         })
-        .WithSummary("Get all accounts (cash registers and bank accounts) for the company");
+        .WithSummary("Get accounts (cash registers and bank accounts); non-admins see only their branch");
 
         group.MapPost("/", async (CreateAccountRequest req, ClaimsPrincipal user, IMediator mediator) =>
         {

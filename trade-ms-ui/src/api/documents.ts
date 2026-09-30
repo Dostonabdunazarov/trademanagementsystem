@@ -1,7 +1,21 @@
 import { apiClient } from './axios'
 
+export interface DocumentsQuery {
+  type?: string
+  dateFrom?: string
+  dateTo?: string
+  counterpartyId?: string
+  status?: string
+  branchId?: string
+  /** ILIKE по номеру документа и имени контрагента. */
+  search?: string
+  page?: number
+  /** Сервер ограничивает 1..200. */
+  pageSize?: number
+}
+
 export const documentsApi = {
-  getAll: (params?: { type?: string; dateFrom?: string; dateTo?: string; page?: number; pageSize?: number; status?: string; branchId?: string }) =>
+  getAll: (params?: DocumentsQuery) =>
     apiClient.get('/documents', { params }).then((r) => r.data),
 
   getById: (id: number) =>
@@ -15,6 +29,9 @@ export const documentsApi = {
 
   confirm: (id: number) =>
     apiClient.post(`/documents/${id}/confirm`).then((r) => r.data),
+
+  cancel: (id: number) =>
+    apiClient.post(`/documents/${id}/cancel`).then((r) => r.data),
 
   delete: (id: number) =>
     apiClient.delete(`/documents/${id}`).then((r) => r.data),

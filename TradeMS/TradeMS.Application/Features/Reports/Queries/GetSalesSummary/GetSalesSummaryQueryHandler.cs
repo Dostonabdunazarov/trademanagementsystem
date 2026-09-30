@@ -12,27 +12,21 @@ public class GetSalesSummaryQueryHandler(IAppDbContext db)
     public async Task<SalesSummaryDto> Handle(
         GetSalesSummaryQuery request, CancellationToken cancellationToken)
     {
-        var totalDocuments = await db.Documents
-            .CountAsync(d =>
-                d.CompanyId == request.CompanyId &&
-                d.Status == DocumentStatus.Confirmed &&
-                d.Type == DocumentType.Expense &&
-                d.Date >= request.DateFrom &&
-                d.Date <= request.DateTo &&
-                (!request.BranchId.HasValue || d.BranchId == request.BranchId.Value),
-                cancellationToken);
+        var documents = db.Documents.Where(d =>
+            d.CompanyId == request.CompanyId &&
+            d.Status == DocumentStatus.Confirmed &&
+            d.Type == DocumentType.Expense &&
+            d.Date >= request.DateFrom &&
+            d.Date <= request.DateTo &&
+            (!request.BranchId.HasValue || d.BranchId == request.BranchId.Value));
 
-        var totalRevenue = await db.Documents
-            .Where(d =>
-                d.CompanyId == request.CompanyId &&
-                d.Status == DocumentStatus.Confirmed &&
-                d.Type == DocumentType.Expense &&
-                d.Date >= request.DateFrom &&
-                d.Date <= request.DateTo &&
-                (!request.BranchId.HasValue || d.BranchId == request.BranchId.Value))
-            .SumAsync(d => d.TotalAmountBase, cancellationToken);
+        var totalDocuments = await documents.CountAsync(cancellationToken);
+        var totalRevenue = await documents.SumAsync(d => d.TotalAmountBase, cancellationToken);
 
-        var rawLines = await db.DocumentLines
+        // Построчно — выручка в базовой валюте с учётом скидки документа (TotalBase) и
+        // себестоимость на момент проведения (CostBase). Сумма строк равна итогам документа,
+        // поэтому прибыль по строкам сходится с TotalProfit.
+        var lines = await db.DocumentLines
             .Where(l =>
                 l.Document.CompanyId == request.CompanyId &&
                 l.Document.Status == DocumentStatus.Confirmed &&
@@ -40,45 +34,38 @@ public class GetSalesSummaryQueryHandler(IAppDbContext db)
                 l.Document.Date >= request.DateFrom &&
                 l.Document.Date <= request.DateTo &&
                 (!request.BranchId.HasValue || l.Document.BranchId == request.BranchId.Value))
-            .Select(l => new
+            .GroupBy(l => new { l.ProductId, l.Product.Name, l.Product.Sku, l.Product.Unit })
+            .Select(g => new
             {
-                l.ProductId,
-                ProductName = l.Product.Name,
-                Sku = l.Product.Sku,
-                Unit = l.Product.Unit,
-                PriceBuy = l.Product.PriceBuy,
-                l.Quantity,
-                l.Total,
+                g.Key.ProductId,
+                g.Key.Name,
+                g.Key.Sku,
+                g.Key.Unit,
+                Quantity = g.Sum(l => l.Quantity),
+                Revenue = g.Sum(l => l.TotalBase),
+                Cost = g.Sum(l => l.CostBase),
             })
             .ToListAsync(cancellationToken);
 
-        var lines = rawLines
-            .GroupBy(l => new { l.ProductId, l.ProductName, l.Sku, l.Unit, l.PriceBuy })
-            .Select(g =>
-            {
-                var qty = g.Sum(l => l.Quantity);
-                var revenue = g.Sum(l => l.Total);
-                var cost = qty * g.Key.PriceBuy;
-                return new SalesLineDto(
-                    g.Key.ProductId,
-                    g.Key.ProductName,
-                    g.Key.Sku,
-                    g.Key.Unit.ToString(),
-                    qty,
-                    revenue,
-                    cost,
-                    revenue - cost
-                );
-            })
+        var lineDtos = lines
+            .Select(l => new SalesLineDto(
+                l.ProductId,
+                l.Name,
+                l.Sku,
+                l.Unit.ToString(),
+                l.Quantity,
+                l.Revenue,
+                l.Cost,
+                l.Revenue - l.Cost))
             .OrderByDescending(l => l.Revenue)
             .ToList();
 
-        var totalCost = lines.Sum(l => l.Cost);
+        var totalCost = lineDtos.Sum(l => l.Cost);
         var totalProfit = totalRevenue - totalCost;
 
         return new SalesSummaryDto(
             request.DateFrom, request.DateTo,
             totalRevenue, totalCost, totalProfit,
-            totalDocuments, lines);
+            totalDocuments, lineDtos);
     }
 }

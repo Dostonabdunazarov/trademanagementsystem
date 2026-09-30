@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using TradeMS.Application.Common.Exceptions;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Application.Features.Auth.DTOs;
 
@@ -16,9 +17,10 @@ public class RefreshTokenCommandHandler(IAppDbContext db, IJwtService jwtService
             .FirstOrDefaultAsync(u =>
                 u.RefreshToken == tokenHash &&
                 u.RefreshTokenExpiry > DateTime.UtcNow &&
-                u.IsActive,
+                u.IsActive &&
+                u.DeletedAt == null,
                 cancellationToken)
-            ?? throw new UnauthorizedAccessException("Invalid or expired refresh token");
+            ?? throw new AuthenticationFailedException("Invalid or expired refresh token", ErrorCodes.SessionExpired);
 
         var accessToken = jwtService.GenerateAccessToken(user);
         var newRefreshToken = jwtService.GenerateRefreshToken();

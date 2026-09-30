@@ -1,29 +1,16 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { AuthUser, LoginResponse } from '@/api/auth'
 
-interface User {
-  id: string
-  fullName: string
-  email: string
-  role: string
-  companyId: string
-  companyName: string
-  branchId: string | null
-}
-
-interface LoginResult {
-  user: User
-  accessToken: string
-  refreshToken: string
-}
+export const AUTH_STORAGE_KEY = 'auth-storage'
 
 interface AuthStore {
-  user: User | null
+  user: AuthUser | null
   accessToken: string | null
   refreshToken: string | null
-  login: (result: LoginResult) => void
+  /** Сохраняет ответ login/refresh целиком: оба токена и пользователя. */
+  login: (result: Pick<LoginResponse, 'accessToken' | 'refreshToken'> & { user: AuthUser | null }) => void
   logout: () => void
-  setAccessToken: (token: string) => void
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -39,8 +26,10 @@ export const useAuthStore = create<AuthStore>()(
           refreshToken: result.refreshToken,
         }),
       logout: () => set({ user: null, accessToken: null, refreshToken: null }),
-      setAccessToken: (token) => set({ accessToken: token }),
     }),
-    { name: 'auth-storage' }
-  )
+    {
+      name: AUTH_STORAGE_KEY,
+      partialize: (s) => ({ user: s.user, accessToken: s.accessToken, refreshToken: s.refreshToken }),
+    },
+  ),
 )

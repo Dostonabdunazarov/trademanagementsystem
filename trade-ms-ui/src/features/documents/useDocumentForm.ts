@@ -1,18 +1,16 @@
 import { useState, useCallback, useMemo } from 'react'
 import type { DocumentType, DocumentFormState, DocumentLine } from '@/types/document'
+import { documentTotals, lineTotal, money } from '@/utils/money'
+import { todayIso } from '@/utils/format'
 
 function generateId(): string {
   return Math.random().toString(36).slice(2, 10)
 }
 
-function today(): string {
-  return new Date().toISOString().slice(0, 10)
-}
-
 function initialState(type: DocumentType): DocumentFormState {
   return {
     type,
-    date: today(),
+    date: todayIso(),
     counterpartyId: '',
     counterpartyName: '',
     currencyId: '',
@@ -24,16 +22,28 @@ function initialState(type: DocumentType): DocumentFormState {
   }
 }
 
+export interface LoadedLine {
+  productId: string
+  productName: string
+  unit: string
+  quantity: number
+  price: number
+  discountPercent: number
+}
+
 export interface UseDocumentFormReturn {
   state: DocumentFormState
   setDate: (date: string) => void
   setCounterparty: (id: string, name: string) => void
   setCurrency: (id: string, code: string, rate: number) => void
+  setExchangeRate: (rate: number) => void
   setNote: (note: string) => void
   setDiscount: (percent: number) => void
   addLine: (product: { id: string; name: string; unit: string }, qty: number, price: number, discount?: number) => void
   updateLine: (id: string, field: 'quantity' | 'price' | 'discountPercent', value: number) => void
   removeLine: (id: string) => void
+  /** Заполняет форму документом целиком (строки не склеиваются по товару). */
+  load: (data: Omit<DocumentFormState, 'type' | 'lines'> & { lines: LoadedLine[] }) => void
   clearForm: () => void
   subtotal: number
   discountAmount: number
@@ -54,6 +64,10 @@ export function useDocumentForm(type: DocumentType): UseDocumentFormReturn {
 
   const setCurrency = useCallback((id: string, code: string, rate: number) => {
     setState((s) => ({ ...s, currencyId: id, currencyCode: code, exchangeRate: rate }))
+  }, [])
+
+  const setExchangeRate = useCallback((rate: number) => {
+    setState((s) => ({ ...s, exchangeRate: rate }))
   }, [])
 
   const setNote = useCallback((note: string) => {
@@ -79,12 +93,10 @@ export function useDocumentForm(type: DocumentType): UseDocumentFormReturn {
             lines: s.lines.map((l) => {
               if (l.productId !== product.id) return l
               const newQty = l.quantity + qty
-              const discFactor = 1 - l.discountPercent / 100
-              return { ...l, quantity: newQty, total: newQty * l.price * discFactor }
+              return { ...l, quantity: newQty, total: lineTotal(newQty, l.price, l.discountPercent) }
             }),
           }
         }
-        const discFactor = 1 - discount / 100
         const newLine: DocumentLine = {
           id: generateId(),
           productId: product.id,
@@ -93,7 +105,7 @@ export function useDocumentForm(type: DocumentType): UseDocumentFormReturn {
           quantity: qty,
           price,
           discountPercent: discount,
-          total: qty * price * discFactor,
+          total: lineTotal(qty, price, discount),
         }
         return { ...s, lines: [...s.lines, newLine] }
       })
@@ -108,8 +120,7 @@ export function useDocumentForm(type: DocumentType): UseDocumentFormReturn {
         lines: s.lines.map((l) => {
           if (l.id !== id) return l
           const updated = { ...l, [field]: value }
-          const discFactor = 1 - updated.discountPercent / 100
-          return { ...updated, total: updated.quantity * updated.price * discFactor }
+          return { ...updated, total: lineTotal(updated.quantity, updated.price, updated.discountPercent) }
         }),
       }))
     },
@@ -120,28 +131,30 @@ export function useDocumentForm(type: DocumentType): UseDocumentFormReturn {
     setState((s) => ({ ...s, lines: s.lines.filter((l) => l.id !== id) }))
   }, [])
 
+  const load = useCallback<UseDocumentFormReturn['load']>((data) => {
+    setState({
+      ...data,
+      type,
+      lines: data.lines.map((l) => ({
+        ...l,
+        id: generateId(),
+        total: lineTotal(l.quantity, l.price, l.discountPercent),
+      })),
+    })
+  }, [type])
+
   const clearForm = useCallback(() => {
     setState(initialState(type))
   }, [type])
 
-  const subtotal = useMemo(
-    () => state.lines.reduce((acc, l) => acc + l.total, 0),
-    [state.lines],
-  )
-
-  const discountAmount = useMemo(
-    () => subtotal * (state.discountPercent / 100),
-    [subtotal, state.discountPercent],
-  )
-
-  const totalWithDiscount = useMemo(
-    () => subtotal - discountAmount,
-    [subtotal, discountAmount],
+  const totals = useMemo(
+    () => documentTotals(state.lines.map((l) => l.total), state.discountPercent),
+    [state.lines, state.discountPercent],
   )
 
   const totalInBase = useMemo(
-    () => totalWithDiscount * state.exchangeRate,
-    [totalWithDiscount, state.exchangeRate],
+    () => money(totals.total * state.exchangeRate),
+    [totals.total, state.exchangeRate],
   )
 
   return {
@@ -149,15 +162,17 @@ export function useDocumentForm(type: DocumentType): UseDocumentFormReturn {
     setDate,
     setCounterparty,
     setCurrency,
+    setExchangeRate,
     setNote,
     setDiscount,
     addLine,
     updateLine,
     removeLine,
+    load,
     clearForm,
-    subtotal,
-    discountAmount,
-    totalWithDiscount,
+    subtotal: totals.subtotal,
+    discountAmount: totals.discountAmount,
+    totalWithDiscount: totals.total,
     totalInBase,
   }
 }

@@ -11,16 +11,23 @@ namespace TradeMS.IntegrationTests.Infrastructure;
 
 public class TradeApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {
-    private readonly PostgreSqlContainer _db = new PostgreSqlBuilder()
-        .WithImage("postgres:16-alpine")
-        .WithDatabase("tradems_test")
-        .WithUsername("test")
-        .WithPassword("test")
-        .Build();
+    // Без Docker можно указать готовую пустую тестовую БД:
+    //   TRADEMS_TEST_DB="Host=127.0.0.1;Port=6543;Database=tradems_test;Username=postgres"
+    // Она будет очищаться Respawn'ом между тестами — не указывайте рабочую базу.
+    private static readonly string? ExternalDb = Environment.GetEnvironmentVariable("TRADEMS_TEST_DB");
+
+    private readonly PostgreSqlContainer? _db = ExternalDb is null
+        ? new PostgreSqlBuilder()
+            .WithImage("postgres:16-alpine")
+            .WithDatabase("tradems_test")
+            .WithUsername("test")
+            .WithPassword("test")
+            .Build()
+        : null;
 
     private Respawner _respawner = null!;
     private NpgsqlConnection _respawnConnection = null!;
-    public string ConnectionString => _db.GetConnectionString();
+    public string ConnectionString => ExternalDb ?? _db!.GetConnectionString();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -38,11 +45,14 @@ public class TradeApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         builder.UseSetting("Jwt:Secret", "test-secret-key-32-chars-minimum!!");
         builder.UseSetting("Jwt:Issuer", "TradeMS.Test");
         builder.UseSetting("Jwt:Audience", "TradeMS.Test");
+        // Тесты логинятся сотни раз с одного адреса — лимит /auth здесь не проверяем.
+        builder.UseSetting("RateLimit:AuthPerMinute", "100000");
     }
 
     public async Task InitializeAsync()
     {
-        await _db.StartAsync();
+        if (_db is not null)
+            await _db.StartAsync();
 
         using var scope = Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -54,7 +64,9 @@ public class TradeApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
         _respawner = await Respawner.CreateAsync(_respawnConnection, new RespawnerOptions
         {
             DbAdapter = DbAdapter.Postgres,
-            SchemasToInclude = ["public"]
+            SchemasToInclude = ["public"],
+            // История миграций — не данные: без неё повторный прогон на той же БД падает на MigrateAsync.
+            TablesToIgnore = ["__EFMigrationsHistory"]
         });
     }
 
@@ -66,6 +78,7 @@ public class TradeApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     public new async Task DisposeAsync()
     {
         await _respawnConnection.DisposeAsync();
-        await _db.DisposeAsync();
+        if (_db is not null)
+            await _db.DisposeAsync();
     }
 }

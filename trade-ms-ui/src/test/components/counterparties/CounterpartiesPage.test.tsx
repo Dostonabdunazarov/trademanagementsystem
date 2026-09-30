@@ -1,9 +1,10 @@
-import { describe, it, expect, vi } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { server } from '../../msw/server'
 import { renderWithProviders } from '../../utils/renderWithProviders'
+import { loginAs } from '../../utils/auth'
 import { CounterpartiesPage } from '@/features/counterparties/CounterpartiesPage'
 
 vi.mock('react-router-dom', async () => {
@@ -14,6 +15,9 @@ vi.mock('react-router-dom', async () => {
 vi.stubGlobal('confirm', () => true)
 
 describe('CounterpartiesPage', () => {
+  // Кнопки создания/правки/удаления видны только Admin.
+  beforeEach(() => loginAs('Admin'))
+
   it('отображает список контрагентов', async () => {
     renderWithProviders(<CounterpartiesPage />)
     await waitFor(() => {
@@ -112,5 +116,32 @@ describe('CounterpartiesPage', () => {
     expect(screen.getByText(/^Дебиторы:/)).toBeInTheDocument()
     expect(screen.getByText(/^Кредиторы:/)).toBeInTheDocument()
     expect(screen.getByText(/^Нулевые:/)).toBeInTheDocument()
+  })
+
+  it('правка контрагента сохраняет адрес (PUT не затирает поле)', async () => {
+    let putBody: Record<string, unknown> | null = null
+    server.use(
+      http.put('http://localhost:5000/api/counterparties/:id', async ({ request }) => {
+        putBody = await request.json() as Record<string, unknown>
+        return HttpResponse.json({ id: 'cp-1', ...putBody })
+      }),
+    )
+    const user = userEvent.setup()
+    renderWithProviders(<CounterpartiesPage />)
+    await waitFor(() => expect(screen.getByText('ООО Альфа')).toBeInTheDocument())
+
+    await user.click(screen.getAllByRole('button', { name: 'Редактировать' })[0])
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByDisplayValue('Ташкент, ул. Навои, 5')).toBeInTheDocument()
+
+    await user.click(within(dialog).getByRole('button', { name: 'Сохранить' }))
+    await waitFor(() => expect(putBody).not.toBeNull())
+    expect(putBody).toMatchObject({
+      name: 'ООО Альфа',
+      type: 'Customer',
+      phone: '+998901234567',
+      address: 'Ташкент, ул. Навои, 5',
+      creditLimit: 1000000,
+    })
   })
 })

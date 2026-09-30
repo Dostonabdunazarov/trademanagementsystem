@@ -1,9 +1,10 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { server } from '../../msw/server'
 import { renderWithProviders } from '../../utils/renderWithProviders'
+import { loginAs } from '../../utils/auth'
 import { ProductsPage } from '@/features/products/ProductsPage'
 
 const mockNavigate = vi.fn()
@@ -13,6 +14,9 @@ vi.mock('react-router-dom', async () => {
 })
 
 describe('ProductsPage', () => {
+  // Кнопки создания/правки/удаления видны только Admin.
+  beforeEach(() => loginAs('Admin'))
+
   it('отображает список продуктов', async () => {
     renderWithProviders(<ProductsPage />)
     await waitFor(() => {
@@ -90,5 +94,13 @@ describe('ProductsPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/нет товаров/i)).toBeInTheDocument()
     })
+  })
+
+  it('не показывает админские кнопки кассиру', async () => {
+    loginAs('Cashier')
+    renderWithProviders(<ProductsPage />)
+    await waitFor(() => expect(screen.getByText('Ноутбук')).toBeInTheDocument())
+    expect(screen.queryByRole('button', { name: /новый товар/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /удалить/i })).not.toBeInTheDocument()
   })
 })

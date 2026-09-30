@@ -16,10 +16,17 @@ public class GetExchangeRatesQueryHandler(IAppDbContext db)
 
         if (request.Date.HasValue)
         {
+            // Курс «на дату» — последний на эту дату или раньше по каждой паре: так же сервер
+            // выбирает курс при проведении, и форма документа показывает ту же сумму.
+            var date = request.Date.Value;
             query = db.ExchangeRates
                 .Include(r => r.FromCurrency)
                 .Include(r => r.ToCurrency)
-                .Where(r => r.Date == request.Date.Value);
+                .Where(r => r.Date == db.ExchangeRates
+                    .Where(x => x.FromCurrencyId == r.FromCurrencyId &&
+                                x.ToCurrencyId   == r.ToCurrencyId &&
+                                x.Date <= date)
+                    .Max(x => (DateOnly?)x.Date));
         }
         else
         {

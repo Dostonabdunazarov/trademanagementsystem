@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Domain.Entities;
+using TradeMS.Domain.Enums;
 
 namespace TradeMS.Infrastructure.Persistence;
 
@@ -21,9 +22,26 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    public DbSet<DocumentCounter> DocumentCounters => Set<DocumentCounter>();
 
     public Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
         => Database.BeginTransactionAsync(cancellationToken);
+
+    public void ClearChangeTracker() => ChangeTracker.Clear();
+
+    public async Task<int> NextDocumentNumberAsync(
+        Guid companyId, DocumentType type, int year, CancellationToken cancellationToken = default)
+    {
+        var typeName = type.ToString();
+        var next = await Database.SqlQuery<int>($"""
+            INSERT INTO document_counters ("CompanyId", "Type", "Year", "LastNumber")
+            VALUES ({companyId}, {typeName}, {year}, 1)
+            ON CONFLICT ("CompanyId", "Type", "Year")
+            DO UPDATE SET "LastNumber" = document_counters."LastNumber" + 1
+            RETURNING "LastNumber" AS "Value"
+            """).ToListAsync(cancellationToken);
+        return next[0];
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -84,6 +102,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.Code).HasMaxLength(3).IsRequired();
             e.Property(x => x.Name).HasMaxLength(50).IsRequired();
             e.HasIndex(x => x.Code).IsUnique();
+            // Базовая валюта может быть только одна.
+            e.HasIndex(x => x.IsBase).IsUnique().HasFilter("\"IsBase\"");
         });
 
         modelBuilder.Entity<ExchangeRate>(e =>
@@ -154,6 +174,17 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.HasOne(x => x.Currency).WithMany(x => x.Documents).HasForeignKey(x => x.CurrencyId);
             e.HasOne(x => x.Creator).WithMany().HasForeignKey(x => x.CreatedBy).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Account).WithMany().HasForeignKey(x => x.AccountId).IsRequired(false);
+            // Номер уникален в компании (префикс уже кодирует тип документа).
+            e.HasIndex(x => new { x.CompanyId, x.Number }).IsUnique();
+            // Optimistic concurrency: правка черновика и проведение не должны перетирать друг друга.
+            e.Property<uint>("xmin").IsRowVersion();
+        });
+
+        modelBuilder.Entity<DocumentCounter>(e =>
+        {
+            e.ToTable("document_counters");
+            e.HasKey(x => new { x.CompanyId, x.Type, x.Year });
+            e.Property(x => x.Type).HasMaxLength(30);
         });
 
         modelBuilder.Entity<DocumentLine>(e =>
@@ -166,6 +197,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             e.Property(x => x.DiscountPercent).HasPrecision(5, 2);
             e.Property(x => x.DiscountPrice).HasPrecision(18, 2);
             e.Property(x => x.Total).HasPrecision(18, 2);
+            e.Property(x => x.TotalBase).HasPrecision(18, 2);
+            e.Property(x => x.CostBase).HasPrecision(18, 2);
             e.HasOne(x => x.Document).WithMany(x => x.Lines).HasForeignKey(x => x.DocumentId);
             e.HasOne(x => x.Product).WithMany(x => x.DocumentLines).HasForeignKey(x => x.ProductId);
         });

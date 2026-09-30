@@ -11,7 +11,7 @@ import {
 } from 'recharts'
 import type { TooltipContentProps } from 'recharts'
 import { cn } from '@/lib/utils'
-import { formatCurrency } from '@/utils/format'
+import { formatCompact, formatCurrency } from '@/utils/format'
 import type { MonthlySales } from '@/api/hooks/useReports'
 import { TOOLTIP_WRAPPER } from './chartStyles'
 
@@ -19,13 +19,8 @@ import { TOOLTIP_WRAPPER } from './chartStyles'
 const REVENUE_COLOR = 'var(--chart-revenue)'
 const PROFIT_COLOR = 'var(--chart-profit)'
 
-/** Компактный формат оси Y: 57 000 000 → «57 млн» */
-function formatAxis(value: number): string {
-  if (value === 0) return '0'
-  if (value >= 1_000_000) return `${(value / 1_000_000).toLocaleString('ru-RU', { maximumFractionDigits: 1 })} млн`
-  if (value >= 1_000) return `${Math.round(value / 1_000)} тыс`
-  return value.toLocaleString('ru-RU')
-}
+/** Компактный формат оси Y: 57 000 000 → «57 млн» (на языке интерфейса). */
+const formatAxis = formatCompact
 
 function renderTooltip(
   { active, payload, label }: TooltipContentProps,

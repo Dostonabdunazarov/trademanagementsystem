@@ -1,3 +1,7 @@
+using System.Net;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Api.Endpoints;
 using TradeMS.Api.Infrastructure;
@@ -29,6 +33,35 @@ builder.Services.ConfigureHttpJsonOptions(o =>
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddHealthChecks();
+
+// Реальный IP клиента: запрос идёт Caddy → nginx (tradems-ui) → API, оба прокси в docker-сетях.
+// Доверяем только частным сетям и разбираем ровно два прокси-хопа, поэтому поддельный
+// X-Forwarded-For от клиента не может подменить адрес (нужен для rate limiting и аудита).
+builder.Services.Configure<ForwardedHeadersOptions>(o =>
+{
+    o.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    o.ForwardLimit = 2;
+    o.KnownProxies.Clear();
+    o.KnownNetworks.Clear();
+    o.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("10.0.0.0"), 8));
+    o.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("172.16.0.0"), 12));
+    o.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("192.168.0.0"), 16));
+    o.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Loopback, 8));
+});
+
+// Ограничение перебора паролей и refresh-токенов: окно на IP.
+builder.Services.AddRateLimiter(o =>
+{
+    o.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    o.AddPolicy("auth", ctx => RateLimitPartition.GetFixedWindowLimiter(
+        ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = builder.Configuration.GetValue("RateLimit:AuthPerMinute", 20),
+            Window = TimeSpan.FromMinutes(1),
+            QueueLimit = 0,
+        }));
+});
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options =>
 {
@@ -49,11 +82,18 @@ using (var scope = app.Services.CreateScope())
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await db.Database.MigrateAsync();
 
-    var adminEmail = builder.Configuration["Seed:AdminEmail"] ?? "admin@tradems.com";
-    var adminPassword = builder.Configuration["Seed:AdminPassword"]
-        ?? throw new InvalidOperationException("Seed:AdminPassword is not configured.");
+    // docker compose подставляет пустую строку для незаданной переменной, поэтому
+    // проверяем IsNullOrWhiteSpace, а не только null.
+    var adminEmail = builder.Configuration["Seed:AdminEmail"];
+    if (string.IsNullOrWhiteSpace(adminEmail))
+        adminEmail = "admin@tradems.com";
+    adminEmail = adminEmail.Trim().ToLowerInvariant();
 
-    if (!db.Users.Any(u => u.Email == adminEmail))
+    var adminPassword = builder.Configuration["Seed:AdminPassword"];
+    if (string.IsNullOrWhiteSpace(adminPassword) || adminPassword.Length < 8)
+        throw new InvalidOperationException("Seed:AdminPassword is not configured or is shorter than 8 characters.");
+
+    if (!db.Users.Any(u => u.Email.ToLower() == adminEmail))
     {
         var companyId = Guid.NewGuid();
         db.Companies.Add(new TradeMS.Domain.Entities.Company
@@ -80,8 +120,10 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
+app.UseForwardedHeaders();
 app.UseCors();
 app.UseExceptionHandler();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

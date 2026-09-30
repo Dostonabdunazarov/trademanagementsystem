@@ -1,5 +1,7 @@
 using System.Security.Claims;
 using MediatR;
+using TradeMS.Api.Infrastructure;
+using TradeMS.Application.Common.Time;
 using TradeMS.Application.Features.Reports.Queries.GetCounterpartyBalance;
 using TradeMS.Application.Features.Reports.Queries.GetDashboardSummary;
 using TradeMS.Application.Features.Reports.Queries.GetSalesSummary;
@@ -23,10 +25,10 @@ public static class ReportEndpoints
             ClaimsPrincipal user,
             IMediator mediator) =>
         {
-            var companyId = GetCompanyId(user);
-            var from = dateFrom ?? DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-30));
-            var to   = dateTo   ?? DateOnly.FromDateTime(DateTime.UtcNow);
-            var result = await mediator.Send(new GetSalesSummaryQuery(companyId, from, to, branchId));
+            var companyId = user.GetCompanyId();
+            var to   = dateTo   ?? BusinessClock.Today;
+            var from = dateFrom ?? to.AddDays(-30);
+            var result = await mediator.Send(new GetSalesSummaryQuery(companyId, from, to, user.BranchScope(branchId)));
             return Results.Ok(result);
         })
         .WithSummary("Sales summary: confirmed Expense documents in date range, grouped by product");
@@ -36,8 +38,8 @@ public static class ReportEndpoints
             ClaimsPrincipal user,
             IMediator mediator) =>
         {
-            var companyId = GetCompanyId(user);
-            var result = await mediator.Send(new GetStockBalanceQuery(companyId, branchId));
+            var companyId = user.GetCompanyId();
+            var result = await mediator.Send(new GetStockBalanceQuery(companyId, user.BranchScope(branchId)));
             return Results.Ok(result);
         })
         .WithSummary("Stock balance per product (optionally filtered by branchId)");
@@ -49,9 +51,9 @@ public static class ReportEndpoints
             ClaimsPrincipal user,
             IMediator mediator) =>
         {
-            var companyId = GetCompanyId(user);
+            var companyId = user.GetCompanyId();
             var result = await mediator.Send(
-                new GetStockForecastQuery(companyId, branchId, days ?? 30, limit ?? 20));
+                new GetStockForecastQuery(companyId, user.BranchScope(branchId), days ?? 30, limit ?? 20));
             return Results.Ok(result);
         })
         .WithSummary("Stock run-out forecast: average daily sales over the last N days and days of stock left");
@@ -61,7 +63,7 @@ public static class ReportEndpoints
             ClaimsPrincipal user,
             IMediator mediator) =>
         {
-            var companyId = GetCompanyId(user);
+            var companyId = user.GetCompanyId();
             var result = await mediator.Send(new GetCounterpartyBalanceQuery(companyId, type));
             return Results.Ok(result);
         })
@@ -74,20 +76,13 @@ public static class ReportEndpoints
             ClaimsPrincipal user,
             IMediator mediator) =>
         {
-            var companyId = GetCompanyId(user);
+            var companyId = user.GetCompanyId();
             var result = await mediator.Send(
-                new GetDashboardSummaryQuery(companyId, branchId, dateFrom, dateTo));
+                new GetDashboardSummaryQuery(companyId, user.BranchScope(branchId), dateFrom, dateTo));
             return Results.Ok(result);
         })
         .WithSummary("Dashboard summary: revenue/profit for selected period (default current month), debtor debt, stock count, 12-month chart data");
 
         return app;
-    }
-
-    private static Guid GetCompanyId(ClaimsPrincipal user)
-    {
-        var value = user.FindFirstValue("company_id")
-            ?? throw new UnauthorizedAccessException("company_id claim missing");
-        return Guid.Parse(value);
     }
 }

@@ -1,8 +1,7 @@
-﻿import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { format } from 'date-fns'
-import { ru } from 'date-fns/locale'
-import { uz } from 'date-fns/locale'
+import { format, parseISO } from 'date-fns'
+import { ru, uz } from 'date-fns/locale'
 import {
   Plus,
   Search,
@@ -14,18 +13,27 @@ import {
   Clock,
   XCircle,
   RefreshCw,
+  Ban,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 import { getApiErrorMessage } from '@/lib/apiError'
 import { useDocuments } from '@/api/hooks/useDocuments'
-import { useDeleteDocument, useConfirmDocument } from '@/api/hooks/useDocumentMutations'
+import { useDeleteDocument, useConfirmDocument, useCancelDocument } from '@/api/hooks/useDocumentMutations'
+import type { DocumentListItem } from '@/api/hooks/useDocuments'
 import { useUiStore } from '@/store/ui.store'
+import { useAuthStore } from '@/store/auth.store'
+import { useDebouncedValue } from '@/lib/useDebouncedValue'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DatePicker } from '@/components/ui/date-picker'
 
 const PAGE_SIZE = 100
+
+/** Кнопки действий строки: мышью — при наведении, на тач-экранах и с клавиатуры — всегда. */
+const ROW_ACTIONS_CLS =
+  'flex items-center gap-1 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 [@media(hover:none)]:opacity-100'
 
 const STATUS_ICONS: Record<string, React.ElementType> = {
   Draft: Clock,
@@ -65,18 +73,28 @@ export interface DocumentsListPageProps {
 export function DocumentsListPage({ type, title, createPath }: DocumentsListPageProps) {
   const { t } = useTranslation()
   const { language, activeBranch } = useUiStore()
+  const role = useAuthStore((s) => s.user?.role)
+  const canCancel = role === 'Admin' || role === 'Manager'
   const dateLocale = language === 'uz' ? uz : ru
   const navigate = useNavigate()
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search.trim(), 300)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [showFilters, setShowFilters] = useState(false)
   const [confirmingId, setConfirmingId] = useState<number | null>(null)
-  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<DocumentListItem | null>(null)
+  const [pendingCancel, setPendingCancel] = useState<DocumentListItem | null>(null)
 
-  useEffect(() => { setPage(1) }, [activeBranch?.id])
+  // Смена филиала или поиска возвращает на первую страницу.
+  const [pageKey, setPageKey] = useState(`${activeBranch?.id ?? ''}|${debouncedSearch}`)
+  const currentKey = `${activeBranch?.id ?? ''}|${debouncedSearch}`
+  if (pageKey !== currentKey) {
+    setPageKey(currentKey)
+    setPage(1)
+  }
 
   const { data, isFetching } = useDocuments({
     type,
@@ -84,39 +102,43 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
     dateTo: dateTo || undefined,
     status: statusFilter || undefined,
     branchId: activeBranch?.id,
+    // Поиск по номеру и контрагенту — на сервере, по всем страницам.
+    search: debouncedSearch || undefined,
     page,
     pageSize: PAGE_SIZE,
   })
 
   const deleteMut = useDeleteDocument()
   const confirmMut = useConfirmDocument()
+  const cancelMut = useCancelDocument()
 
   const items = data?.items ?? []
   const totalCount = data?.totalCount ?? 0
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
 
-  const filtered = search.trim()
-    ? items.filter(
-        (d) =>
-          d.number.toLowerCase().includes(search.toLowerCase()) ||
-          (d.counterpartyName ?? '').toLowerCase().includes(search.toLowerCase()),
-      )
-    : items
+  const handleDelete = useCallback(async () => {
+    if (!pendingDelete) return
+    try {
+      await deleteMut.mutateAsync(pendingDelete.id)
+      toast.success(t('documents.deleted'))
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, t))
+    } finally {
+      setPendingDelete(null)
+    }
+  }, [deleteMut, pendingDelete, t])
 
-  const handleDelete = useCallback(
-    async (id: number) => {
-      setDeletingId(id)
-      try {
-        await deleteMut.mutateAsync(id)
-        toast.success(t('common.success'))
-      } catch (err) {
-        toast.error(getApiErrorMessage(err, t))
-      } finally {
-        setDeletingId(null)
-      }
-    },
-    [deleteMut, t],
-  )
+  const handleCancel = useCallback(async () => {
+    if (!pendingCancel) return
+    try {
+      await cancelMut.mutateAsync(pendingCancel.id)
+      toast.success(t('documents.cancelled'))
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, t))
+    } finally {
+      setPendingCancel(null)
+    }
+  }, [cancelMut, pendingCancel, t])
 
   const handleConfirm = useCallback(
     async (id: number) => {
@@ -156,12 +178,15 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--text-muted))] pointer-events-none" />
           <input
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-            placeholder={t('common.search') + '...'}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder={t('documents.searchPlaceholder')}
+            aria-label={t('common.search')}
             className="w-full rounded-lg border border-border bg-secondary pl-9 pr-3 py-2 text-sm text-[hsl(var(--text-primary))] placeholder:text-[hsl(var(--text-muted))] focus:outline-none focus:ring-2 focus:ring-brand-500/50 transition-shadow"
           />
         </div>
         <button
+          type="button"
+          aria-expanded={showFilters}
           onClick={() => setShowFilters((v) => !v)}
           className={cn(
             'inline-flex items-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2 text-sm text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))] hover:bg-[hsl(var(--surface-2))] transition-colors',
@@ -254,25 +279,29 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
             </tr>
           </thead>
           <tbody className="divide-y divide-[hsl(var(--border))]">
-            {filtered.length === 0 && (
+            {items.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-12 text-center text-[hsl(var(--text-muted))]">
                   {isFetching ? t('common.loading') : t('documents.noDocuments')}
                 </td>
               </tr>
             )}
-            {filtered.map((doc) => (
+            {items.map((doc) => (
               <tr
                 key={doc.id}
-                className="group cursor-pointer hover:bg-[hsl(var(--surface-2))] transition-colors"
+                tabIndex={0}
+                className="group cursor-pointer hover:bg-[hsl(var(--surface-2))] focus-visible:bg-[hsl(var(--surface-2))] focus-visible:outline-none transition-colors"
                 onClick={() => navigate(`${createPath}?id=${doc.id}`)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.target === e.currentTarget) navigate(`${createPath}?id=${doc.id}`)
+                }}
               >
                 <td className="px-4 py-3 font-mono text-xs text-brand-400 font-medium">
                   {doc.number}
                 </td>
                 <td className="px-4 py-3 text-[hsl(var(--text-muted))] whitespace-nowrap">
                   {doc.date
-                    ? format(new Date(doc.date), 'dd MMM yyyy', { locale: dateLocale })
+                    ? format(parseISO(doc.date), 'dd MMM yyyy', { locale: dateLocale })
                     : '—'}
                 </td>
                 <td className="px-4 py-3 text-[hsl(var(--text-primary))] max-w-[200px] truncate">
@@ -291,26 +320,40 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
                   className="px-4 py-3"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className={ROW_ACTIONS_CLS}>
                     {doc.status === 'Draft' && (
                       <>
                         <button
+                          type="button"
                           onClick={() => handleConfirm(doc.id)}
                           disabled={confirmingId === doc.id}
                           title={t('common.confirm')}
-                          className="rounded-md p-1.5 text-emerald-500 hover:bg-emerald-500/10 transition-colors disabled:opacity-40"
+                          aria-label={t('documents.confirmDocument', { number: doc.number })}
+                          className="rounded-md p-1.5 text-emerald-500 hover:bg-emerald-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50 transition-colors disabled:opacity-40"
                         >
                           <CheckCircle className="h-4 w-4" />
                         </button>
                         <button
-                          onClick={() => handleDelete(doc.id)}
-                          disabled={deletingId === doc.id}
+                          type="button"
+                          onClick={() => setPendingDelete(doc)}
                           title={t('common.delete')}
-                          className="rounded-md p-1.5 text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                          aria-label={t('documents.deleteDocument', { number: doc.number })}
+                          className="rounded-md p-1.5 text-red-500 hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 transition-colors disabled:opacity-40"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
                       </>
+                    )}
+                    {doc.status === 'Confirmed' && canCancel && (
+                      <button
+                        type="button"
+                        onClick={() => setPendingCancel(doc)}
+                        title={t('documents.cancelDocument')}
+                        aria-label={t('documents.cancelDocumentTitle', { number: doc.number })}
+                        className="rounded-md p-1.5 text-red-500 hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 transition-colors disabled:opacity-40"
+                      >
+                        <Ban className="h-4 w-4" />
+                      </button>
                     )}
                   </div>
                 </td>
@@ -328,6 +371,8 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
           </p>
           <div className="flex items-center gap-1">
             <button
+              type="button"
+              aria-label={t('documents.prevPage')}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
               className="rounded-md p-1.5 text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))] transition-colors disabled:opacity-30"
@@ -339,7 +384,9 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
               const n = start + i
               return (
                 <button
+                  type="button"
                   key={n}
+                  aria-current={n === page ? 'page' : undefined}
                   onClick={() => setPage(n)}
                   className={cn(
                     'h-7 min-w-[28px] rounded-md px-1 text-xs font-medium transition-colors',
@@ -353,6 +400,8 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
               )
             })}
             <button
+              type="button"
+              aria-label={t('documents.nextPage')}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
               disabled={page === totalPages}
               className="rounded-md p-1.5 text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))] transition-colors disabled:opacity-30"
@@ -362,6 +411,25 @@ export function DocumentsListPage({ type, title, createPath }: DocumentsListPage
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={pendingDelete != null}
+        title={t('documents.deleteDocument', { number: pendingDelete?.number ?? '' })}
+        description={t('documents.deleteConfirm')}
+        confirmLabel={t('common.delete')}
+        busy={deleteMut.isPending}
+        onConfirm={handleDelete}
+        onClose={() => setPendingDelete(null)}
+      />
+      <ConfirmDialog
+        open={pendingCancel != null}
+        title={t('documents.cancelDocumentTitle', { number: pendingCancel?.number ?? '' })}
+        description={t('documents.cancelDocumentDesc')}
+        confirmLabel={t('documents.cancelDocument')}
+        busy={cancelMut.isPending}
+        onConfirm={handleCancel}
+        onClose={() => setPendingCancel(null)}
+      />
     </div>
   )
 }

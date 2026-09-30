@@ -19,4 +19,12 @@ export default defineConfig([
       globals: globals.browser,
     },
   },
+  {
+    // shadcn/ui экспортирует варианты (buttonVariants, badgeVariants) рядом с компонентом,
+    // а тестовые утилиты — не модули приложения: fast refresh к ним не относится.
+    files: ['src/components/ui/**/*.{ts,tsx}', 'src/test/**/*.{ts,tsx}'],
+    rules: {
+      'react-refresh/only-export-components': 'off',
+    },
+  },
 ])

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using TradeMS.Application.Common.Exceptions;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Application.Features.Users.DTOs;
 using TradeMS.Domain.Entities;
@@ -13,10 +14,14 @@ public class CreateUserCommandHandler(IAppDbContext db, IAuditLogger auditLogger
     public async Task<UserDto> Handle(
         CreateUserCommand request, CancellationToken cancellationToken)
     {
+        var email = UserRules.NormalizeEmail(request.Email);
         var emailExists = await db.Users
-            .AnyAsync(u => u.Email == request.Email, cancellationToken);
+            .AnyAsync(u => u.Email.ToLower() == email, cancellationToken);
         if (emailExists)
-            throw new InvalidOperationException($"Email '{request.Email}' is already in use");
+            throw new BusinessException(ErrorCodes.EmailInUse, $"Email '{email}' is already in use",
+                new Dictionary<string, object?> { ["email"] = email });
+
+        await UserRules.EnsureBranchAsync(db, request.CompanyId, request.Role, request.BranchId, cancellationToken);
 
         var user = new User
         {
@@ -24,7 +29,7 @@ public class CreateUserCommandHandler(IAppDbContext db, IAuditLogger auditLogger
             CompanyId = request.CompanyId,
             BranchId = request.BranchId,
             FullName = request.FullName,
-            Email = request.Email,
+            Email = email,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             Role = request.Role,
             IsActive = true,

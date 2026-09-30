@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Application.Features.Counterparties.DTOs;
 using TradeMS.Application.Features.Products.DTOs;
+using TradeMS.Domain.Enums;
 
 namespace TradeMS.Application.Features.Counterparties.Queries.GetCounterparties;
 
@@ -15,8 +16,9 @@ public class GetCounterpartiesQueryHandler(IAppDbContext db)
         var query = db.Counterparties
             .Where(c => c.CompanyId == request.CompanyId && c.DeletedAt == null);
 
+        // «Both» — и клиент, и поставщик: попадает в оба фильтра.
         if (request.Type.HasValue)
-            query = query.Where(c => c.Type == request.Type.Value);
+            query = query.Where(c => c.Type == request.Type.Value || c.Type == CounterpartyType.Both);
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {

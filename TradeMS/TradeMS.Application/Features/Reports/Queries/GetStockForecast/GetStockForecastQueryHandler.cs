@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
+using TradeMS.Application.Common.Time;
 using TradeMS.Application.Features.Reports.DTOs;
 using TradeMS.Domain.Enums;
 
@@ -20,7 +21,7 @@ public class GetStockForecastQueryHandler(IAppDbContext db)
     {
         var days = Math.Clamp(request.LookbackDays, 7, 180);
         var limit = Math.Clamp(request.Limit, 1, 100);
-        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var today = BusinessClock.Today;
         var since = today.AddDays(-(days - 1));
 
         var sold = await db.DocumentLines

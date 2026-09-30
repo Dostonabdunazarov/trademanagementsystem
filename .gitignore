@@ -59,8 +59,12 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 
-# Claude Code / AI tooling
-.claude/
+# Claude Code / AI tooling — shared config (settings.json, rules/, skills/, agents/) is tracked
+.claude/*
+!.claude/settings.json
+!.claude/rules/
+!.claude/skills/
+!.claude/agents/
 .agents/
 skills-lock.json
 synthetic-orbiting-sutton.md

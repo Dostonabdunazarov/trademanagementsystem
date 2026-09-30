@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
+using TradeMS.Application.Common.Time;
 using TradeMS.Application.Features.Reports.DTOs;
 
 namespace TradeMS.Application.Features.Reports.Queries.GetStockBalance;
@@ -32,8 +33,13 @@ public class GetStockBalanceQueryHandler(IAppDbContext db)
                 s.Quantity,
                 s.Product.PriceSell,
                 s.Product.PriceBuy,
+                s.Product.CurrencyId,
             })
             .ToListAsync(cancellationToken);
+
+        // Цены товаров — в их валюте; стоимость остатков считаем в базовой по текущему курсу,
+        // иначе суммы в USD и UZS складывались бы как одно число.
+        var rates = await ReportRates.LoadAsync(db, raw.Select(r => r.CurrencyId), BusinessClock.Today, cancellationToken);
 
         var lines = raw.Select(s => new StockBalanceLineDto(
             s.ProductId,
@@ -46,8 +52,8 @@ public class GetStockBalanceQueryHandler(IAppDbContext db)
             s.Quantity,
             s.PriceSell,
             s.PriceBuy,
-            s.Quantity * s.PriceSell,
-            s.Quantity * s.PriceBuy
+            Math.Round(s.Quantity * s.PriceSell * rates.ToBase(s.CurrencyId), 2, MidpointRounding.AwayFromZero),
+            Math.Round(s.Quantity * s.PriceBuy * rates.ToBase(s.CurrencyId), 2, MidpointRounding.AwayFromZero)
         )).ToList();
 
         var totalSellValue = lines.Sum(l => l.TotalSellValue);

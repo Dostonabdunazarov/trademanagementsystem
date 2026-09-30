@@ -1,3 +1,4 @@
+import type { TFunction } from 'i18next'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronDown, ChevronRight, Search, BookOpen, ArrowUpFromLine, Banknote, Package, Users, BarChart3, Settings, Keyboard, Rocket, GraduationCap, LayoutDashboard, Compass } from 'lucide-react'
@@ -37,7 +38,7 @@ function Badge({ children, variant = 'default' }: { children: React.ReactNode; v
   )
 }
 
-function getSections(t: (key: string, options?: any) => string): Section[] {
+function getSections(t: TFunction): Section[] {
   return [
     {
       id: 'getting-started',
@@ -49,7 +50,7 @@ function getSections(t: (key: string, options?: any) => string): Section[] {
           title: t('help.whatIsSystem'),
           content: (
             <div className="space-y-2 text-[hsl(var(--text-primary))] text-sm">
-              <p><strong>Торговля</strong> — {t('help.systemDesc')}</p>
+              <p><strong>{t('auth.title')}</strong> — {t('help.systemDesc')}</p>
               <p>{t('help.autoCalculation')}</p>
             </div>
           ),
@@ -531,8 +532,8 @@ function getSections(t: (key: string, options?: any) => string): Section[] {
                 { key: 'F2', desc: t('help.f2') },
                 { key: 'F3', desc: t('help.f3') },
                 { key: 'F4', desc: t('help.f4') },
-                { key: 'F5', desc: t('help.f5') },
                 { key: 'F6', desc: t('help.f6') },
+                { key: 'F7', desc: t('help.f7') },
               ].map(({ key, desc }) => (
                 <div key={key} className="flex items-center gap-3">
                   <Kbd>{key}</Kbd>

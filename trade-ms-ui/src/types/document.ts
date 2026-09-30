@@ -31,17 +31,3 @@ export interface DocumentFormState {
 }
 
 export type PaymentMethod = 'Cash' | 'BankTransfer' | 'Card'
-
-export interface PaymentFormState {
-  type: DocumentType
-  date: string
-  counterpartyId: string
-  counterpartyName: string
-  amount: number
-  currencyId: string
-  currencyCode: string
-  exchangeRate: number
-  paymentMethod: PaymentMethod
-  accountId: string
-  note: string
-}

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { renderWithProviders } from '../../utils/renderWithProviders'
@@ -11,15 +11,14 @@ vi.mock('react-router-dom', async () => {
 })
 
 describe('QuickActionBar', () => {
-  it('рендерит все 6 кнопок быстрых действий', () => {
+  beforeEach(() => mockNavigate.mockClear())
+
+  it('рендерит все 6 кнопок быстрых действий (F5 не занята)', () => {
     renderWithProviders(<QuickActionBar />)
-    // Каждая кнопка имеет title с F1-F6
-    expect(screen.getByTitle(/F1/)).toBeInTheDocument()
-    expect(screen.getByTitle(/F2/)).toBeInTheDocument()
-    expect(screen.getByTitle(/F3/)).toBeInTheDocument()
-    expect(screen.getByTitle(/F4/)).toBeInTheDocument()
-    expect(screen.getByTitle(/F5/)).toBeInTheDocument()
-    expect(screen.getByTitle(/F6/)).toBeInTheDocument()
+    for (const key of ['F1', 'F2', 'F3', 'F4', 'F6', 'F7']) {
+      expect(screen.getByTitle((title) => title.endsWith(`(${key})`))).toBeInTheDocument()
+    }
+    expect(screen.queryByTitle((title) => title.endsWith('(F5)'))).not.toBeInTheDocument()
   })
 
   it('навигирует на /expense при клике F1', async () => {
@@ -53,5 +52,34 @@ describe('QuickActionBar', () => {
     renderWithProviders(<QuickActionBar />)
     fireEvent.keyDown(window, { key: 'F2' })
     expect(mockNavigate).toHaveBeenCalledWith('/income')
+  })
+
+  it('F7 открывает выплату, F5 не перехватывается', () => {
+    renderWithProviders(<QuickActionBar />)
+    fireEvent.keyDown(window, { key: 'F5' })
+    expect(mockNavigate).not.toHaveBeenCalled()
+    fireEvent.keyDown(window, { key: 'F7' })
+    expect(mockNavigate).toHaveBeenCalledWith('/pay-out')
+  })
+
+  it('игнорирует клавиши с модификаторами и автоповтор', () => {
+    renderWithProviders(<QuickActionBar />)
+    fireEvent.keyDown(window, { key: 'F1', ctrlKey: true })
+    fireEvent.keyDown(window, { key: 'F1', shiftKey: true })
+    fireEvent.keyDown(window, { key: 'F2', repeat: true })
+    expect(mockNavigate).not.toHaveBeenCalled()
+  })
+
+  it('не перехватывает клавиши при вводе в поле', () => {
+    renderWithProviders(
+      <>
+        <input aria-label="поле" />
+        <QuickActionBar />
+      </>,
+    )
+    const input = screen.getByLabelText('поле')
+    input.focus()
+    fireEvent.keyDown(input, { key: 'F1' })
+    expect(mockNavigate).not.toHaveBeenCalled()
   })
 })

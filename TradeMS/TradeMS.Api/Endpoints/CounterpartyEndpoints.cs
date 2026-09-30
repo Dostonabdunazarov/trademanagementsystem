@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using MediatR;
+using TradeMS.Api.Infrastructure;
 using TradeMS.Application.Features.Counterparties.Commands.CreateCounterparty;
 using TradeMS.Application.Features.Counterparties.Commands.DeleteCounterparty;
 using TradeMS.Application.Features.Counterparties.Commands.UpdateCounterparty;
@@ -31,7 +32,7 @@ public static class CounterpartyEndpoints
                 counterpartyType = parsed;
 
             var result = await mediator.Send(
-                new GetCounterpartiesQuery(companyId, counterpartyType, search, page < 1 ? 1 : page, pageSize < 1 ? 20 : pageSize));
+                new GetCounterpartiesQuery(companyId, counterpartyType, search, ClaimsPrincipalExtensions.ClampPage(page), ClaimsPrincipalExtensions.ClampPageSize(pageSize)));
             return Results.Ok(result);
         })
         .WithSummary("Get counterparties list (paginated, filterable by type)");

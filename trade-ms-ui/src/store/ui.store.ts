@@ -7,6 +7,8 @@ interface Branch {
   name: string
 }
 
+export const UI_STORAGE_KEY = 'ui-storage'
+
 export type Language = 'ru' | 'uz'
 export type Theme = 'dark' | 'light'
 
@@ -38,7 +40,7 @@ function applyTheme(theme: Theme) {
 // Apply theme immediately from localStorage to avoid flash
 ;(function syncTheme() {
   try {
-    const raw = localStorage.getItem('ui-storage')
+    const raw = localStorage.getItem(UI_STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw)
       const theme: Theme = parsed?.state?.theme
@@ -46,7 +48,10 @@ function applyTheme(theme: Theme) {
     } else {
       applyTheme('dark')
     }
-  } catch { /* ignore */ }
+  } catch {
+    // Повреждённый localStorage — остаётся тема по умолчанию.
+    applyTheme('dark')
+  }
 })()
 
 export const useUiStore = create<UiStore>()(
@@ -72,7 +77,7 @@ export const useUiStore = create<UiStore>()(
         }),
     }),
     {
-      name: 'ui-storage',
+      name: UI_STORAGE_KEY,
       partialize: (s) => ({ activeBranch: s.activeBranch, language: s.language, theme: s.theme }),
       onRehydrateStorage: () => (state) => {
         if (state?.language) i18n.changeLanguage(state.language)

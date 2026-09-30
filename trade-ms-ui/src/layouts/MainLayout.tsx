@@ -1,4 +1,4 @@
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { Outlet, NavLink } from 'react-router-dom'
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -28,6 +28,7 @@ import {
 import { AppLogoIcon } from '@/components/ui/AppLogo'
 import { useAuthStore } from '@/store/auth.store'
 import { useUiStore } from '@/store/ui.store'
+import { useLogout } from '@/api/hooks/useLogout'
 import { BranchSelector } from '@/components/dashboard/BranchSelector'
 import { CurrencyRateTicker } from '@/components/dashboard/CurrencyRateTicker'
 import { LanguageSelect } from '@/components/ui/LanguageSelect'
@@ -35,16 +36,17 @@ import { cn } from '@/lib/utils'
 
 export function MainLayout() {
   const { t } = useTranslation()
-  const { user, logout } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
   const { sidebarOpen, toggleSidebar, theme, toggleTheme } = useUiStore()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [tooltip, setTooltip] = useState<{ label: string; top: number } | null>(null)
-  const navigate = useNavigate()
+  const logout = useLogout()
+  const [loggingOut, setLoggingOut] = useState(false)
 
-  const handleLogout = useCallback(() => {
-    logout()
-    navigate('/login', { replace: true })
-  }, [logout, navigate])
+  const handleLogout = useCallback(async () => {
+    setLoggingOut(true)
+    await logout()
+  }, [logout])
 
   type NavItem = { to: string; icon: LucideIcon; label: string; end?: boolean }
   const NAV_SECTIONS: { label: string; items: NavItem[] }[] = [
@@ -130,7 +132,7 @@ export function MainLayout() {
               aria-label={t('nav.dashboard')}
             >
               <AppLogoIcon size={28} />
-              <span className="text-sm font-bold tracking-tight bg-gradient-to-r from-brand-600 to-brand-600 dark:from-brand-400 dark:to-brand-400 bg-clip-text text-transparent">Торговля</span>
+              <span className="text-sm font-bold tracking-tight bg-gradient-to-r from-brand-600 to-brand-600 dark:from-brand-400 dark:to-brand-400 bg-clip-text text-transparent">{t('auth.title')}</span>
             </NavLink>
           )}
           <button
@@ -212,12 +214,14 @@ export function MainLayout() {
             {sidebarOpen && (
               <div className="flex-1 overflow-hidden">
                 <p className="truncate text-xs font-medium text-[hsl(var(--text-primary))]">{user?.fullName}</p>
-                <p className="truncate text-[10px] text-[hsl(var(--text-muted))]">{user?.role}</p>
+                <p className="truncate text-[10px] text-[hsl(var(--text-muted))]">{user?.role ? t(`roles.${user.role}`, { defaultValue: user.role }) : ''}</p>
                 <p className="truncate text-[10px] text-[hsl(var(--text-muted))]">{user?.email}</p>
               </div>
             )}
             <button
+              type="button"
               onClick={handleLogout}
+              disabled={loggingOut}
               className="shrink-0 rounded-md p-1.5 text-[hsl(var(--text-muted))] hover:bg-red-500/10 hover:text-red-500 transition-colors"
               aria-label={t('auth.logout')}
             >
@@ -256,7 +260,8 @@ export function MainLayout() {
             <button
               onClick={toggleTheme}
               className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface-2))] p-2 text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))] transition-colors"
-              aria-label={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
+              aria-label={theme === 'dark' ? t('theme.light') : t('theme.dark')}
+              title={theme === 'dark' ? t('theme.light') : t('theme.dark')}
             >
               {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>

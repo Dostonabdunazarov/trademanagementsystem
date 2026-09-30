@@ -1,36 +1,45 @@
 import { useQuery } from '@tanstack/react-query'
 import { documentsApi } from '../documents'
 
+/** DocumentLineDto на бэкенде. */
 export interface DocumentLineDto {
   id: number
   productId: string
   productName: string
-  unit: string
   quantity: number
+  unit: string
   price: number
   discountPercent: number
+  discountPrice: number
   total: number
 }
 
+/** DocumentDto на бэкенде. */
 export interface DocumentDto {
   id: number
+  companyId: string
+  branchId: string
   type: string
   number: string
   date: string
-  status: string
   counterpartyId: string | null
   counterpartyName: string | null
   currencyId: string
   currencyCode: string
   exchangeRate: number
+  totalAmount: number
+  totalAmountBase: number
   discountPercent: number
+  discountAmount: number
   note: string | null
   amount: number | null
   paymentMethod: string | null
   accountId: string | null
   accountName: string | null
-  totalAmount: number
-  totalAmountBase: number
+  status: string
+  createdBy: string
+  createdAt: string
+  confirmedAt: string | null
   lines: DocumentLineDto[]
 }
 

@@ -1,6 +1,8 @@
+using System.Data.Common;
 using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Exceptions;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Domain.Entities;
@@ -13,18 +15,30 @@ public class GlobalExceptionHandler(
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext ctx, Exception ex, CancellationToken ct)
     {
-        logger.LogError(ex, "Unhandled exception");
-
-        var (status, title) = ex switch
+        // Порядок важен: специальные типы — раньше базовых (AuthenticationFailedException
+        // наследует UnauthorizedAccessException, BusinessException — InvalidOperationException).
+        var (status, title, code) = ex switch
         {
-            UnauthorizedAccessException uae when uae.Message.StartsWith("Access to this document")
-                => (StatusCodes.Status403Forbidden, "Forbidden"),
-            UnauthorizedAccessException => (StatusCodes.Status401Unauthorized, "Unauthorized"),
-            ValidationException => (StatusCodes.Status400BadRequest, "Validation failed"),
-            KeyNotFoundException => (StatusCodes.Status404NotFound, "Not found"),
-            InvalidOperationException => (StatusCodes.Status409Conflict, "Conflict"),
-            _ => (StatusCodes.Status500InternalServerError, "Internal server error")
+            ForbiddenAccessException fe      => (StatusCodes.Status403Forbidden, "Forbidden", fe.Code),
+            AuthenticationFailedException ae => (StatusCodes.Status401Unauthorized, "Unauthorized", ae.Code),
+            UnauthorizedAccessException      => (StatusCodes.Status401Unauthorized, "Unauthorized", (string?)null),
+            ValidationException              => (StatusCodes.Status400BadRequest, "Validation failed", "validation"),
+            KeyNotFoundException             => (StatusCodes.Status404NotFound, "Not found", null),
+            BusinessException be             => (StatusCodes.Status409Conflict, "Conflict", be.Code),
+            DbUpdateConcurrencyException     => (StatusCodes.Status409Conflict, "Conflict", ErrorCodes.ConcurrencyConflict),
+            DbUpdateException { InnerException: DbException { SqlState: "23505" } }
+                                             => (StatusCodes.Status409Conflict, "Conflict", ErrorCodes.ConcurrencyConflict),
+            BadHttpRequestException bre      => (bre.StatusCode, "Bad request", null),
+            // Прочие исключения (в том числе InvalidOperationException из EF/LINQ) — внутренние
+            // ошибки: 500 без текста, чтобы не раскрывать детали реализации клиенту.
+            _ => (StatusCodes.Status500InternalServerError, "Internal server error", null)
         };
+
+        if (status >= 500)
+            logger.LogError(ex, "Unhandled exception");
+        else
+            logger.LogWarning("{Status} {Method} {Path}: {Type}: {Message}",
+                status, ctx.Request.Method, ctx.Request.Path, ex.GetType().Name, ex.Message);
 
         try
         {
@@ -53,26 +67,26 @@ public class GlobalExceptionHandler(
         {
             Status = status,
             Title = title,
-            // Внутренний текст 500-й ошибки клиенту не отдаём — он есть в логе и аудите.
+            // Текст отдаём только для ожидаемых ошибок; внутренний текст 500-й — в логе и аудите.
             Detail = status == StatusCodes.Status500InternalServerError
                 ? "An unexpected error occurred"
                 : ex.Message
         };
 
         // Машиночитаемые код и параметры — UI строит по ним текст на языке интерфейса.
+        if (code is not null)
+            problem.Extensions["code"] = code;
+
         switch (ex)
         {
             case BusinessException be:
-                problem.Extensions["code"] = be.Code;
                 problem.Extensions["args"] = be.Args;
                 break;
             case ValidationException ve:
                 var errors = ve.Errors
                     .Select(e => new { field = e.PropertyName, code = e.ErrorCode, message = e.ErrorMessage })
                     .ToList();
-                problem.Title = "Validation failed";
                 problem.Detail = string.Join("; ", errors.Select(e => e.message).Distinct());
-                problem.Extensions["code"] = "validation";
                 problem.Extensions["errors"] = errors;
                 break;
         }

@@ -265,6 +265,10 @@ namespace TradeMS.Infrastructure.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
+                    b.HasIndex("IsBase")
+                        .IsUnique()
+                        .HasFilter("\"IsBase\"");
+
                     b.ToTable("currencies", (string)null);
                 });
 
@@ -351,13 +355,20 @@ namespace TradeMS.Infrastructure.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
 
                     b.HasIndex("BranchId");
-
-                    b.HasIndex("CompanyId");
 
                     b.HasIndex("CounterpartyId");
 
@@ -365,7 +376,30 @@ namespace TradeMS.Infrastructure.Migrations
 
                     b.HasIndex("CurrencyId");
 
+                    b.HasIndex("CompanyId", "Number")
+                        .IsUnique();
+
                     b.ToTable("documents", (string)null);
+                });
+
+            modelBuilder.Entity("TradeMS.Domain.Entities.DocumentCounter", b =>
+                {
+                    b.Property<Guid>("CompanyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Type")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<int>("Year")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("LastNumber")
+                        .HasColumnType("integer");
+
+                    b.HasKey("CompanyId", "Type", "Year");
+
+                    b.ToTable("document_counters", (string)null);
                 });
 
             modelBuilder.Entity("TradeMS.Domain.Entities.DocumentLine", b =>
@@ -375,6 +409,10 @@ namespace TradeMS.Infrastructure.Migrations
                         .HasColumnType("bigint");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<long>("Id"));
+
+                    b.Property<decimal>("CostBase")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
 
                     b.Property<decimal>("DiscountPercent")
                         .HasPrecision(5, 2)
@@ -399,6 +437,10 @@ namespace TradeMS.Infrastructure.Migrations
                         .HasColumnType("numeric(18,4)");
 
                     b.Property<decimal>("Total")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("numeric(18,2)");
+
+                    b.Property<decimal>("TotalBase")
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 

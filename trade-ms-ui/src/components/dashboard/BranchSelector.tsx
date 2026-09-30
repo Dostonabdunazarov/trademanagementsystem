@@ -1,37 +1,40 @@
 import { Building2, ChevronDown, Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useUiStore } from '@/store/ui.store'
 import { useAuthStore } from '@/store/auth.store'
 import { useState, useRef, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { useBranches } from '@/api/hooks/useBranches'
-import type { BranchDto } from '@/api/branches'
 
 export function BranchSelector({ className }: { className?: string }) {
+  const { t } = useTranslation()
   const { activeBranch, setActiveBranch, clearActiveBranch } = useUiStore()
   const { user } = useAuthStore()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
-  const { data: branches, isLoading } = useBranches()
+  const { data: branches, isLoading, isError } = useBranches()
 
   const isAdmin = user?.role === 'Admin'
   const canChangeBranch = isAdmin
 
+  // Сохранённый activeBranch сверяем с актуальным списком: удалённый филиал или
+  // филиал прошлого пользователя не должен уходить в branchId запросов.
   useEffect(() => {
-    if (isLoading) return
-    if (!branches || branches.length === 0) {
-      clearActiveBranch()
+    if (isLoading || isError || !branches) return
+    if (isAdmin) {
+      const current = activeBranch ? branches.find((b) => b.id === activeBranch.id) : undefined
+      if (activeBranch && !current) clearActiveBranch()
+      else if (current && current.name !== activeBranch?.name) setActiveBranch(current)
       return
     }
-    if (!isAdmin) {
-      // Non-admins are locked to their assigned branch from the token
-      const assignedBranch = user?.branchId
-        ? branches.find((b) => b.id === user.branchId) ?? branches[0]
-        : branches[0]
-      setActiveBranch(assignedBranch)
-    } else if (!activeBranch) {
-      // Admin starts with no branch selected (null = "Все филиалы")
+    // Не-Admin всегда работает в своём филиале из токена; без филиала — ничего не выбираем.
+    const assigned = user?.branchId ? branches.find((b) => b.id === user.branchId) : undefined
+    if (!assigned) {
+      if (activeBranch) clearActiveBranch()
+    } else if (activeBranch?.id !== assigned.id || activeBranch.name !== assigned.name) {
+      setActiveBranch(assigned)
     }
-  }, [isLoading, branches, isAdmin, user?.branchId, setActiveBranch, clearActiveBranch, activeBranch])
+  }, [isLoading, isError, branches, isAdmin, user?.branchId, activeBranch, setActiveBranch, clearActiveBranch])
 
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
@@ -41,16 +44,20 @@ export function BranchSelector({ className }: { className?: string }) {
     return () => document.removeEventListener('mousedown', onClickOutside)
   }, [])
 
-  const selected = activeBranch as BranchDto | null
+  const selected = activeBranch
   const hasBranches = !isLoading && branches && branches.length > 0
 
   const displayLabel = isLoading
-    ? 'Загрузка...'
-    : selected?.name ?? (isAdmin ? 'Все филиалы' : 'Нет филиалов')
+    ? t('common.loading')
+    : selected?.name ?? (isAdmin ? t('branches.all') : t('branches.none'))
 
   return (
     <div ref={ref} className={cn('relative', className)}>
       <button
+        type="button"
+        aria-haspopup="true"
+        aria-expanded={open}
+        title={t('branches.select')}
         onClick={() => canChangeBranch && hasBranches && setOpen((v) => !v)}
         disabled={isLoading || !canChangeBranch}
         className={cn(
@@ -75,6 +82,7 @@ export function BranchSelector({ className }: { className?: string }) {
         <div className="absolute left-0 top-full z-50 mt-1.5 min-w-[180px] rounded-xl border border-border bg-secondary py-1 shadow-2xl shadow-foreground/15">
           {isAdmin && (
             <button
+              type="button"
               onClick={() => { clearActiveBranch(); setOpen(false) }}
               className={cn(
                 'flex w-full items-center gap-2 px-3 py-2 text-sm transition-colors',
@@ -84,11 +92,12 @@ export function BranchSelector({ className }: { className?: string }) {
               )}
             >
               <Building2 className="h-3.5 w-3.5 shrink-0 opacity-40" />
-              Все филиалы
+              {t('branches.all')}
             </button>
           )}
           {branches.map((b) => (
             <button
+              type="button"
               key={b.id}
               onClick={() => { setActiveBranch(b); setOpen(false) }}
               className={cn(

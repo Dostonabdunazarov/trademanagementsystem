@@ -23,5 +23,6 @@ public record UpdateUserRequest(
     string FullName,
     string Role,
     string? Password,
-    bool IsActive
+    bool IsActive,
+    Guid? BranchId = null
 );

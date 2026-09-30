@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
+import { setupCrossTabAuthSync } from '@/lib/session'
 import { useAuthStore } from '@/store/auth.store'
 import { LoginPage } from '@/features/auth/LoginPage'
 import { MainLayout } from '@/layouts/MainLayout'
@@ -36,6 +38,9 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 }
 
 export function AppRouter() {
+  // Logout/login и ротация токенов в другой вкладке сразу применяются здесь.
+  useEffect(() => setupCrossTabAuthSync(), [])
+
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />

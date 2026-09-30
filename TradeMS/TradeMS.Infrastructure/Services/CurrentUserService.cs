@@ -27,16 +27,15 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
     public string? UserEmail =>
         httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Email);
 
+    // RemoteIpAddress уже содержит адрес клиента: UseForwardedHeaders разбирает X-Forwarded-For
+    // только от доверенных прокси. Сырой заголовок читать нельзя — его подделывает клиент.
     public string? IpAddress
     {
         get
         {
-            var ctx = httpContextAccessor.HttpContext;
-            if (ctx is null) return null;
-            var forwarded = ctx.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-            if (!string.IsNullOrEmpty(forwarded))
-                return forwarded.Split(',')[0].Trim();
-            return ctx.Connection.RemoteIpAddress?.ToString();
+            var ip = httpContextAccessor.HttpContext?.Connection.RemoteIpAddress;
+            if (ip is null) return null;
+            return (ip.IsIPv4MappedToIPv6 ? ip.MapToIPv4() : ip).ToString();
         }
     }
 

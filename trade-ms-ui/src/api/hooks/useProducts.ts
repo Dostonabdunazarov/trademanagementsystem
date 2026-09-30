@@ -1,15 +1,20 @@
 import { useQuery } from '@tanstack/react-query'
 import { productsApi } from '../products'
 
+/** ProductDto на бэкенде. */
 export interface ProductDto {
   id: string
+  companyId: string
+  groupId: string | null
+  groupName: string | null
   name: string
   sku: string | null
+  barcode: string | null
   unit: string
   priceSell: number
   priceBuy: number
   currencyId: string
-  groupId: string | null
+  currencyCode: string
   isActive: boolean
 }
 
@@ -24,6 +29,7 @@ interface Params {
   search?: string
   groupId?: string | null
   page?: number
+  /** Сервер ограничивает 1..200. */
   pageSize?: number
 }
 

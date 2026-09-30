@@ -1,6 +1,7 @@
 using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using TradeMS.Application.Common.Exceptions;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Domain.Entities;
 
@@ -19,13 +20,13 @@ public class DeleteProductCommandHandler(IAppDbContext db, IAuditLogger auditLog
         var isReferenced = await db.DocumentLines
             .AnyAsync(l => l.ProductId == request.Id, cancellationToken);
         if (isReferenced)
-            throw new InvalidOperationException(
+            throw new BusinessException(ErrorCodes.ProductInUse,
                 "Cannot delete a product that is used in documents.");
 
         var hasStock = await db.Stocks
             .AnyAsync(s => s.ProductId == request.Id && s.Quantity != 0, cancellationToken);
         if (hasStock)
-            throw new InvalidOperationException(
+            throw new BusinessException(ErrorCodes.ProductHasStock,
                 "Cannot delete a product that still has stock.");
 
         var snapshot = JsonSerializer.Serialize(new { name = product.Name, sku = product.Sku });

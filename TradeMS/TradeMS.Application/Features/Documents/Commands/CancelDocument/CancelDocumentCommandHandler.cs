@@ -3,7 +3,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Application.Common.Exceptions;
-using TradeMS.Application.Features.Documents.Commands.CreateDocument;
 using TradeMS.Application.Features.Documents.DTOs;
 using TradeMS.Domain.Entities;
 using TradeMS.Domain.Enums;
@@ -29,9 +28,11 @@ public class CancelDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
             {
                 return await CancelAsync(request, cancellationToken);
             }
-            catch (DbUpdateConcurrencyException) when (attempt < maxAttempts)
+            catch (DbUpdateException ex) when (attempt < maxAttempts &&
+                (ex is DbUpdateConcurrencyException || DocumentRules.IsUniqueViolation(ex)))
             {
-                // retry with freshly-read values
+                // Без очистки трекера повторное чтение вернёт уже изменённые экземпляры со старым xmin.
+                db.ClearChangeTracker();
             }
         }
     }
@@ -50,7 +51,7 @@ public class CancelDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
             ?? throw new KeyNotFoundException($"Document {request.Id} not found");
 
         if (request.BranchId.HasValue && doc.BranchId != request.BranchId.Value)
-            throw new UnauthorizedAccessException("Access to this document is not allowed");
+            throw new ForbiddenAccessException("Access to this document is not allowed");
 
         if (doc.Status != DocumentStatus.Confirmed)
             throw new BusinessException(DocumentErrorCodes.NotConfirmed,
@@ -119,7 +120,8 @@ public class CancelDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
         if (doc.Type is DocumentType.PayIn or DocumentType.PayOut && doc.AccountId.HasValue)
         {
             var account = await db.Accounts
-                .FirstOrDefaultAsync(a => a.Id == doc.AccountId.Value, cancellationToken);
+                .FirstOrDefaultAsync(a => a.Id == doc.AccountId.Value && a.CompanyId == doc.CompanyId,
+                    cancellationToken);
 
             if (account is not null)
             {
@@ -139,22 +141,16 @@ public class CancelDocumentCommandHandler(IAppDbContext db, IAuditLogger auditLo
         }
 
         doc.Status = DocumentStatus.Cancelled;
+        doc.UpdatedAt = DateTime.UtcNow;
 
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
-
-        var cancelled = await db.Documents
-            .Include(d => d.Counterparty)
-            .Include(d => d.Currency)
-            .Include(d => d.Account)
-            .Include(d => d.Lines).ThenInclude(l => l.Product)
-            .FirstAsync(d => d.Id == request.Id && d.CompanyId == request.CompanyId, cancellationToken);
 
         await auditLogger.LogAsync(AuditActions.DocCancel,
             entityType: "Document", entityId: request.Id.ToString(),
             details: JsonSerializer.Serialize(new { type = doc.Type.ToString(), number = doc.Number, total = doc.TotalAmountBase, counterparty = doc.Counterparty?.Name }),
             cancellationToken: cancellationToken);
 
-        return CreateDocumentCommandHandler.MapToDto(cancelled);
+        return await DocumentRules.LoadDtoAsync(db, request.Id, request.CompanyId, cancellationToken);
     }
 }

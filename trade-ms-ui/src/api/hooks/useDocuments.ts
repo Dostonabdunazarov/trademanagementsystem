@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { documentsApi } from '../documents'
+import { documentsApi, type DocumentsQuery } from '../documents'
 
+/** DocumentSummaryDto на бэкенде (элемент списка). */
 export interface DocumentListItem {
   id: number
   type: string
@@ -8,14 +9,12 @@ export interface DocumentListItem {
   date: string
   counterpartyId: string | null
   counterpartyName: string | null
-  currencyId: string
   currencyCode: string
   totalAmount: number
   totalAmountBase: number
   discountAmount: number
   status: string
   createdAt: string
-  createdByName: string | null
 }
 
 export interface DocumentsPage {
@@ -25,16 +24,7 @@ export interface DocumentsPage {
   pageSize: number
 }
 
-export interface UseDocumentsParams {
-  type?: string
-  dateFrom?: string
-  dateTo?: string
-  counterpartyId?: string
-  status?: string
-  branchId?: string
-  page?: number
-  pageSize?: number
-}
+export type UseDocumentsParams = DocumentsQuery
 
 export function useDocuments(params: UseDocumentsParams = {}) {
   return useQuery<DocumentsPage>({

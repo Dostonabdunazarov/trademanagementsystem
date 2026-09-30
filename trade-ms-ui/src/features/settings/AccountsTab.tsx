@@ -1,8 +1,12 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { Plus, Landmark, Banknote, Trash2 } from 'lucide-react'
-import { useAccounts, useCreateAccount, useDeleteAccount, type CreateAccountDto } from '@/api/hooks/useAccounts'
+import { useAccounts, useCreateAccount, useDeleteAccount, type AccountDto, type CreateAccountDto } from '@/api/hooks/useAccounts'
 import { useUiStore } from '@/store/ui.store'
+import { useAuthStore } from '@/store/auth.store'
+import { getApiErrorMessage } from '@/lib/apiError'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useCurrencies } from '@/api/hooks/useCurrencies'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,29 +21,38 @@ const TYPE_META = {
   Bank: { labelKey: 'settings.Bank', icon: Landmark, color: 'bg-blue-500/15 text-blue-400' },
 }
 
-function AccountDialog({ open, onClose, branchId }: { open: boolean; onClose: () => void; branchId?: string }) {
+function AccountDialog({ onClose, branchId }: { onClose: () => void; branchId?: string }) {
   const { t } = useTranslation()
   const { data: currencies = [] } = useCurrencies()
   const createAccount = useCreateAccount()
+  const baseCurrencyId = currencies.find((c) => c.isBase)?.id ?? ''
   const [form, setForm] = useState<CreateAccountDto>({
     name: '',
     type: 'Cash',
     currencyId: '',
-    branchId: '',
+    branchId: null,
   })
+  // По умолчанию — базовая валюта: кассы для оплат должны быть в ней (accountCurrencyMismatch).
+  const currencyId = form.currencyId || baseCurrencyId
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!branchId) return
+    if (!currencyId) {
+      toast.error(t('errors.codes.currencyRequired'))
+      return
+    }
     try {
-      await createAccount.mutateAsync({ ...form, branchId })
+      await createAccount.mutateAsync({ ...form, name: form.name.trim(), currencyId, branchId })
+      toast.success(t('settings.accountCreated'))
       onClose()
-      setForm({ name: '', type: 'Cash', currencyId: '', branchId: '' })
-    } catch {}
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, t))
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="bg-card border-border text-[hsl(var(--text-primary))] max-w-sm">
         <DialogHeader>
           <DialogTitle className="text-base font-semibold">{t('settings.addAccount')}</DialogTitle>
@@ -48,7 +61,7 @@ function AccountDialog({ open, onClose, branchId }: { open: boolean; onClose: ()
           <div className="space-y-1.5">
             <Label className="text-[hsl(var(--text-muted))] text-xs">{t('settings.accountName')}</Label>
             <Input
-              placeholder="Главная касса"
+              placeholder={t('settings.accountNamePlaceholder')}
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               className="bg-background border-border text-[hsl(var(--text-primary))]"
@@ -81,9 +94,9 @@ function AccountDialog({ open, onClose, branchId }: { open: boolean; onClose: ()
           </div>
           <div className="space-y-1.5">
             <Label className="text-[hsl(var(--text-muted))] text-xs">{t('common.currency')}</Label>
-            <Select value={form.currencyId} onValueChange={(v) => setForm((f) => ({ ...f, currencyId: v }))}>
-              <SelectTrigger className="bg-background border-border text-[hsl(var(--text-primary))]">
-                <SelectValue placeholder="Выберите валюту" />
+            <Select value={currencyId} onValueChange={(v) => setForm((f) => ({ ...f, currencyId: v }))}>
+              <SelectTrigger className="bg-background border-border text-[hsl(var(--text-primary))]" aria-label={t('common.currency')}>
+                <SelectValue placeholder={t('settings.selectCurrency')} />
               </SelectTrigger>
               <SelectContent className="bg-secondary border-border">
                 {currencies.map((c) => (
@@ -114,10 +127,12 @@ function AccountDialog({ open, onClose, branchId }: { open: boolean; onClose: ()
 export function AccountsTab() {
   const { t } = useTranslation()
   const { activeBranch } = useUiStore()
-  const { data: accounts = [], isLoading } = useAccounts(activeBranch?.id)
+  const isAdmin = useAuthStore((s) => s.user?.role === 'Admin')
+  // Не-Admin сервер всегда отдаёт кассы своего филиала; Admin — выбранного в шапке (или все).
+  const { data: accounts = [], isLoading } = useAccounts(isAdmin ? activeBranch?.id : undefined)
   const deleteAccount = useDeleteAccount()
   const [showDialog, setShowDialog] = useState(false)
-  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const [pendingDelete, setPendingDelete] = useState<AccountDto | null>(null)
 
   const totalByCurrency = accounts.reduce<Record<string, { code: string; cash: number; bank: number }>>((acc, a) => {
     if (!acc[a.currencyCode]) acc[a.currencyCode] = { code: a.currencyCode, cash: 0, bank: 0 }
@@ -126,11 +141,16 @@ export function AccountsTab() {
     return acc
   }, {})
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async () => {
+    if (!pendingDelete) return
     try {
-      await deleteAccount.mutateAsync(id)
-    } catch {}
-    setDeleteId(null)
+      await deleteAccount.mutateAsync(pendingDelete.id)
+      toast.success(t('settings.accountDeleted'))
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, t))
+    } finally {
+      setPendingDelete(null)
+    }
   }
 
   return (
@@ -160,14 +180,16 @@ export function AccountsTab() {
       <div className="rounded-xl border border-[hsl(var(--border))] bg-card">
         <div className="flex items-center justify-between px-4 py-3 border-b border-[hsl(var(--border))]">
           <h3 className="text-sm font-semibold text-[hsl(var(--text-primary))]">{t('settings.accounts')}</h3>
-          <Button
-            size="sm"
-            onClick={() => setShowDialog(true)}
-            className="h-7 gap-1.5 bg-brand-600/90 hover:bg-brand-500 text-xs"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            {t('common.add')}
-          </Button>
+          {isAdmin && (
+            <Button
+              size="sm"
+              onClick={() => setShowDialog(true)}
+              className="h-7 gap-1.5 bg-brand-600/90 hover:bg-brand-500 text-xs"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {t('common.add')}
+            </Button>
+          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -177,7 +199,7 @@ export function AccountsTab() {
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">{t('settings.accountType')}</th>
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">{t('common.currency')}</th>
                 <th className="px-4 py-2.5 text-right text-xs font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">{t('counterparties.balance')}</th>
-                <th className="px-4 py-2.5 w-10" />
+                {isAdmin && <th className="px-4 py-2.5 w-10"><span className="sr-only">{t('common.actions')}</span></th>}
               </tr>
             </thead>
             <tbody>
@@ -210,31 +232,19 @@ export function AccountsTab() {
                       <td className="px-4 py-3 text-right font-mono font-semibold text-[hsl(var(--text-primary))]">
                         {a.balance.toLocaleString('ru-RU', { minimumFractionDigits: 2 })}
                       </td>
-                      <td className="px-4 py-3 text-center">
-                        {deleteId === a.id ? (
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => handleDelete(a.id)}
-                              className="rounded px-2 py-0.5 text-xs bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                            >
-                              {t('common.yes')}
-                            </button>
-                            <button
-                              onClick={() => setDeleteId(null)}
-                              className="rounded px-2 py-0.5 text-xs bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))] hover:bg-white/[0.1]"
-                            >
-                              {t('common.no')}
-                            </button>
-                          </div>
-                        ) : (
+                      {isAdmin && (
+                        <td className="px-4 py-3 text-center">
                           <button
-                            onClick={() => setDeleteId(a.id)}
-                            className="rounded p-1 text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                            type="button"
+                            onClick={() => setPendingDelete(a)}
+                            aria-label={t('settings.deleteAccountNamed', { name: a.name })}
+                            title={t('common.delete')}
+                            className="rounded p-1 text-[hsl(var(--text-muted))] hover:text-red-400 hover:bg-red-500/10 transition-colors"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
-                        )}
-                      </td>
+                        </td>
+                      )}
                     </tr>
                   )
                 })
@@ -244,7 +254,16 @@ export function AccountsTab() {
         </div>
       </div>
 
-      <AccountDialog open={showDialog} onClose={() => setShowDialog(false)} branchId={activeBranch?.id} />
+      {showDialog && <AccountDialog onClose={() => setShowDialog(false)} branchId={activeBranch?.id} />}
+      <ConfirmDialog
+        open={pendingDelete != null}
+        title={t('settings.deleteAccountNamed', { name: pendingDelete?.name ?? '' })}
+        description={t('common.confirmDelete')}
+        confirmLabel={t('common.delete')}
+        busy={deleteAccount.isPending}
+        onConfirm={handleDelete}
+        onClose={() => setPendingDelete(null)}
+      />
     </div>
   )
 }

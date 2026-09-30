@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
+using TradeMS.Application.Common.Time;
 
 namespace TradeMS.Application.Features.AuditLogs.Queries;
 
@@ -19,15 +20,19 @@ public class GetAuditLogsQueryHandler(IAppDbContext db)
         if (!string.IsNullOrEmpty(request.Action))
             query = query.Where(l => l.Action == request.Action);
 
+        // Фильтр приходит местными датами (UTC+5), CreatedAt хранится в UTC: границы суток
+        // переводим в UTC, иначе день «съезжал» на 5 часов.
         if (request.DateFrom.HasValue)
-            query = query.Where(l => l.CreatedAt >= request.DateFrom.Value);
+        {
+            var fromUtc = BusinessClock.StartOfDayUtc(DateOnly.FromDateTime(request.DateFrom.Value));
+            query = query.Where(l => l.CreatedAt >= fromUtc);
+        }
 
         if (request.DateTo.HasValue)
         {
-            // DateTo is treated as an inclusive day boundary. CreatedAt is a full timestamp, so use
-            // a strict "< next day" comparison to include entries created later on the DateTo day.
-            var dateToExclusive = request.DateTo.Value.Date.AddDays(1);
-            query = query.Where(l => l.CreatedAt < dateToExclusive);
+            // DateTo — включительно: берём всё до начала следующих местных суток.
+            var toExclusiveUtc = BusinessClock.StartOfDayUtc(DateOnly.FromDateTime(request.DateTo.Value).AddDays(1));
+            query = query.Where(l => l.CreatedAt < toExclusiveUtc);
         }
 
         if (request.Success.HasValue)

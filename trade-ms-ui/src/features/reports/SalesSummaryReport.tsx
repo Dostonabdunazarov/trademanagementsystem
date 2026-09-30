@@ -1,4 +1,5 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { format, subDays } from 'date-fns'
 import { TrendingUp, TrendingDown, RefreshCw } from 'lucide-react'
 import { useSalesSummary } from '@/api/hooks/useReports'
@@ -18,6 +19,7 @@ function MetricBadge({ label, value, sub }: { label: string; value: string; sub?
 }
 
 export function SalesSummaryReport() {
+  const { t } = useTranslation()
   const today = new Date()
   const [dateFrom, setDateFrom] = useState(format(subDays(today, 29), 'yyyy-MM-dd'))
   const [dateTo, setDateTo] = useState(format(today, 'yyyy-MM-dd'))
@@ -32,11 +34,11 @@ export function SalesSummaryReport() {
       {/* Filters */}
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">С</label>
+          <label className="text-[11px] font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">{t('dashboard.from')}</label>
           <DatePicker value={dateFrom} max={dateTo} onChange={setDateFrom} className="h-9 bg-card text-sm" />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">По</label>
+          <label className="text-[11px] font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">{t('dashboard.to')}</label>
           <DatePicker value={dateTo} min={dateFrom} onChange={setDateTo} className="h-9 bg-card text-sm" />
         </div>
         <button
@@ -45,23 +47,23 @@ export function SalesSummaryReport() {
           className="flex h-9 items-center gap-2 rounded-lg bg-brand-500/10 px-4 text-sm font-medium text-brand-400 ring-1 ring-brand-500/30 transition-all hover:bg-brand-500/20 disabled:opacity-50"
         >
           <RefreshCw className={cn('h-3.5 w-3.5', isFetching && 'animate-spin')} />
-          Обновить
+          {t('reports.refresh')}
         </button>
       </div>
 
       {/* KPI row */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <MetricBadge
-          label="Выручка"
+          label={t('reports.revenue')}
           value={data ? formatNumber(data.totalRevenue) : '—'}
-          sub="в базовой валюте"
+          sub={t('reports.inBaseCurrency')}
         />
         <MetricBadge
-          label="Себестоимость"
+          label={t('reports.cost')}
           value={data ? formatNumber(data.totalCost ?? 0) : '—'}
         />
         <MetricBadge
-          label="Прибыль"
+          label={t('reports.profit')}
           value={data ? formatNumber(data.totalProfit ?? 0) : '—'}
         />
       </div>
@@ -71,28 +73,28 @@ export function SalesSummaryReport() {
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-[hsl(var(--border))]">
-              <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">Товар</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">Кол-во</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">Выручка</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">Себест.</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">Прибыль</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">Рент.</th>
+              <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.product')}</th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.qty')}</th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.revenue')}</th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.costShort')}</th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.profit')}</th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.marginShort')}</th>
             </tr>
           </thead>
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-[hsl(var(--text-muted))]">Загрузка…</td>
+                <td colSpan={6} className="px-4 py-8 text-center text-[hsl(var(--text-muted))]">{t('common.loading')}</td>
               </tr>
             )}
             {isError && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-red-400">Ошибка загрузки данных</td>
+                <td colSpan={6} className="px-4 py-8 text-center text-red-400">{t('reports.loadError')}</td>
               </tr>
             )}
             {!isLoading && !isError && items.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-8 text-center text-[hsl(var(--text-muted))]">Нет данных за выбранный период</td>
+                <td colSpan={6} className="px-4 py-8 text-center text-[hsl(var(--text-muted))]">{t('reports.noData')}</td>
               </tr>
             )}
             {items.map((row, idx) => {

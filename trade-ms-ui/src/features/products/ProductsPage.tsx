@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/store/auth.store'
@@ -10,7 +10,7 @@ import {
   useUpdateProduct,
   useDeleteProduct,
   useCreateProductGroup,
-  type CreateProductDto,
+  type UpdateProductDto,
 } from '@/api/hooks/useProductMutations'
 import type { ProductDto } from '@/api/hooks/useProducts'
 import {
@@ -55,6 +55,7 @@ function GroupNode({
   selected: string | null
   onSelect: (id: string | null) => void
 }) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(true)
   const hasChildren = group.children && group.children.length > 0
   const isSelected = selected === group.id
@@ -68,10 +69,20 @@ function GroupNode({
             : 'text-[hsl(var(--text-primary))] hover:bg-[hsl(var(--surface-2))]'
         }`}
         style={{ paddingLeft: `${8 + depth * 16}px` }}
+        role="button"
+        tabIndex={0}
+        aria-pressed={isSelected}
         onClick={() => onSelect(isSelected ? null : group.id)}
+        onKeyDown={(e) => {
+          if (e.target !== e.currentTarget) return
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(isSelected ? null : group.id) }
+        }}
       >
         {hasChildren && (
           <button
+            type="button"
+            aria-expanded={open}
+            aria-label={open ? t('products.collapseGroup', { name: group.name }) : t('products.expandGroup', { name: group.name })}
             onClick={(e) => { e.stopPropagation(); setOpen((o) => !o) }}
             className="w-4 h-4 flex items-center justify-center text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]"
           >
@@ -113,42 +124,42 @@ function ProductFormDialog({ open, onClose, initial, groupId, groups, currencyId
   const update = useUpdateProduct()
   const isEdit = !!initial
 
-  const buildForm = (): CreateProductDto => ({
+  // Диалог монтируется заново при каждом открытии — начальное состояние берётся из initial.
+  // Поля, которых нет в форме (barcode), тоже переносятся: иначе PUT их затрёт.
+  const [form, setForm] = useState<UpdateProductDto>(() => ({
+    groupId: initial?.groupId ?? groupId ?? null,
     name: initial?.name ?? '',
     sku: initial?.sku ?? '',
+    barcode: initial?.barcode ?? null,
     unit: initial?.unit || 'Pcs',
     priceSell: initial?.priceSell ?? 0,
     priceBuy: initial?.priceBuy ?? 0,
     currencyId: initial?.currencyId ?? currencyId,
-    groupId: initial?.groupId ?? groupId ?? null,
     isActive: initial?.isActive ?? true,
-  })
-
-  const [form, setForm] = useState<CreateProductDto>(buildForm)
-
-  useEffect(() => {
-    if (open) setForm(buildForm())
-  }, [open, initial?.id])
+  }))
 
   const flat = flattenGroups(groups)
 
-  function set<K extends keyof CreateProductDto>(k: K, v: CreateProductDto[K]) {
+  function set<K extends keyof UpdateProductDto>(k: K, v: UpdateProductDto[K]) {
     setForm((f) => ({ ...f, [k]: v }))
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    const data: UpdateProductDto = { ...form, sku: form.sku?.trim() || null }
     try {
       if (isEdit) {
-        await update.mutateAsync({ id: initial!.id, data: form })
+        await update.mutateAsync({ id: initial!.id, data })
         toast.success(t('products.updatedSuccess'))
       } else {
-        await create.mutateAsync(form)
+        // CreateProductRequest без isActive: новый товар всегда активен.
+        const { isActive: _isActive, ...createData } = data
+        void _isActive
+        await create.mutateAsync(createData)
         toast.success(t('products.createdSuccess'))
       }
       onClose()
     } catch (err) {
-      console.error('Product save error:', err)
       toast.error(getApiErrorMessage(err, t, isEdit ? t('products.updateError') : t('products.createError')))
     }
   }
@@ -223,7 +234,7 @@ function ProductFormDialog({ open, onClose, initial, groupId, groups, currencyId
               <Label>{t('common.currency')}</Label>
               <Select value={form.currencyId} onValueChange={(v) => set('currencyId', v)}>
                 <SelectTrigger className="bg-white/5 border-white/10 text-[hsl(var(--text-primary))]">
-                  <SelectValue placeholder="Выберите" />
+                  <SelectValue placeholder={t('common.select')} />
                 </SelectTrigger>
                 <SelectContent className="bg-secondary border-white/10 text-[hsl(var(--text-primary))]">
                   {currencies?.map((c) => (
@@ -239,10 +250,10 @@ function ProductFormDialog({ open, onClose, initial, groupId, groups, currencyId
                 onValueChange={(v) => set('groupId', v === '__none__' ? null : v)}
               >
                 <SelectTrigger className="bg-white/5 border-white/10 text-[hsl(var(--text-primary))]">
-                  <SelectValue placeholder="Без группы" />
+                  <SelectValue placeholder={t('products.noGroup')} />
                 </SelectTrigger>
                 <SelectContent className="bg-secondary border-white/10 text-[hsl(var(--text-primary))]">
-                  <SelectItem value="__none__">— Без группы —</SelectItem>
+                  <SelectItem value="__none__">— {t('products.noGroup')} —</SelectItem>
                   {flat.map((g) => (
                     <SelectItem key={g.id} value={g.id}>{g.label}</SelectItem>
                   ))}
@@ -250,16 +261,18 @@ function ProductFormDialog({ open, onClose, initial, groupId, groups, currencyId
               </Select>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <input
-              id="isActive"
-              type="checkbox"
-              checked={form.isActive}
-              onChange={(e) => set('isActive', e.target.checked)}
-              className="accent-brand-500"
-            />
-            <Label htmlFor="isActive">{t('common.active')}</Label>
-          </div>
+          {isEdit && (
+            <div className="flex items-center gap-2">
+              <input
+                id="isActive"
+                type="checkbox"
+                checked={form.isActive}
+                onChange={(e) => set('isActive', e.target.checked)}
+                className="accent-brand-500"
+              />
+              <Label htmlFor="isActive">{t('common.active')}</Label>
+            </div>
+          )}
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="ghost" onClick={onClose} disabled={busy}>{t('common.cancel')}</Button>
             <Button type="submit" disabled={busy} className="bg-brand-600 hover:bg-brand-700">
@@ -319,13 +332,13 @@ function GroupFormDialog({
             />
           </div>
           <div className="space-y-1">
-            <Label>Родительская группа</Label>
+            <Label>{t('products.parentGroup')}</Label>
             <Select value={parentId ?? '__none__'} onValueChange={(v) => setParentId(v === '__none__' ? null : v)}>
               <SelectTrigger className="bg-white/5 border-white/10 text-[hsl(var(--text-primary))]">
-                <SelectValue placeholder="Корневая" />
+                <SelectValue placeholder={t('products.rootGroup')} />
               </SelectTrigger>
               <SelectContent className="bg-secondary border-white/10 text-[hsl(var(--text-primary))]">
-                <SelectItem value="__none__">— Корневая —</SelectItem>
+                <SelectItem value="__none__">— {t('products.rootGroup')} —</SelectItem>
                 {flat.map((g) => (
                   <SelectItem key={g.id} value={g.id}>{g.label}</SelectItem>
                 ))}
@@ -411,7 +424,8 @@ export function ProductsPage() {
     setSelectedGroup(id)
     setPage(1)
   }
-  const PAGE_SIZE = 500
+  // Сервер ограничивает pageSize 1..200.
+  const PAGE_SIZE = 200
 
   const { data: groups = [], isLoading: groupsLoading } = useProductGroups()
   const { data, isLoading } = useProducts({
@@ -454,6 +468,8 @@ export function ProductsPage() {
           <span className="text-xs font-bold text-[hsl(var(--text-muted))] uppercase tracking-widest">{t('products.group')}</span>
           {isAdmin && (
             <button
+              type="button"
+              aria-label={t('products.createGroup')}
               onClick={() => setGroupDialog(true)}
               className="w-6 h-6 flex items-center justify-center rounded-full bg-brand-500/15 text-brand-400 light:text-brand-600 hover:bg-brand-500 hover:text-brand-fg transition-all duration-150 text-base leading-none font-bold"
               title={t('products.createGroup')}
@@ -468,6 +484,10 @@ export function ProductsPage() {
           ) : (
             <>
               <div
+                role="button"
+                tabIndex={0}
+                aria-pressed={selectedGroup === null}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectGroup(null) } }}
                 className={`px-3 py-1.5 text-sm rounded-lg mx-1 cursor-pointer transition-all duration-150 ${
                   selectedGroup === null
                     ? 'text-brand-300 light:text-brand-600 bg-brand-500/15 font-semibold shadow-sm shadow-brand-500/10'
@@ -497,6 +517,7 @@ export function ProductsPage() {
         <div className="flex items-center gap-3 px-4 py-3 border-b border-[hsl(var(--border))] bg-card">
           <Input
             placeholder={t('common.search')}
+            aria-label={t('common.search')}
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             className="bg-white/5 border-white/10 text-[hsl(var(--text-primary))] w-72 light:bg-brand-50/70 light:border-brand-200"
@@ -581,7 +602,7 @@ export function ProductsPage() {
                     </TableCell>
                     {isAdmin && (
                       <TableCell className="py-2">
-                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex gap-1 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
                           <button
                             onClick={() => setProductDialog({ open: true, item: p })}
                             className="px-2 py-1 text-xs text-brand-400 light:text-brand-600 hover:text-brand-fg hover:bg-brand-500 rounded transition-all duration-150"
@@ -615,6 +636,7 @@ export function ProductsPage() {
                 variant="ghost"
                 size="sm"
                 disabled={page === 1}
+                aria-label={t('documents.prevPage')}
                 onClick={() => setPage((p) => p - 1)}
                 className="text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]"
               >
@@ -627,6 +649,7 @@ export function ProductsPage() {
                 variant="ghost"
                 size="sm"
                 disabled={page >= totalPages}
+                aria-label={t('documents.nextPage')}
                 onClick={() => setPage((p) => p + 1)}
                 className="text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]"
               >

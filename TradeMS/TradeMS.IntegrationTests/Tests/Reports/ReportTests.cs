@@ -79,7 +79,8 @@ public class ReportTests : SeededIntegrationTestBase
         await CreateAndConfirm("Income", supplierId, productId, 100m, 12000m);
         await CreateAndConfirm("Expense", customerId, productId, 10m, 15000m);
 
-        var resp = await Client.GetAsync("/api/reports/dashboard");
+        // Документы датированы маем — период по умолчанию (текущий месяц) их не включает.
+        var resp = await Client.GetAsync("/api/reports/dashboard?dateFrom=2026-05-01&dateTo=2026-05-31");
         var body = await resp.Content.ReadFromJsonAsync<DashboardResp>(JsonOpts);
 
         // Revenue should include the expense

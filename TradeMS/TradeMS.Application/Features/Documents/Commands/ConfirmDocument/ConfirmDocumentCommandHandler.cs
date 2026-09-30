@@ -3,7 +3,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Application.Common.Exceptions;
-using TradeMS.Application.Features.Documents.Commands.CreateDocument;
 using TradeMS.Application.Features.Documents.DTOs;
 using TradeMS.Domain.Entities;
 using TradeMS.Domain.Enums;
@@ -16,9 +15,10 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
     public async Task<DocumentDto> Handle(
         ConfirmDocumentCommand request, CancellationToken cancellationToken)
     {
-        // Retry on optimistic-concurrency conflicts (Stock/Counterparty/Account use the
-        // PostgreSQL xmin row-version token). Concurrent confirms touching the same rows
-        // would otherwise silently lose an update.
+        // Retry on optimistic-concurrency conflicts (Document/Stock/Counterparty/Account use the
+        // PostgreSQL xmin row-version token) and on a concurrent insert of the same stock row.
+        // The change tracker must be cleared before retrying: otherwise the re-read returns the
+        // already-modified tracked instances (Status = Confirmed, stale xmin) and the retry fails.
         const int maxAttempts = 3;
         for (var attempt = 1; ; attempt++)
         {
@@ -26,9 +26,10 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
             {
                 return await ConfirmAsync(request, cancellationToken);
             }
-            catch (DbUpdateConcurrencyException) when (attempt < maxAttempts)
+            catch (DbUpdateException ex) when (attempt < maxAttempts &&
+                (ex is DbUpdateConcurrencyException || DocumentRules.IsUniqueViolation(ex)))
             {
-                // fall through and retry with freshly-read values
+                db.ClearChangeTracker();
             }
         }
     }
@@ -47,12 +48,21 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
             ?? throw new KeyNotFoundException($"Document {request.Id} not found");
 
         if (request.BranchId.HasValue && doc.BranchId != request.BranchId.Value)
-            throw new UnauthorizedAccessException("Access to this document is not allowed");
+            throw new ForbiddenAccessException("Access to this document is not allowed");
 
         if (doc.Status != DocumentStatus.Draft)
             throw new BusinessException(DocumentErrorCodes.NotDraft,
                 $"Document is already {doc.Status}",
                 new Dictionary<string, object?> { ["status"] = doc.Status.ToString() });
+
+        // Ссылки могли устареть с момента создания черновика (контрагент удалён, товар выключен)
+        // или прийти из старых черновиков, созданных до проверки принадлежности.
+        await DocumentRules.EnsureReferencesAsync(db,
+            doc.CompanyId, doc.BranchId, doc.Type,
+            doc.CounterpartyId, doc.CurrencyId, doc.AccountId,
+            doc.Lines.Select(l => l.ProductId).ToList(),
+            doc.Lines.Select(l => l.Quantity).ToList(),
+            cancellationToken);
 
         // ── курс в базовую валюту (источник истины — сервер, не клиент) ─────────
         // Берём официальный курс из таблицы ExchangeRate (последний на дату документа),
@@ -61,34 +71,27 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
             .FirstOrDefaultAsync(c => c.IsBase, cancellationToken)
             ?? throw new BusinessException(DocumentErrorCodes.NoBaseCurrency, "No base currency is configured");
 
-        decimal serverRate;
-        if (doc.CurrencyId == baseCurrency.Id)
-        {
-            serverRate = 1m;
-        }
-        else
-        {
-            var rate = await db.ExchangeRates
-                .Where(r => r.FromCurrencyId == doc.CurrencyId
-                            && r.ToCurrencyId == baseCurrency.Id
-                            && r.Date <= doc.Date)
-                .OrderByDescending(r => r.Date)
-                .Select(r => (decimal?)r.Rate)
-                .FirstOrDefaultAsync(cancellationToken)
-                ?? throw new BusinessException(DocumentErrorCodes.ExchangeRateNotFound,
-                    $"No exchange rate found for currency {doc.Currency?.Code ?? doc.CurrencyId.ToString()} " +
-                    $"to base currency {baseCurrency.Code} on or before {doc.Date}",
-                    new Dictionary<string, object?>
-                    {
-                        ["currency"] = doc.Currency?.Code,
-                        ["baseCurrency"] = baseCurrency.Code,
-                        ["date"] = doc.Date.ToString("yyyy-MM-dd"),
-                    });
-            serverRate = rate;
-        }
+        doc.ExchangeRate = await RateOrThrowAsync(doc.CurrencyId, doc.Currency.Code, baseCurrency, doc.Date, cancellationToken);
+        doc.TotalAmountBase = DocumentRules.Money(doc.TotalAmount * doc.ExchangeRate);
 
-        doc.ExchangeRate = serverRate;
-        doc.TotalAmountBase = Math.Round(doc.TotalAmount * serverRate, 2, MidpointRounding.AwayFromZero);
+        // ── выручка и себестоимость строк в базовой валюте (для отчётов) ─────────
+        // Фиксируются в момент проведения: последующая смена закупочной цены или курса
+        // не должна задним числом менять прибыль прошлых периодов.
+        DocumentRules.DistributeBaseTotals(doc);
+
+        var costRates = new Dictionary<Guid, decimal>();
+        foreach (var line in doc.Lines)
+        {
+            var productCurrencyId = line.Product.CurrencyId;
+            if (!costRates.TryGetValue(productCurrencyId, out var costRate))
+            {
+                var code = await db.Currencies
+                    .Where(c => c.Id == productCurrencyId).Select(c => c.Code).FirstAsync(cancellationToken);
+                costRate = await RateOrThrowAsync(productCurrencyId, code, baseCurrency, doc.Date, cancellationToken);
+                costRates[productCurrencyId] = costRate;
+            }
+            line.CostBase = DocumentRules.Money(line.Quantity * line.Product.PriceBuy * costRate);
+        }
 
         // ── склад ─────────────────────────────────────────────────────────────
         // Expense / ReturnToSupplier  → уменьшить склад
@@ -183,27 +186,23 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
         // ── касса ─────────────────────────────────────────────────────────────
         // PayIn  → деньги приходят в кассу (+)
         // PayOut → деньги уходят из кассы (-)
-        if (doc.Type is DocumentType.PayIn or DocumentType.PayOut && doc.AccountId.HasValue)
+        // Касса обязательна и проверена в EnsureReferencesAsync (та же компания и филиал документа).
+        if (DocumentRules.IsPayment(doc.Type))
         {
-            var account = await db.Accounts
-                .FirstOrDefaultAsync(a => a.Id == doc.AccountId.Value, cancellationToken);
+            var account = await DocumentRules.EnsureAccountAsync(
+                db, doc.CompanyId, doc.BranchId, doc.AccountId!.Value, cancellationToken);
 
-            if (account is not null)
-            {
-                // Account balances are kept in the base currency, and the delta we apply is
-                // TotalAmountBase. Applying it to an account denominated in another currency would
-                // corrupt that account's balance, so require the account to be in the base currency.
-                if (account.CurrencyId != baseCurrency.Id)
-                    throw new BusinessException(DocumentErrorCodes.AccountCurrencyMismatch,
-                        "Payment account currency must match the base currency.",
-                        new Dictionary<string, object?> { ["account"] = account.Name, ["baseCurrency"] = baseCurrency.Code });
+            // Account balances are kept in the base currency, and the delta we apply is
+            // TotalAmountBase. Applying it to an account denominated in another currency would
+            // corrupt that account's balance, so require the account to be in the base currency.
+            if (account.CurrencyId != baseCurrency.Id)
+                throw new BusinessException(DocumentErrorCodes.AccountCurrencyMismatch,
+                    "Payment account currency must match the base currency.",
+                    new Dictionary<string, object?> { ["account"] = account.Name, ["baseCurrency"] = baseCurrency.Code });
 
-                var accountDelta = doc.Type == DocumentType.PayIn
-                    ? +doc.TotalAmountBase
-                    : -doc.TotalAmountBase;
-
-                account.Balance += accountDelta;
-            }
+            account.Balance += doc.Type == DocumentType.PayIn
+                ? +doc.TotalAmountBase
+                : -doc.TotalAmountBase;
 
             if (doc.CounterpartyId.HasValue)
             {
@@ -227,18 +226,23 @@ public class ConfirmDocumentCommandHandler(IAppDbContext db, IAuditLogger auditL
         await db.SaveChangesAsync(cancellationToken);
         await transaction.CommitAsync(cancellationToken);
 
-        // reload with navigations for response
-        var confirmed = await db.Documents
-            .Include(d => d.Counterparty)
-            .Include(d => d.Currency)
-            .Include(d => d.Lines).ThenInclude(l => l.Product)
-            .FirstAsync(d => d.Id == request.Id, cancellationToken);
-
         await auditLogger.LogAsync(AuditActions.DocConfirm,
             entityType: "Document", entityId: request.Id.ToString(),
             details: JsonSerializer.Serialize(new { type = doc.Type.ToString(), number = doc.Number, total = doc.TotalAmountBase, counterparty = doc.Counterparty?.Name }),
             cancellationToken: cancellationToken);
 
-        return CreateDocumentCommandHandler.MapToDto(confirmed);
+        return await DocumentRules.LoadDtoAsync(db, request.Id, request.CompanyId, cancellationToken);
     }
+
+    private async Task<decimal> RateOrThrowAsync(
+        Guid currencyId, string currencyCode, Currency baseCurrency, DateOnly date, CancellationToken ct)
+        => await DocumentRules.FindRateToBaseAsync(db, currencyId, baseCurrency.Id, date, ct)
+           ?? throw new BusinessException(DocumentErrorCodes.ExchangeRateNotFound,
+               $"No exchange rate found for currency {currencyCode} to base currency {baseCurrency.Code} on or before {date}",
+               new Dictionary<string, object?>
+               {
+                   ["currency"] = currencyCode,
+                   ["baseCurrency"] = baseCurrency.Code,
+                   ["date"] = date.ToString("yyyy-MM-dd"),
+               });
 }

@@ -1,5 +1,9 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
+import { useAuthStore } from '@/store/auth.store'
+import { getApiErrorMessage } from '@/lib/apiError'
+import { todayIso } from '@/utils/format'
 import { Plus, Star, RefreshCw } from 'lucide-react'
 import { useCurrencies, type CurrencyDto } from '@/api/hooks/useCurrencies'
 import { useExchangeRates } from '@/api/hooks/useExchangeRates'
@@ -12,8 +16,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { DatePicker } from '@/components/ui/date-picker'
+import { format, isValid, parseISO } from 'date-fns'
 
-function CurrencyDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+function formatIsoDate(value: string) {
+  const d = parseISO(value)
+  return isValid(d) ? format(d, 'dd.MM.yyyy') : value
+}
+
+function CurrencyDialog({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation()
   const [form, setForm] = useState({ code: '', name: '', isBase: false })
   const createCurrency = useCreateCurrency()
@@ -21,14 +31,16 @@ function CurrencyDialog({ open, onClose }: { open: boolean; onClose: () => void 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await createCurrency.mutateAsync(form)
+      await createCurrency.mutateAsync({ ...form, code: form.code.trim(), name: form.name.trim() })
+      toast.success(t('settings.currencyCreated'))
       onClose()
-      setForm({ code: '', name: '', isBase: false })
-    } catch {}
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, t))
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="bg-card border-border text-[hsl(var(--text-primary))] max-w-sm">
         <DialogHeader>
           <DialogTitle className="text-base font-semibold">{t('settings.addCurrency')}</DialogTitle>
@@ -48,7 +60,7 @@ function CurrencyDialog({ open, onClose }: { open: boolean; onClose: () => void 
           <div className="space-y-1.5">
             <Label className="text-[hsl(var(--text-muted))] text-xs">{t('settings.currencyName')}</Label>
             <Input
-              placeholder="Доллар США"
+              placeholder={t('settings.currencyNamePlaceholder')}
               value={form.name}
               onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               className="bg-background border-border text-[hsl(var(--text-primary))]"
@@ -64,6 +76,9 @@ function CurrencyDialog({ open, onClose }: { open: boolean; onClose: () => void 
             />
             <span className="text-sm text-[hsl(var(--text-primary))]">{t('settings.isBase')}</span>
           </label>
+          {form.isBase && (
+            <p className="text-xs text-orange-400">{t('settings.isBaseWarning')}</p>
+          )}
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="ghost" onClick={onClose} className="text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))]">
               {t('common.cancel')}
@@ -79,38 +94,43 @@ function CurrencyDialog({ open, onClose }: { open: boolean; onClose: () => void 
 }
 
 function ExchangeRateDialog({
-  open,
   onClose,
   currencies,
 }: {
-  open: boolean
   onClose: () => void
   currencies: CurrencyDto[]
 }) {
   const { t } = useTranslation()
-  const today = new Date().toISOString().split('T')[0]
+  const baseId = currencies.find((c) => c.isBase)?.id ?? ''
   const [form, setForm] = useState({
     fromCurrencyId: '',
-    toCurrencyId: '',
+    // Сервер ищет курс «валюта → базовая», поэтому по умолчанию «в» — базовая.
+    toCurrencyId: baseId,
     rate: '',
-    date: today,
+    date: todayIso(),
   })
   const createRate = useCreateExchangeRate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!form.fromCurrencyId || !form.toCurrencyId) {
+      toast.error(t('errors.codes.currencyRequired'))
+      return
+    }
     try {
       await createRate.mutateAsync({
         ...form,
         rate: parseFloat(form.rate),
       })
+      toast.success(t('settings.rateCreated'))
       onClose()
-      setForm({ fromCurrencyId: '', toCurrencyId: '', rate: '', date: today })
-    } catch {}
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, t))
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="bg-card border-border text-[hsl(var(--text-primary))] max-w-sm">
         <DialogHeader>
           <DialogTitle className="text-base font-semibold">{t('settings.addRate')}</DialogTitle>
@@ -119,8 +139,8 @@ function ExchangeRateDialog({
           <div className="space-y-1.5">
             <Label className="text-[hsl(var(--text-muted))] text-xs">{t('common.from')} {t('common.currency')}</Label>
             <Select value={form.fromCurrencyId} onValueChange={(v) => setForm((f) => ({ ...f, fromCurrencyId: v }))}>
-              <SelectTrigger className="bg-background border-border text-[hsl(var(--text-primary))]">
-                <SelectValue placeholder={t('common.currency')} />
+              <SelectTrigger className="bg-background border-border text-[hsl(var(--text-primary))]" aria-label={`${t('common.from')} ${t('common.currency')}`}>
+                <SelectValue placeholder={t('settings.selectCurrency')} />
               </SelectTrigger>
               <SelectContent className="bg-secondary border-border">
                 {currencies.map((c) => (
@@ -134,8 +154,8 @@ function ExchangeRateDialog({
           <div className="space-y-1.5">
             <Label className="text-[hsl(var(--text-muted))] text-xs">{t('common.to')} {t('common.currency')}</Label>
             <Select value={form.toCurrencyId} onValueChange={(v) => setForm((f) => ({ ...f, toCurrencyId: v }))}>
-              <SelectTrigger className="bg-background border-border text-[hsl(var(--text-primary))]">
-                <SelectValue placeholder="Выберите валюту" />
+              <SelectTrigger className="bg-background border-border text-[hsl(var(--text-primary))]" aria-label={`${t('common.to')} ${t('common.currency')}`}>
+                <SelectValue placeholder={t('settings.selectCurrency')} />
               </SelectTrigger>
               <SelectContent className="bg-secondary border-border">
                 {currencies.map((c) => (
@@ -151,6 +171,7 @@ function ExchangeRateDialog({
             <Input
               type="number"
               step="0.000001"
+              min="0"
               placeholder="12600.00"
               value={form.rate}
               onChange={(e) => setForm((f) => ({ ...f, rate: e.target.value }))}
@@ -182,6 +203,7 @@ function ExchangeRateDialog({
 
 export function CurrenciesTab() {
   const { t } = useTranslation()
+  const isAdmin = useAuthStore((s) => s.user?.role === 'Admin')
   const { data: currencies = [], isLoading: loadingCurrencies } = useCurrencies()
   const { data: rates = [], isLoading: loadingRates } = useExchangeRates()
   const [showCurrencyDialog, setShowCurrencyDialog] = useState(false)
@@ -193,14 +215,16 @@ export function CurrenciesTab() {
       <div className="rounded-xl border border-[hsl(var(--border))] bg-card">
         <div className="flex items-center justify-between px-4 py-3 border-b border-[hsl(var(--border))]">
           <h3 className="text-sm font-semibold text-[hsl(var(--text-primary))]">{t('settings.currencies')}</h3>
-          <Button
-            size="sm"
-            onClick={() => setShowCurrencyDialog(true)}
-            className="h-7 gap-1.5 bg-brand-600/90 hover:bg-brand-500 text-xs"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            {t('common.add')}
-          </Button>
+          {isAdmin && (
+            <Button
+              size="sm"
+              onClick={() => setShowCurrencyDialog(true)}
+              className="h-7 gap-1.5 bg-brand-600/90 hover:bg-brand-500 text-xs"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {t('common.add')}
+            </Button>
+          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -253,17 +277,19 @@ export function CurrenciesTab() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-[hsl(var(--border))]">
           <div className="flex items-center gap-2">
             <RefreshCw className="h-4 w-4 text-[hsl(var(--text-muted))]" />
-            <h3 className="text-sm font-semibold text-[hsl(var(--text-primary))]">{t('settings.addRate')}</h3>
-            <span className="text-xs text-[hsl(var(--text-muted))]">(последние)</span>
+            <h3 className="text-sm font-semibold text-[hsl(var(--text-primary))]">{t('settings.rates')}</h3>
+            <span className="text-xs text-[hsl(var(--text-muted))]">({t('settings.latestRates')})</span>
           </div>
-          <Button
-            size="sm"
-            onClick={() => setShowRateDialog(true)}
-            className="h-7 gap-1.5 bg-brand-600/90 hover:bg-brand-500 text-xs"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            {t('settings.addRate')}
-          </Button>
+          {isAdmin && (
+            <Button
+              size="sm"
+              onClick={() => setShowRateDialog(true)}
+              className="h-7 gap-1.5 bg-brand-600/90 hover:bg-brand-500 text-xs"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {t('settings.addRate')}
+            </Button>
+          )}
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -294,7 +320,7 @@ export function CurrenciesTab() {
                     <td className="px-4 py-3 text-right font-mono text-emerald-400 font-medium">
                       {r.rate.toLocaleString('ru-RU', { minimumFractionDigits: 2 })}
                     </td>
-                    <td className="px-4 py-3 text-center text-[hsl(var(--text-muted))] text-xs">{r.date}</td>
+                    <td className="px-4 py-3 text-center text-[hsl(var(--text-muted))] text-xs">{formatIsoDate(r.date)}</td>
                   </tr>
                 ))
               )}
@@ -303,12 +329,13 @@ export function CurrenciesTab() {
         </div>
       </div>
 
-      <CurrencyDialog open={showCurrencyDialog} onClose={() => setShowCurrencyDialog(false)} />
-      <ExchangeRateDialog
-        open={showRateDialog}
-        onClose={() => setShowRateDialog(false)}
-        currencies={currencies}
-      />
+      {showCurrencyDialog && <CurrencyDialog onClose={() => setShowCurrencyDialog(false)} />}
+      {showRateDialog && (
+        <ExchangeRateDialog
+          onClose={() => setShowRateDialog(false)}
+          currencies={currencies}
+        />
+      )}
     </div>
   )
 }

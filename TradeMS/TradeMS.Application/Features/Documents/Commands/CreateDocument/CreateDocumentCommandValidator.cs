@@ -14,6 +14,9 @@ public class CreateDocumentCommandValidator : AbstractValidator<CreateDocumentCo
         RuleFor(x => x.CurrencyId).NotEmpty().WithErrorCode(DocumentErrorCodes.CurrencyRequired);
         RuleFor(x => x.ExchangeRate).GreaterThan(0).WithErrorCode(DocumentErrorCodes.ExchangeRatePositive);
         RuleFor(x => x.DiscountPercent).InclusiveBetween(0, 100).WithErrorCode(DocumentErrorCodes.DiscountRange);
+        RuleFor(x => x.CounterpartyId)
+            .NotNull().WithErrorCode(DocumentErrorCodes.CounterpartyRequired).WithMessage("Counterparty is required");
+        RuleFor(x => x.Note).MaximumLength(1000);
 
         // Payment documents (PayIn/PayOut) carry no lines — the moved money is in Amount.
         When(x => x.Type is DocumentType.PayIn or DocumentType.PayOut, () =>
@@ -21,8 +24,8 @@ public class CreateDocumentCommandValidator : AbstractValidator<CreateDocumentCo
             RuleFor(x => x.Amount)
                 .NotNull().WithErrorCode(DocumentErrorCodes.AmountRequired).WithMessage("Amount is required for payment documents")
                 .GreaterThan(0).WithErrorCode(DocumentErrorCodes.AmountPositive).WithMessage("Payment amount must be greater than zero");
-            RuleFor(x => x.CounterpartyId)
-                .NotNull().WithErrorCode(DocumentErrorCodes.CounterpartyRequired).WithMessage("Counterparty is required for payment documents");
+            RuleFor(x => x.AccountId)
+                .NotNull().WithErrorCode(DocumentErrorCodes.AccountRequired).WithMessage("Account is required for payment documents");
             RuleFor(x => x.PaymentMethod)
                 .Must(pm => string.IsNullOrEmpty(pm) || Enum.TryParse<PaymentMethod>(pm, true, out _))
                 .WithErrorCode(DocumentErrorCodes.InvalidPaymentMethod).WithMessage("Invalid payment method. Use Cash, BankTransfer or Card.");

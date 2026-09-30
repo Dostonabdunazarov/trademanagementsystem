@@ -47,9 +47,11 @@ public record DocumentSummaryDto(
     string Type,
     string Number,
     DateOnly Date,
+    Guid? CounterpartyId,
     string? CounterpartyName,
     string CurrencyCode,
     decimal TotalAmount,
+    decimal TotalAmountBase,
     decimal DiscountAmount,
     string Status,
     DateTime CreatedAt
@@ -84,5 +86,8 @@ public record UpdateDocumentRequest(
     decimal ExchangeRate,
     decimal DiscountPercent,
     string? Note,
-    IReadOnlyList<CreateDocumentLineRequest> Lines
+    IReadOnlyList<CreateDocumentLineRequest> Lines,
+    decimal? Amount = null,
+    string? PaymentMethod = null,
+    Guid? AccountId = null
 );

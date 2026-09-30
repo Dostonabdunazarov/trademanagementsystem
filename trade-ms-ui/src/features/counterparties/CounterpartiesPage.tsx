@@ -1,4 +1,4 @@
-﻿import { useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/store/auth.store'
 import { useCounterparties, type CounterpartyDto } from '@/api/hooks/useCounterparties'
@@ -97,11 +97,12 @@ function CounterpartyFormDialog({
   const update = useUpdateCounterparty()
   const isEdit = !!initial
 
+  // Все поля PUT берутся из initial: поле, которого нет в форме, затёрло бы данные (AUDIT FE-5).
   const [form, setForm] = useState<CreateCounterpartyDto>({
     name: initial?.name ?? '',
-    type: (initial?.type as CreateCounterpartyDto['type']) ?? 'Customer',
+    type: initial?.type ?? 'Customer',
     phone: initial?.phone ?? '',
-    address: '',
+    address: initial?.address ?? '',
     creditLimit: initial?.creditLimit ?? 0,
   })
 
@@ -111,17 +112,22 @@ function CounterpartyFormDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    const data: CreateCounterpartyDto = {
+      ...form,
+      name: form.name.trim(),
+      phone: form.phone?.trim() || null,
+      address: form.address?.trim() || null,
+    }
     try {
       if (isEdit) {
-        await update.mutateAsync({ id: initial!.id, data: form })
+        await update.mutateAsync({ id: initial!.id, data })
         toast.success(t('counterparties.updatedSuccess'))
       } else {
-        await create.mutateAsync(form)
+        await create.mutateAsync(data)
         toast.success(t('counterparties.createdSuccess'))
       }
       onClose()
     } catch (err) {
-      console.error('Counterparty save error:', err)
       toast.error(getApiErrorMessage(err, t, isEdit ? t('counterparties.updateError') : t('counterparties.createError')))
     }
   }
@@ -154,7 +160,7 @@ function CounterpartyFormDialog({
                 <SelectContent className="bg-secondary border-white/10 text-[hsl(var(--text-primary))]">
                   <SelectItem value="Customer">{t('counterparties.Customer')}</SelectItem>
                   <SelectItem value="Supplier">{t('counterparties.Supplier')}</SelectItem>
-                  <SelectItem value="Both">{t('counterparties.allTypes')}</SelectItem>
+                  <SelectItem value="Both">{t('counterparties.Both')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -169,7 +175,7 @@ function CounterpartyFormDialog({
             </div>
           </div>
           <div className="space-y-1">
-            <Label>Адрес</Label>
+            <Label>{t('counterparties.address')}</Label>
             <Input
               value={form.address ?? ''}
               onChange={(e) => set('address', e.target.value)}
@@ -240,7 +246,6 @@ export function CounterpartiesPage() {
       await deleteMut.mutateAsync(deleteDialog.item.id)
       toast.success(t('counterparties.deletedSuccess'))
     } catch (err) {
-      console.error('Counterparty delete error:', err)
       toast.error(getApiErrorMessage(err, t, t('counterparties.deleteError')))
     } finally {
       setDeleteDialog({ open: false })
@@ -255,6 +260,7 @@ export function CounterpartiesPage() {
       <div className="flex items-center gap-3 px-4 py-3 border-b border-white/8 bg-card">
         <Input
           placeholder={t('common.search')}
+          aria-label={t('common.search')}
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1) }}
           className="bg-white/5 border-white/10 text-[hsl(var(--text-primary))] w-72"
@@ -364,7 +370,7 @@ export function CounterpartiesPage() {
                   </TableCell>
                   {isAdmin && (
                     <TableCell>
-                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex gap-1 transition-opacity md:opacity-0 md:group-hover:opacity-100 md:group-focus-within:opacity-100 [@media(hover:none)]:opacity-100">
                         <button
                           onClick={() => setFormDialog({ open: true, item: c })}
                           className="px-2 py-1 text-xs text-brand-400 hover:text-brand-300 hover:bg-brand-500/10 rounded"
@@ -375,6 +381,7 @@ export function CounterpartiesPage() {
                           onClick={() => setDeleteDialog({ open: true, item: c })}
                           className="p-1.5 text-red-500 hover:bg-red-500/10 rounded transition-colors"
                           title={t('common.delete')}
+                          aria-label={t('counterparties.deleteNamed', { name: c.name })}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -399,6 +406,7 @@ export function CounterpartiesPage() {
               variant="outline"
               size="sm"
               disabled={page <= 1}
+              aria-label={t('documents.prevPage')}
               onClick={() => setPage((p) => p - 1)}
               className="border-white/10 text-[hsl(var(--text-primary))] hover:bg-white/5"
             >
@@ -408,6 +416,7 @@ export function CounterpartiesPage() {
               variant="outline"
               size="sm"
               disabled={page >= totalPages}
+              aria-label={t('documents.nextPage')}
               onClick={() => setPage((p) => p + 1)}
               className="border-white/10 text-[hsl(var(--text-primary))] hover:bg-white/5"
             >
@@ -447,7 +456,7 @@ function TypeBadge({ type }: { type: string }) {
   const typeLabels: Record<string, string> = {
     Customer: t('counterparties.Customer'),
     Supplier: t('counterparties.Supplier'),
-    Both: t('counterparties.allTypes'),
+    Both: t('counterparties.Both'),
   }
   return (
     <Badge variant="outline" className={cfg[type] ?? ''}>

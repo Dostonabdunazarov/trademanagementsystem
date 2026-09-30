@@ -5,7 +5,7 @@ export interface ProductGroupDto {
   id: string
   name: string
   parentId: string | null
-  children?: ProductGroupDto[]
+  children: ProductGroupDto[]
 }
 
 export function useProductGroups() {

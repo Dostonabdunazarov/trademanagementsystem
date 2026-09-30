@@ -1,6 +1,7 @@
 using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using TradeMS.Application.Common.Exceptions;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Domain.Entities;
 
@@ -20,9 +21,9 @@ public class DeleteAccountCommandHandler(IAppDbContext db, IAuditLogger auditLog
         // Guard against cascade data-loss: an account referenced by payments or documents must not
         // be hard-deleted, otherwise the financial records pointing at it would be cascaded away.
         if (await db.Payments.AnyAsync(p => p.AccountId == request.Id, cancellationToken))
-            throw new InvalidOperationException("Cannot delete an account that has payments.");
+            throw new BusinessException(ErrorCodes.AccountHasPayments, "Cannot delete an account that has payments.");
         if (await db.Documents.AnyAsync(d => d.AccountId == request.Id, cancellationToken))
-            throw new InvalidOperationException("Cannot delete an account that is used in documents.");
+            throw new BusinessException(ErrorCodes.AccountInUse, "Cannot delete an account that is used in documents.");
 
         var snapshot = JsonSerializer.Serialize(new { name = account.Name });
 
