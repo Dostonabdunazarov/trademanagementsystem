@@ -35,7 +35,7 @@ export function ProductProfitChart({ lines, loading, className, style }: Props) 
   const avg = revenue > 0 ? (points.reduce((s, p) => s + p.profit, 0) / revenue) * 100 : 0
 
   const colorOf = (margin: number) =>
-    margin < 0 ? 'hsl(var(--danger))' : margin >= avg ? 'var(--chart-4)' : 'var(--chart-2)'
+    margin < 0 ? 'var(--chart-danger)' : margin >= avg ? 'var(--chart-4)' : 'var(--chart-2)'
 
   const tooltip = ({ active, payload }: TooltipContentProps) => {
     if (!active || !payload?.length) return null

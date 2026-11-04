@@ -11,8 +11,8 @@ const NEAR_LIMIT = 0.8
 // Цвет — по кредитному лимиту клиента, а не по сравнению с крупнейшим должником:
 // так подсветка совпадает с блоком «Кредитные лимиты» и говорит о реальном риске.
 const RISK_STYLES = {
-  over: { bar: 'bg-red-500', icon: <AlertTriangle className="h-3 w-3 text-red-400" />, label: 'text-red-400' },
-  near: { bar: 'bg-orange-500', icon: <AlertTriangle className="h-3 w-3 text-orange-400" />, label: 'text-orange-400' },
+  over: { bar: 'bg-[var(--chart-danger)]', icon: <AlertTriangle className="h-3 w-3 text-[var(--chart-danger)]" />, label: 'text-[var(--chart-danger)]' },
+  near: { bar: 'bg-[var(--chart-warning)]', icon: <AlertTriangle className="h-3 w-3 text-[var(--chart-warning)]" />, label: 'text-[var(--chart-warning)]' },
   ok: { bar: 'bg-emerald-500', icon: <CheckCircle2 className="h-3 w-3 text-emerald-400" />, label: 'text-[hsl(var(--text-primary))]' },
   noLimit: { bar: 'bg-[hsl(var(--text-muted))]/50', icon: <Circle className="h-3 w-3 text-[hsl(var(--text-muted))]" />, label: 'text-[hsl(var(--text-primary))]' },
 }

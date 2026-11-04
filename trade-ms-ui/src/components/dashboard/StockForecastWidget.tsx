@@ -9,8 +9,8 @@ const LOOKBACK_DAYS = 30
 const FULL_BAR_DAYS = 30
 
 function tone(daysLeft: number) {
-  if (daysLeft <= 7) return { text: 'text-red-400', bar: 'bg-red-500' }
-  if (daysLeft <= 14) return { text: 'text-orange-400', bar: 'bg-orange-500' }
+  if (daysLeft <= 7) return { text: 'text-[var(--chart-danger)]', bar: 'bg-[var(--chart-danger)]' }
+  if (daysLeft <= 14) return { text: 'text-[var(--chart-warning)]', bar: 'bg-[var(--chart-warning)]' }
   return { text: 'text-emerald-400', bar: 'bg-emerald-500' }
 }
 

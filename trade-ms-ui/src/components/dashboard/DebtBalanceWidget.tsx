@@ -91,18 +91,18 @@ export function DebtBalanceWidget({ debtorDebt = 0, creditorDebt = 0, loading, c
                   </div>
                   <div className="relative mt-1 h-1.5 overflow-hidden rounded-full bg-[hsl(var(--surface-2))]">
                     <div
-                      className="anim-grow-x absolute inset-y-0 left-0 rounded-full bg-orange-500"
+                      className="anim-grow-x absolute inset-y-0 left-0 rounded-full bg-[var(--chart-warning)]"
                       style={{ width: `${withinAt}%`, '--delay': `${650 + i * 60}ms` } as CSSProperties}
                     />
                     {over && (
                       <div
-                        className="anim-grow-x absolute inset-y-0 rounded-r-full bg-red-500"
+                        className="anim-grow-x absolute inset-y-0 rounded-r-full bg-[var(--chart-danger)]"
                         style={{ left: `${limitAt}%`, right: 0, '--delay': `${650 + i * 60}ms` } as CSSProperties}
                       />
                     )}
                     <div className="absolute inset-y-0 w-0.5 bg-[hsl(var(--text-primary))]" style={{ left: `calc(${limitAt}% - 1px)` }} />
                   </div>
-                  <p className={cn('mt-0.5 text-[10px]', over ? 'text-red-400' : 'text-orange-400')}>
+                  <p className={cn('mt-0.5 text-[10px]', over ? 'text-[var(--chart-danger)]' : 'text-[var(--chart-warning)]')}>
                     {over
                       ? t('dashboard.overLimit', { amount: formatCompact(c.balance - c.creditLimit) })
                       : t('dashboard.limitLeft', { amount: formatCompact(c.creditLimit - c.balance) })}

@@ -27,8 +27,8 @@ function Sparkline({ positive }: { positive: boolean }) {
     <svg width="90" height="32" viewBox="0 0 90 32" className="overflow-visible" aria-hidden>
       <defs>
         <linearGradient id={`sg-${positive}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={positive ? '#10B981' : '#EF4444'} stopOpacity="0.3" />
-          <stop offset="100%" stopColor={positive ? '#10B981' : '#EF4444'} stopOpacity="0" />
+          <stop offset="0%" stopColor={positive ? '#10B981' : 'var(--chart-danger)'} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={positive ? '#10B981' : 'var(--chart-danger)'} stopOpacity="0" />
         </linearGradient>
       </defs>
       <polyline
@@ -36,7 +36,7 @@ function Sparkline({ positive }: { positive: boolean }) {
         className="anim-draw"
         points={points}
         fill="none"
-        stroke={positive ? '#10B981' : '#EF4444'}
+        stroke={positive ? '#10B981' : 'var(--chart-danger)'}
         strokeWidth="1.5"
         strokeLinejoin="round"
         strokeLinecap="round"
