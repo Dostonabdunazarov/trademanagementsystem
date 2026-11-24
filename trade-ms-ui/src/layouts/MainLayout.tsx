@@ -149,9 +149,13 @@ export function MainLayout() {
           {NAV_SECTIONS.map((section, i) => (
             <div key={section.label} className={cn('mb-1', i > 0 && 'mt-4')}>
               {sidebarOpen ? (
-                <p className="mb-1.5 px-5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[hsl(var(--text-muted))]">
-                  {section.label}
-                </p>
+                <div className="mb-1.5 flex items-center gap-2 px-4">
+                  <span className="h-1 w-1 shrink-0 rounded-full bg-brand-500" />
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[hsl(var(--text-muted))]">
+                    {section.label}
+                  </p>
+                  <span className="h-px flex-1 bg-gradient-to-r from-[hsl(var(--border))] to-transparent" />
+                </div>
               ) : (
                 i > 0 && <div className="mx-3 mb-2 h-px bg-[hsl(var(--border))]" />
               )}

@@ -219,15 +219,15 @@ header {
 /* Sidebar */
 html.light aside {
   background-color: #ffffff !important;
-  border-right-color: hsl(var(--border)) !important;
-  box-shadow: none !important;
+  border-right-color: rgba(15, 118, 110, 0.18) !important;
+  box-shadow: 4px 0 20px rgba(15, 118, 110, 0.06) !important;
 }
 
 /* Topbar */
 html.light header {
   background-color: #ffffff !important;
-  border-bottom-color: hsl(var(--border)) !important;
-  box-shadow: none !important;
+  border-bottom-color: rgba(15, 118, 110, 0.16) !important;
+  box-shadow: 0 4px 20px rgba(15, 118, 110, 0.05) !important;
 }
 
 /* Table header row */
