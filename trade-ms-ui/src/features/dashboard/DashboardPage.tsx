@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from 'react'
 import { format, parseISO } from 'date-fns'
+import { TrendingUp, DollarSign, Users, CreditCard } from 'lucide-react'
 import { ru, uz } from 'date-fns/locale'
 import { useTranslation } from 'react-i18next'
 import { MetricCard } from '@/components/dashboard/MetricCard'
@@ -66,6 +67,8 @@ export function DashboardPage() {
       amount: isLoading ? undefined : (data?.revenue ?? 0),
       delta: delta(data?.revenueDelta),
       deltaLabel: vsPrev,
+      icon: TrendingUp,
+      iconColor: 'text-[var(--chart-1)]',
     },
     {
       title: t('dashboard.profitMonth'),
@@ -73,18 +76,24 @@ export function DashboardPage() {
       amount: isLoading ? undefined : (data?.profit ?? 0),
       delta: delta(data?.profitDelta),
       deltaLabel: vsPrev,
+      icon: DollarSign,
+      iconColor: 'text-[var(--positive)]',
     },
     {
       title: `${t('dashboard.debtorDebt')} · ${t('dashboard.debtTotalHint')}`,
       value: '…',
       amount: isLoading ? undefined : (data?.debtorDebt ?? 0),
       delta: undefined,
+      icon: Users,
+      iconColor: 'text-[var(--chart-3)]',
     },
     {
       title: `${t('dashboard.creditorDebt')} · ${t('dashboard.debtTotalHint')}`,
       value: '…',
       amount: isLoading ? undefined : (data?.creditorDebt ?? 0),
       delta: undefined,
+      icon: CreditCard,
+      iconColor: 'text-[var(--chart-4)]',
     },
   ]
 
@@ -118,7 +127,7 @@ export function DashboardPage() {
       </div>
 
       {/* Row 3: выручка по дням + баланс долгов */}
-      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
+      <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
         <DailyRevenueChart className="anim-rise lg:col-span-8" style={delay(420)} dailySales={data?.dailySales} loading={isLoading} />
         <DebtBalanceWidget
           className="anim-rise lg:col-span-4"

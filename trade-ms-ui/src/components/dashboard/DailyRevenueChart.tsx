@@ -8,7 +8,7 @@ import { formatCompact, formatCurrency, todayIso } from '@/utils/format'
 import { ChartCard, ChartEmpty, ChartTooltipBox } from './ChartCard'
 import { AXIS_TICK, GRID_STROKE, TOOLTIP_WRAPPER } from './chartStyles'
 
-const REVENUE_COLOR = 'var(--chart-revenue)'
+const REVENUE_COLOR = 'var(--chart-daily)'
 const PROFIT_COLOR = 'var(--chart-profit)'
 
 interface Props {
@@ -70,7 +70,7 @@ export function DailyRevenueChart({ dailySales, loading, className, style }: Pro
       {data.length === 0 ? (
         <ChartEmpty text={t('dashboard.dailyTooLong')} />
       ) : (
-        <div className="h-full min-h-[224px]">
+        <div className="h-[224px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }} barCategoryGap="20%">
               <CartesianGrid vertical={false} stroke={GRID_STROKE} />
