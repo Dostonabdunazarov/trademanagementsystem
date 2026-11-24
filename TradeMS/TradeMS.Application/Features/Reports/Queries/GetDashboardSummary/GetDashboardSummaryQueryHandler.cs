@@ -31,13 +31,12 @@ public class GetDashboardSummaryQueryHandler(IAppDbContext db)
         var periodFrom = request.DateFrom ?? new DateOnly(today.Year, today.Month, 1);
         var periodTo = request.DateTo ?? today;
 
+        var statsTo = periodTo > today && periodFrom <= today ? today : periodTo;
+
         // Current period aggregates
         var current = await ComputePeriodStats(request, periodFrom, periodTo, cancellationToken);
 
-        // Previous comparable period: same length, immediately preceding `periodFrom`
-        var periodLength = periodTo.DayNumber - periodFrom.DayNumber; // inclusive span in days
-        var prevTo = periodFrom.AddDays(-1);
-        var prevFrom = prevTo.AddDays(-periodLength);
+        var (prevFrom, prevTo) = ComparablePeriod(periodFrom, statsTo);
         var previous = await ComputePeriodStats(request, prevFrom, prevTo, cancellationToken);
 
         var averageCheck = current.SalesCount > 0
@@ -117,7 +116,7 @@ public class GetDashboardSummaryQueryHandler(IAppDbContext db)
             ));
         }
 
-        var dailySales = await ComputeDailySales(request, periodFrom, periodTo, cancellationToken);
+        var dailySales = await ComputeDailySales(request, periodFrom, statsTo, cancellationToken);
 
         return new DashboardSummaryDto(
             periodFrom, periodTo,
@@ -131,7 +130,31 @@ public class GetDashboardSummaryQueryHandler(IAppDbContext db)
             PercentDelta(current.CashFlow, previous.CashFlow),
             PercentDelta(current.SalesCount, previous.SalesCount),
             monthlySales,
-            dailySales);
+            dailySales,
+            prevFrom,
+            prevTo);
+    }
+
+    private static (DateOnly From, DateOnly To) ComparablePeriod(DateOnly from, DateOnly statsTo)
+    {
+        if (from.Day == 1 && statsTo >= from)
+        {
+            var spanned = (statsTo.Year - from.Year) * 12 + statsTo.Month - from.Month + 1;
+            var shift = spanned <= 1 ? 1
+                : spanned <= 3 && (from.Month - 1) % 3 == 0 ? 3
+                : from.Month == 1 ? (spanned + 11) / 12 * 12
+                : spanned;
+            var shiftedTo = statsTo.AddMonths(-shift);
+            var monthEnd = statsTo.AddDays(1).Day == 1;
+            var prevTo = monthEnd
+                ? new DateOnly(shiftedTo.Year, shiftedTo.Month, DateTime.DaysInMonth(shiftedTo.Year, shiftedTo.Month))
+                : shiftedTo;
+            return (from.AddMonths(-shift), prevTo);
+        }
+
+        var length = statsTo.DayNumber - from.DayNumber;
+        var prevEnd = from.AddDays(-1);
+        return (prevEnd.AddDays(-length), prevEnd);
     }
 
     // Дневной ряд строим только для периодов до квартала: на году точки сливаются,

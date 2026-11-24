@@ -29,6 +29,7 @@ file record DocResp(long Id, string Type, string Status);
 
 file record DailyDashboardResp(string DateFrom, string DateTo, List<DailySalesResp> DailySales);
 file record DailySalesResp(string Date, decimal Revenue, decimal Profit);
+file record ComparedDashboardResp(DateOnly ComparedFrom, DateOnly ComparedTo, List<DailySalesResp> DailySales);
 
 file record StockForecastResp(int LookbackDays, List<ForecastLineResp> Lines);
 file record ForecastLineResp(Guid ProductId, string ProductName, decimal Quantity, decimal SoldPerDay, decimal DaysLeft);
@@ -241,6 +242,65 @@ public class ReportTests : SeededIntegrationTestBase
         var resp = await Client.GetAsync("/api/reports/dashboard?dateFrom=2026-01-01&dateTo=2026-12-31");
         var body = await resp.Content.ReadFromJsonAsync<DailyDashboardResp>(JsonOpts);
         body!.DailySales.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetDashboard_ClosedMonth_ComparesWithFullPreviousMonth()
+    {
+        await AuthenticateAsync();
+        var resp = await Client.GetAsync("/api/reports/dashboard?dateFrom=2026-05-01&dateTo=2026-05-31");
+        var body = await resp.Content.ReadFromJsonAsync<ComparedDashboardResp>(JsonOpts);
+        body!.ComparedFrom.Should().Be(new DateOnly(2026, 4, 1));
+        body.ComparedTo.Should().Be(new DateOnly(2026, 4, 30));
+    }
+
+    [Fact]
+    public async Task GetDashboard_CurrentMonth_ComparesSameDaysOfPreviousMonth()
+    {
+        await AuthenticateAsync();
+        var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(5));
+        var from = new DateOnly(today.Year, today.Month, 1);
+        var to = from.AddMonths(1).AddDays(-1);
+        var resp = await Client.GetAsync($"/api/reports/dashboard?dateFrom={from:yyyy-MM-dd}&dateTo={to:yyyy-MM-dd}");
+        var body = await resp.Content.ReadFromJsonAsync<ComparedDashboardResp>(JsonOpts);
+        body!.ComparedFrom.Should().Be(from.AddMonths(-1));
+        body.ComparedTo.Should().Be(today == to ? from.AddDays(-1) : today.AddMonths(-1));
+        body.DailySales.Should().HaveCount(today.Day);
+
+        var clamped = await Client.GetAsync($"/api/reports/dashboard?dateFrom={from:yyyy-MM-dd}&dateTo={today:yyyy-MM-dd}");
+        var clampedBody = await clamped.Content.ReadFromJsonAsync<ComparedDashboardResp>(JsonOpts);
+        clampedBody!.ComparedFrom.Should().Be(body.ComparedFrom);
+        clampedBody.ComparedTo.Should().Be(body.ComparedTo);
+    }
+
+    [Fact]
+    public async Task GetDashboard_YearToDate_ComparesSamePeriodOfPreviousYear()
+    {
+        await AuthenticateAsync();
+        var resp = await Client.GetAsync("/api/reports/dashboard?dateFrom=2025-01-01&dateTo=2025-08-15");
+        var body = await resp.Content.ReadFromJsonAsync<ComparedDashboardResp>(JsonOpts);
+        body!.ComparedFrom.Should().Be(new DateOnly(2024, 1, 1));
+        body.ComparedTo.Should().Be(new DateOnly(2024, 8, 15));
+    }
+
+    [Fact]
+    public async Task GetDashboard_MultiYearRange_DoesNotOverlapComparison()
+    {
+        await AuthenticateAsync();
+        var resp = await Client.GetAsync("/api/reports/dashboard?dateFrom=2024-01-01&dateTo=2025-08-15");
+        var body = await resp.Content.ReadFromJsonAsync<ComparedDashboardResp>(JsonOpts);
+        body!.ComparedFrom.Should().Be(new DateOnly(2022, 1, 1));
+        body.ComparedTo.Should().Be(new DateOnly(2023, 8, 15));
+    }
+
+    [Fact]
+    public async Task GetDashboard_ArbitraryRange_ComparesWithPrecedingRangeOfSameLength()
+    {
+        await AuthenticateAsync();
+        var resp = await Client.GetAsync("/api/reports/dashboard?dateFrom=2026-05-10&dateTo=2026-05-19");
+        var body = await resp.Content.ReadFromJsonAsync<ComparedDashboardResp>(JsonOpts);
+        body!.ComparedFrom.Should().Be(new DateOnly(2026, 4, 30));
+        body.ComparedTo.Should().Be(new DateOnly(2026, 5, 9));
     }
 
     // Прогноз: 30 шт. на складе, продано 30 за 30 дней → 1 шт./день → хватит на 30 дней

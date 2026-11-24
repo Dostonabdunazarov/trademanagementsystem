@@ -97,7 +97,7 @@ REST API на ASP.NET Core Minimal API. Все прикладные эндпои
 | GET | `/api/reports/sales-summary` | Проведённые расходы за период, группировка по товару. Параметры: `dateFrom`, `dateTo`, `branchId` (по умолч. последние 30 дней) | Auth |
 | GET | `/api/reports/stock-balance` | Остатки по товарам (опц. `branchId`) | Auth |
 | GET | `/api/reports/counterparty-balance` | Балансы контрагентов (опц. `type`) | Auth |
-| GET | `/api/reports/dashboard` | Выручка/прибыль за период, долг дебиторов, кол-во товаров, данные графика за 12 мес. Параметры: `branchId`, `dateFrom`, `dateTo` | Auth |
+| GET | `/api/reports/dashboard` | Выручка/прибыль за период, долг дебиторов, кол-во товаров, данные графика за 12 мес. Параметры: `branchId`, `dateFrom`, `dateTo`. Дневной ряд и окно сравнения заканчиваются сегодняшним днём. Дельты считаются к сопоставимому периоду `comparedFrom`–`comparedTo`: для периода с 1-го числа — те же дни месяца/квартала назад (с 1 января — на целое число лет назад), иначе — отрезок той же длины перед `dateFrom` | Auth |
 
 ## Accounts — [`AccountEndpoints.cs`](../TradeMS/TradeMS.Api/Endpoints/AccountEndpoints.cs)
 

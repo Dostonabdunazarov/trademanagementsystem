@@ -81,7 +81,9 @@ public record DashboardSummaryDto(
     decimal? SalesCountDelta,
     IReadOnlyList<MonthlySalesDto> MonthlySales,
     // Выручка и прибыль по дням выбранного периода (пусто, если период длиннее 92 дней)
-    IReadOnlyList<DailySalesDto> DailySales
+    IReadOnlyList<DailySalesDto> DailySales,
+    DateOnly ComparedFrom,
+    DateOnly ComparedTo
 );
 
 public record DailySalesDto(
