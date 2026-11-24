@@ -20,7 +20,7 @@ export function ChartCard({
   title, subtitle, aside, loading, bodyHeight = 224, className, style, children,
 }: ChartCardProps) {
   return (
-    <div className={cn('rounded-xl border border-[hsl(var(--border))] bg-card p-5', className)} style={style}>
+    <div className={cn('flex flex-col rounded-xl border border-[hsl(var(--border))] bg-card p-5', className)} style={style}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="text-sm font-semibold text-[hsl(var(--text-primary))]">{title}</h3>
@@ -28,11 +28,13 @@ export function ChartCard({
         </div>
         {aside && <div className="shrink-0">{aside}</div>}
       </div>
-      {loading ? (
-        <div className="animate-pulse rounded-lg bg-[hsl(var(--surface-2))]" style={{ height: bodyHeight }} />
-      ) : (
-        children
-      )}
+      <div className="min-h-0 flex-1">
+        {loading ? (
+          <div className="animate-pulse rounded-lg bg-[hsl(var(--surface-2))]" style={{ height: bodyHeight }} />
+        ) : (
+          children
+        )}
+      </div>
     </div>
   )
 }

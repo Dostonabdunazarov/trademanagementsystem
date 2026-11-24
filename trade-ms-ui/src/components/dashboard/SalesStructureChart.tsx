@@ -1,10 +1,14 @@
 import type { CSSProperties } from 'react'
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
+import type { TooltipContentProps } from 'recharts'
 import { useTranslation } from 'react-i18next'
 import type { SalesSummaryItem } from '@/api/hooks/useReports'
 import { formatCompact, formatCurrency, formatPercent } from '@/utils/format'
-import { ChartCard, ChartEmpty } from './ChartCard'
+import { ChartCard, ChartEmpty, ChartTooltipBox } from './ChartCard'
+import { TOOLTIP_WRAPPER } from './chartStyles'
 
-const TOP = 8
+const TOP = 5
+const COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)']
 
 interface Props {
   lines?: SalesSummaryItem[]
@@ -13,58 +17,85 @@ interface Props {
   style?: CSSProperties
 }
 
-/** Структура продаж (п. 4): доля выручки топ-8 товаров, остальное — «Прочее». */
+/** Структура продаж (п. 4): доля выручки топ-5 товаров, остальное — «Прочее». */
 export function SalesStructureChart({ lines, loading, className, style }: Props) {
   const { t } = useTranslation()
   const sorted = [...(lines ?? [])].filter((l) => l.revenue > 0).sort((a, b) => b.revenue - a.revenue)
   const total = sorted.reduce((s, l) => s + l.revenue, 0)
   const rest = sorted.slice(TOP).reduce((s, l) => s + l.revenue, 0)
-  const rows = [
-    ...sorted.slice(0, TOP).map((l) => ({ name: l.productName, value: l.revenue, other: false })),
-    ...(rest > 0 ? [{ name: t('dashboard.others'), value: rest, other: true }] : []),
-  ].map((r) => ({ ...r, share: total > 0 ? (r.value / total) * 100 : 0 }))
-  const max = Math.max(...rows.map((r) => r.value), 1)
+  const slices = [
+    ...sorted.slice(0, TOP).map((l, i) => ({ name: l.productName, value: l.revenue, color: COLORS[i] })),
+    ...(rest > 0 ? [{ name: t('dashboard.others'), value: rest, color: 'var(--chart-other)' }] : []),
+  ].map((s) => ({ ...s, share: total > 0 ? (s.value / total) * 100 : 0 }))
+
+  const tooltip = ({ active, payload }: TooltipContentProps) => {
+    if (!active || !payload?.length) return null
+    const p = payload[0].payload as (typeof slices)[number]
+    return (
+      <ChartTooltipBox
+        title={p.name}
+        rows={[
+          { color: p.color, label: t('dashboard.revenue'), value: formatCurrency(p.value) },
+          { label: t('dashboard.share'), value: formatPercent(p.share) },
+        ]}
+      />
+    )
+  }
 
   return (
     <ChartCard
       title={t('dashboard.salesStructure')}
       subtitle={t('dashboard.salesStructureHint')}
-      aside={total > 0 && <span className="text-sm font-semibold tabular-nums text-[hsl(var(--text-primary))]">{formatCompact(total)}</span>}
       loading={loading}
       bodyHeight={180}
       className={className}
       style={style}
     >
-      {rows.length === 0 ? (
+      {slices.length === 0 ? (
         <ChartEmpty text={t('dashboard.noSalesInPeriod')} height={180} />
       ) : (
-        <ul className="space-y-2">
-          {rows.map((r, i) => (
-            <li
-              key={r.name}
-              className="anim-rise"
-              style={{ '--delay': `${450 + i * 50}ms` } as CSSProperties}
-              title={`${r.name}: ${formatCurrency(r.value)}`}
-            >
-              <div className="flex items-center justify-between gap-3 text-xs">
-                <span className={r.other ? 'truncate text-[hsl(var(--text-muted))]' : 'truncate text-[hsl(var(--text-primary))]'}>{r.name}</span>
-                <span className="shrink-0 tabular-nums text-[hsl(var(--text-muted))]">
-                  {formatCompact(r.value)} · {formatPercent(r.share)}
-                </span>
-              </div>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[var(--track)]">
-                <div
-                  className="anim-grow-x h-full rounded-full"
-                  style={{
-                    width: `${(r.value / max) * 100}%`,
-                    backgroundColor: r.other ? 'var(--chart-other)' : 'var(--chart-1)',
-                    '--delay': `${500 + i * 50}ms`,
-                  } as CSSProperties}
-                />
-              </div>
-            </li>
-          ))}
-        </ul>
+        <div className="flex items-center gap-4">
+          <div className="relative h-[180px] w-[180px] shrink-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={slices}
+                  dataKey="value"
+                  nameKey="name"
+                  innerRadius={56}
+                  outerRadius={82}
+                  paddingAngle={2}
+                  cornerRadius={4}
+                  stroke="none"
+                  startAngle={90}
+                  endAngle={-270}
+                  animationDuration={1000}
+                  animationEasing="ease-out"
+                >
+                  {slices.map((s) => <Cell key={s.name} fill={s.color} />)}
+                </Pie>
+                <Tooltip wrapperStyle={TOOLTIP_WRAPPER} content={tooltip} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-[11px] uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('dashboard.total')}</span>
+              <span className="text-sm font-semibold tabular-nums text-[hsl(var(--text-primary))]">{formatCompact(total)}</span>
+            </div>
+          </div>
+          <ul className="min-w-0 flex-1 space-y-2">
+            {slices.map((s, i) => (
+              <li
+                key={s.name}
+                className="anim-rise flex items-center gap-2 text-xs"
+                style={{ '--delay': `${500 + i * 60}ms` } as CSSProperties}
+              >
+                <span className="h-2.5 w-2.5 shrink-0 rounded-sm" style={{ backgroundColor: s.color }} />
+                <span className="min-w-0 flex-1 truncate text-[hsl(var(--text-primary))]">{s.name}</span>
+                <span className="tabular-nums text-[hsl(var(--text-muted))]">{formatPercent(s.share)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </ChartCard>
   )
