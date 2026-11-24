@@ -24,7 +24,7 @@ export function ChartCard({
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="text-sm font-semibold text-[hsl(var(--text-primary))]">{title}</h3>
-          {subtitle && <p className="mt-0.5 text-[11px] text-[hsl(var(--text-muted))]">{subtitle}</p>}
+          {subtitle && <p className="mt-0.5 text-xs text-[hsl(var(--text-muted))]">{subtitle}</p>}
         </div>
         {aside && <div className="shrink-0">{aside}</div>}
       </div>

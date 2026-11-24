@@ -224,6 +224,9 @@ export const MOCK_DASHBOARD = {
     { year: 2026, month: 2, monthLabel: 'Фев', revenue: 3000000, profit: 600000 },
     { year: 2026, month: 5, monthLabel: 'Май', revenue: 5000000, profit: 1000000 },
   ],
+  dailySales: [],
+  comparedFrom: '2026-05-01',
+  comparedTo: '2026-05-31',
 }
 
 export const reportHandlers = [

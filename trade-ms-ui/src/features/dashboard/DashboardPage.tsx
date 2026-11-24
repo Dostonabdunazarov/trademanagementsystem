@@ -1,5 +1,6 @@
 import { useState, type CSSProperties } from 'react'
-import { TrendingUp, DollarSign, Users, CreditCard } from 'lucide-react'
+import { format, parseISO } from 'date-fns'
+import { ru, uz } from 'date-fns/locale'
 import { useTranslation } from 'react-i18next'
 import { MetricCard } from '@/components/dashboard/MetricCard'
 import { PeriodFilter } from '@/components/dashboard/PeriodFilter'
@@ -9,7 +10,7 @@ import { TopProductsTable } from '@/components/dashboard/TopProductsTable'
 import { CounterpartyBalanceWidget } from '@/components/dashboard/CounterpartyBalanceWidget'
 import { StockAlertBanner } from '@/components/dashboard/StockAlertBanner'
 import { ActivityFeed } from '@/components/dashboard/ActivityFeed'
-import { QuickActionBar } from '@/components/dashboard/QuickActionBar'
+import { useDocumentHotkeys } from '@/components/dashboard/useDocumentHotkeys'
 import { DailyRevenueChart } from '@/components/dashboard/DailyRevenueChart'
 import { MarginChart } from '@/components/dashboard/MarginChart'
 import { SalesStructureChart } from '@/components/dashboard/SalesStructureChart'
@@ -32,12 +33,27 @@ export function DashboardPage() {
   // Структура и прибыльность товаров — за тот же период, что и карточки.
   const sales = useSalesSummary({ branchId: activeBranch?.id, dateFrom: period.dateFrom, dateTo: period.dateTo })
   const stock = useStockBalance(activeBranch?.id)
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
+  useDocumentHotkeys()
 
   // Каскад появления блоков сверху вниз.
   const delay = (ms: number) => ({ '--delay': `${ms}ms` } as CSSProperties)
 
-  const vsPrev = t('dashboard.vsPrevPeriod')
+  const locale = i18n.language.startsWith('uz') ? uz : ru
+  const comparedRange = (from: string, to: string) => {
+    const a = parseISO(from)
+    const b = parseISO(to)
+    if (format(a, 'yyyy-MM') === format(b, 'yyyy-MM')) {
+      return from === to
+        ? format(a, 'd MMM', { locale })
+        : `${format(a, 'd')}–${format(b, 'd MMM', { locale })}`
+    }
+    const pattern = a.getFullYear() === b.getFullYear() ? 'd MMM' : 'd MMM yyyy'
+    return `${format(a, pattern, { locale })} – ${format(b, pattern, { locale })}`
+  }
+  const vsPrev = data?.comparedFrom && data?.comparedTo
+    ? t('dashboard.vsRange', { range: comparedRange(data.comparedFrom, data.comparedTo) })
+    : t('dashboard.vsPrevPeriod')
 
   // Helper: convert nullable delta (number | null) to MetricCard's optional prop
   const delta = (value: number | null | undefined) => (value == null ? undefined : value)
@@ -50,8 +66,6 @@ export function DashboardPage() {
       amount: isLoading ? undefined : (data?.revenue ?? 0),
       delta: delta(data?.revenueDelta),
       deltaLabel: vsPrev,
-      icon: TrendingUp,
-      iconColor: 'text-brand-400',
     },
     {
       title: t('dashboard.profitMonth'),
@@ -59,35 +73,23 @@ export function DashboardPage() {
       amount: isLoading ? undefined : (data?.profit ?? 0),
       delta: delta(data?.profitDelta),
       deltaLabel: vsPrev,
-      icon: DollarSign,
-      iconColor: 'text-emerald-400',
     },
     {
       title: `${t('dashboard.debtorDebt')} · ${t('dashboard.debtTotalHint')}`,
       value: '…',
       amount: isLoading ? undefined : (data?.debtorDebt ?? 0),
       delta: undefined,
-      icon: Users,
-      iconColor: 'text-orange-400',
     },
     {
       title: `${t('dashboard.creditorDebt')} · ${t('dashboard.debtTotalHint')}`,
       value: '…',
       amount: isLoading ? undefined : (data?.creditorDebt ?? 0),
       delta: undefined,
-      icon: CreditCard,
-      iconColor: 'text-rose-400',
     },
   ]
 
   return (
-    <div className="relative min-h-full p-6 pb-24">
-      {/* Ambient glow */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -top-20 left-1/3 h-96 w-96 rounded-full bg-brand-500/5 blur-[120px]"
-      />
-
+    <div className="relative min-h-full p-6">
       {/* Period filter — applies to revenue & profit */}
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <span className="text-xs font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">
@@ -148,9 +150,6 @@ export function DashboardPage() {
 
       {/* Row 4: Stock alert banner */}
       <StockAlertBanner className="anim-rise [--delay:1050ms] mt-4" />
-
-      {/* Floating quick action bar */}
-      <QuickActionBar />
     </div>
   )
 }

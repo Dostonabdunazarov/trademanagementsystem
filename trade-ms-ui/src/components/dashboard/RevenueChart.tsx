@@ -13,7 +13,7 @@ import type { TooltipContentProps } from 'recharts'
 import { cn } from '@/lib/utils'
 import { formatCompact, formatCurrency } from '@/utils/format'
 import type { MonthlySales } from '@/api/hooks/useReports'
-import { TOOLTIP_WRAPPER } from './chartStyles'
+import { AXIS_TICK, GRID_STROKE, TOOLTIP_WRAPPER } from './chartStyles'
 
 // Цвета из темы (index.css): для светлой и тёмной свои оттенки.
 const REVENUE_COLOR = 'var(--chart-revenue)'
@@ -36,12 +36,12 @@ function renderTooltip(
       <div className="flex items-center gap-2 text-xs">
         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: REVENUE_COLOR }} />
         <span className="text-[hsl(var(--text-muted))]">{revenueLabel}</span>
-        <span className="ml-auto font-semibold text-[hsl(var(--text-primary))]">{formatCurrency(revenue)}</span>
+        <span className="ml-auto pl-3 font-semibold tabular-nums text-[hsl(var(--text-primary))]">{formatCurrency(revenue)}</span>
       </div>
       <div className="mt-1 flex items-center gap-2 text-xs">
         <span className="h-2 w-2 rounded-full" style={{ backgroundColor: PROFIT_COLOR }} />
         <span className="text-[hsl(var(--text-muted))]">{profitLabel}</span>
-        <span className="ml-auto font-semibold text-[hsl(var(--text-primary))]">{formatCurrency(profit)}</span>
+        <span className="ml-auto pl-3 font-semibold tabular-nums text-[hsl(var(--text-primary))]">{formatCurrency(profit)}</span>
       </div>
     </div>
   )
@@ -74,7 +74,7 @@ export function RevenueChart({ className, loading, monthlySales }: Props) {
         <h3 className="text-sm font-semibold text-[hsl(var(--text-primary))]">{t('dashboard.revenueAndProfit')}</h3>
         <div className="flex items-center gap-4 text-xs text-[hsl(var(--text-muted))]">
           <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full" style={{ backgroundColor: REVENUE_COLOR }} />
+            <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: REVENUE_COLOR }} />
             {revenueLabel}
           </span>
           <span className="flex items-center gap-1.5">
@@ -86,24 +86,17 @@ export function RevenueChart({ className, loading, monthlySales }: Props) {
 
       <ResponsiveContainer width="100%" height={224}>
         <ComposedChart data={monthlySales} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
-          <defs>
-            <linearGradient id="revenue-bar" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" style={{ stopColor: REVENUE_COLOR, stopOpacity: 0.9 }} />
-              <stop offset="100%" style={{ stopColor: REVENUE_COLOR, stopOpacity: 0.35 }} />
-            </linearGradient>
-          </defs>
-
-          <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeDasharray="3 3" />
+          <CartesianGrid vertical={false} stroke={GRID_STROKE} />
 
           <XAxis
             dataKey="monthLabel"
-            tick={{ fontSize: 11, fill: 'hsl(var(--text-muted))' }}
+            tick={AXIS_TICK}
             tickLine={false}
-            axisLine={{ stroke: 'hsl(var(--border))' }}
+            axisLine={{ stroke: GRID_STROKE }}
             dy={6}
           />
           <YAxis
-            tick={{ fontSize: 11, fill: 'hsl(var(--text-muted))' }}
+            tick={AXIS_TICK}
             tickLine={false}
             axisLine={false}
             width={56}
@@ -112,13 +105,13 @@ export function RevenueChart({ className, loading, monthlySales }: Props) {
 
           <Tooltip
             wrapperStyle={TOOLTIP_WRAPPER}
-            cursor={{ fill: 'hsl(var(--surface-2))', opacity: 0.4 }}
+            cursor={{ fill: 'hsl(var(--surface-2))' }}
             content={(props) => renderTooltip(props, revenueLabel, profitLabel)}
           />
 
           <Bar
             dataKey="revenue"
-            fill="url(#revenue-bar)"
+            fill={REVENUE_COLOR}
             radius={[4, 4, 0, 0]}
             maxBarSize={36}
             // Столбцы вырастают снизу; линия прибыли рисуется следом.
@@ -130,7 +123,7 @@ export function RevenueChart({ className, loading, monthlySales }: Props) {
             type="monotone"
             dataKey="profit"
             stroke={PROFIT_COLOR}
-            strokeWidth={2.5}
+            strokeWidth={2}
             dot={{ r: 3, fill: PROFIT_COLOR, strokeWidth: 0 }}
             activeDot={{ r: 5, strokeWidth: 2, stroke: 'hsl(var(--card))' }}
             animationBegin={450}

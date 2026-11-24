@@ -86,6 +86,8 @@ export interface DashboardSummaryResponse {
   monthlySales: MonthlySales[]
   /** По дням выбранного периода; пусто, если период длиннее 92 дней. */
   dailySales: DailySales[]
+  comparedFrom: string
+  comparedTo: string
 }
 
 export interface DailySales {

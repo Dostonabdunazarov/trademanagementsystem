@@ -69,20 +69,20 @@ export function ActivityFeed({ className }: { className?: string }) {
                 <div
                   className={cn(
                     'flex h-7 w-7 shrink-0 items-center justify-center rounded-lg',
-                    positive ? 'bg-emerald-500/10 text-emerald-400' : 'bg-brand-500/10 text-brand-400',
+                    positive ? 'bg-[var(--positive)]/10 text-[var(--positive)]' : 'bg-brand-500/10 text-brand-400',
                   )}
                 >
                   {TYPE_ICONS[doc.type] ?? <ArrowUpFromLine className="h-3.5 w-3.5" />}
                 </div>
                 <div className="flex-1 overflow-hidden">
                   <p className="truncate text-xs font-medium text-[hsl(var(--text-primary))]">{TYPE_LABELS[doc.type] ?? doc.type}</p>
-                  <p className="truncate text-[10px] text-[hsl(var(--text-muted))]">{doc.counterpartyName ?? '—'}</p>
+                  <p className="truncate text-[11px] text-[hsl(var(--text-muted))]">{doc.counterpartyName ?? '—'}</p>
                 </div>
                 <div className="text-right">
-                  <p className={cn('font-mono text-xs tabular-nums', positive ? 'text-emerald-400' : 'text-[hsl(var(--text-primary))]')}>
+                  <p className={cn('text-xs tabular-nums', positive ? 'text-[var(--positive)]' : 'text-[hsl(var(--text-primary))]')}>
                     {positive ? '+' : ''}{formatNumber(doc.totalAmountBase)}
                   </p>
-                  <p className="text-[10px] text-[hsl(var(--text-muted))]">{formatTime(doc.createdAt)}</p>
+                  <p className="text-[11px] text-[hsl(var(--text-muted))]">{formatTime(doc.createdAt)}</p>
                 </div>
               </div>
             )

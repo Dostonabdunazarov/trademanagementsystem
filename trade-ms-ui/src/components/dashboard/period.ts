@@ -7,6 +7,7 @@ import {
   startOfYear,
   endOfYear,
   subMonths,
+  min,
 } from 'date-fns'
 
 export interface PeriodRange {
@@ -21,15 +22,15 @@ const fmt = (d: Date) => format(d, 'yyyy-MM-dd')
 export function presetRange(key: Exclude<PresetKey, 'custom'>, now: Date): PeriodRange {
   switch (key) {
     case 'thisMonth':
-      return { dateFrom: fmt(startOfMonth(now)), dateTo: fmt(endOfMonth(now)) }
+      return { dateFrom: fmt(startOfMonth(now)), dateTo: fmt(min([endOfMonth(now), now])) }
     case 'lastMonth': {
       const prev = subMonths(now, 1)
       return { dateFrom: fmt(startOfMonth(prev)), dateTo: fmt(endOfMonth(prev)) }
     }
     case 'quarter':
-      return { dateFrom: fmt(startOfQuarter(now)), dateTo: fmt(endOfQuarter(now)) }
+      return { dateFrom: fmt(startOfQuarter(now)), dateTo: fmt(min([endOfQuarter(now), now])) }
     case 'year':
-      return { dateFrom: fmt(startOfYear(now)), dateTo: fmt(endOfYear(now)) }
+      return { dateFrom: fmt(startOfYear(now)), dateTo: fmt(min([endOfYear(now), now])) }
   }
 }
 

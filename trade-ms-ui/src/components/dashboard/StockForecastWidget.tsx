@@ -9,9 +9,9 @@ const LOOKBACK_DAYS = 30
 const FULL_BAR_DAYS = 30
 
 function tone(daysLeft: number) {
-  if (daysLeft <= 7) return { text: 'text-[var(--chart-danger)]', bar: 'bg-[var(--chart-danger)]' }
-  if (daysLeft <= 14) return { text: 'text-[var(--chart-warning)]', bar: 'bg-[var(--chart-warning)]' }
-  return { text: 'text-emerald-400', bar: 'bg-emerald-500' }
+  if (daysLeft <= 7) return { text: 'text-[var(--negative)]', bar: 'bg-[var(--negative)]' }
+  if (daysLeft <= 14) return { text: 'text-[var(--warning-c)]', bar: 'bg-[var(--warning-c)]' }
+  return { text: 'text-[hsl(var(--text-primary))]', bar: 'bg-[var(--debt-bar)]' }
 }
 
 interface Props {
@@ -49,7 +49,7 @@ export function StockForecastWidget({ branchId, className, style }: Props) {
               <li key={l.productId} className="anim-rise" style={{ '--delay': `${450 + i * 60}ms` } as CSSProperties}>
                 <div className="flex items-center justify-between gap-2 text-xs">
                   <span className="truncate text-[hsl(var(--text-primary))]">{l.productName}</span>
-                  <span className={cn('shrink-0 font-mono font-semibold tabular-nums', c.text)}>{daysLabel(l.daysLeft)}</span>
+                  <span className={cn('shrink-0 font-semibold tabular-nums', c.text)}>{daysLabel(l.daysLeft)}</span>
                 </div>
                 <div className="mt-1 flex items-center gap-2">
                   <div className="h-1 flex-1 overflow-hidden rounded-full bg-[hsl(var(--surface-2))]">
@@ -58,7 +58,7 @@ export function StockForecastWidget({ branchId, className, style }: Props) {
                       style={{ width: `${Math.min(1, l.daysLeft / FULL_BAR_DAYS) * 100}%`, '--delay': `${550 + i * 60}ms` } as CSSProperties}
                     />
                   </div>
-                  <span className="shrink-0 font-mono text-[10px] tabular-nums text-[hsl(var(--text-muted))]">
+                  <span className="shrink-0 text-[11px] tabular-nums text-[hsl(var(--text-muted))]">
                     {l.quantity.toLocaleString('ru-RU')} {unit} · {l.soldPerDay.toLocaleString('ru-RU')}{t('dashboard.perDay')}
                   </span>
                 </div>

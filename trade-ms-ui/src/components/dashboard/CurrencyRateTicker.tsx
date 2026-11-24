@@ -50,23 +50,18 @@ export function CurrencyRateTicker({ className }: { className?: string }) {
         return (
           <div
             key={Ccy}
-            className={cn(
-              'hidden items-center gap-1.5 sm:flex px-2.5 py-1 rounded-lg border text-xs transition-colors',
-              isUp
-                ? 'bg-emerald-500/10 border-emerald-500/20 dark:bg-emerald-500/10 dark:border-emerald-500/20'
-                : 'bg-red-500/10 border-red-500/20 dark:bg-red-500/10 dark:border-red-500/20',
-            )}
+            className="hidden items-center gap-1.5 rounded-lg border border-[hsl(var(--border))] px-2.5 py-1 text-xs sm:flex"
           >
-            <span className="font-bold text-[hsl(var(--text-muted))]">{Ccy}</span>
-            <span className="font-mono tabular-nums font-semibold text-[hsl(var(--text-primary))]">{formatRate(Rate)}</span>
+            <span className="font-semibold text-[hsl(var(--text-muted))]">{Ccy}</span>
+            <span className="font-semibold tabular-nums text-[hsl(var(--text-primary))]">{formatRate(Rate)}</span>
             <span
               className={cn(
-                'flex items-center gap-0.5 text-[10px] font-mono tabular-nums font-semibold',
-                isUp ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400',
+                'flex items-center gap-0.5 text-[11px] font-semibold tabular-nums',
+                isUp ? 'text-[var(--positive)]' : 'text-[var(--negative)]',
               )}
             >
-              {isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-              {isUp ? '+' : ''}{diff.toFixed(2)}
+              {isUp ? <TrendingUp className="h-3 w-3" aria-hidden /> : <TrendingDown className="h-3 w-3" aria-hidden />}
+              {isUp ? '+' : '−'}{Math.abs(diff).toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </span>
           </div>
         )

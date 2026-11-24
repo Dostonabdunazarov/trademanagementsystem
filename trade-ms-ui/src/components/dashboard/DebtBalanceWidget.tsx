@@ -39,7 +39,7 @@ export function DebtBalanceWidget({ debtorDebt = 0, creditorDebt = 0, loading, c
   const hidden = atLimit.length - nearLimit.length
 
   const bars = [
-    { label: t('dashboard.owedToUs'), value: owedToUs, color: 'var(--chart-4)' },
+    { label: t('dashboard.owedToUs'), value: owedToUs, color: 'var(--chart-1)' },
     { label: t('dashboard.weOwe'), value: weOwe, color: 'var(--chart-5)' },
   ]
 
@@ -50,9 +50,9 @@ export function DebtBalanceWidget({ debtorDebt = 0, creditorDebt = 0, loading, c
           <div key={b.label} title={formatCurrency(b.value)}>
             <div className="flex items-center justify-between text-xs">
               <span className="text-[hsl(var(--text-muted))]">{b.label}</span>
-              <span className="font-mono font-semibold tabular-nums text-[hsl(var(--text-primary))]">{formatCompact(b.value)}</span>
+              <span className="font-semibold tabular-nums text-[hsl(var(--text-primary))]">{formatCompact(b.value)}</span>
             </div>
-            <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-[hsl(var(--surface-2))]">
+            <div className="mt-1.5 h-2.5 overflow-hidden rounded-full bg-[var(--track)]">
               <div
                 className="anim-grow-x h-full rounded-full"
                 style={{ width: `${(b.value / max) * 100}%`, backgroundColor: b.color, '--delay': `${450 + i * 100}ms` } as CSSProperties}
@@ -62,7 +62,7 @@ export function DebtBalanceWidget({ debtorDebt = 0, creditorDebt = 0, loading, c
         ))}
         <div className="flex items-center justify-between rounded-lg bg-[hsl(var(--surface-2))] px-3 py-2 text-xs">
           <span className="text-[hsl(var(--text-muted))]">{t('dashboard.netBalance')}</span>
-          <span className={cn('font-mono font-semibold tabular-nums', net >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+          <span className={cn('font-semibold tabular-nums', net >= 0 ? 'text-[hsl(var(--text-primary))]' : 'text-[var(--negative)]')}>
             {net > 0 ? '+' : ''}{formatCompact(net)}
           </span>
         </div>
@@ -70,7 +70,7 @@ export function DebtBalanceWidget({ debtorDebt = 0, creditorDebt = 0, loading, c
 
       <div className="mt-4 border-t border-[hsl(var(--border))] pt-3">
         <p className="text-[11px] font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('dashboard.creditLimits')}</p>
-        <p className="mb-2.5 text-[10px] text-[hsl(var(--text-muted))]">{t('dashboard.creditLimitsHint')}</p>
+        <p className="mb-2.5 text-xs text-[hsl(var(--text-muted))]">{t('dashboard.creditLimitsHint')}</p>
         {nearLimit.length === 0 ? (
           <p className="text-xs text-[hsl(var(--text-muted))]">{t('dashboard.noLimitIssues')}</p>
         ) : (
@@ -85,24 +85,24 @@ export function DebtBalanceWidget({ debtorDebt = 0, creditorDebt = 0, loading, c
                 <li key={c.id} className="anim-rise text-xs" style={{ '--delay': `${600 + i * 60}ms` } as CSSProperties}>
                   <div className="flex items-center justify-between gap-2">
                     <span className="truncate text-[hsl(var(--text-primary))]">{c.name}</span>
-                    <span className="shrink-0 font-mono tabular-nums text-[hsl(var(--text-muted))]" title={`${formatCurrency(c.balance)} / ${formatCurrency(c.creditLimit)}`}>
+                    <span className="shrink-0 tabular-nums text-[hsl(var(--text-muted))]" title={`${formatCurrency(c.balance)} / ${formatCurrency(c.creditLimit)}`}>
                       <span className="text-[hsl(var(--text-primary))]">{formatCompact(c.balance)}</span> {t('dashboard.ofLimit')} {formatCompact(c.creditLimit)}
                     </span>
                   </div>
-                  <div className="relative mt-1 h-1.5 overflow-hidden rounded-full bg-[hsl(var(--surface-2))]">
+                  <div className="relative mt-1 h-1.5 overflow-hidden rounded-full bg-[var(--track)]">
                     <div
-                      className="anim-grow-x absolute inset-y-0 left-0 rounded-full bg-[var(--chart-warning)]"
+                      className="anim-grow-x absolute inset-y-0 left-0 rounded-full bg-[var(--debt-bar)]"
                       style={{ width: `${withinAt}%`, '--delay': `${650 + i * 60}ms` } as CSSProperties}
                     />
                     {over && (
                       <div
-                        className="anim-grow-x absolute inset-y-0 rounded-r-full bg-[var(--chart-danger)]"
+                        className="anim-grow-x absolute inset-y-0 rounded-r-full bg-[var(--negative)]"
                         style={{ left: `${limitAt}%`, right: 0, '--delay': `${650 + i * 60}ms` } as CSSProperties}
                       />
                     )}
                     <div className="absolute inset-y-0 w-0.5 bg-[hsl(var(--text-primary))]" style={{ left: `calc(${limitAt}% - 1px)` }} />
                   </div>
-                  <p className={cn('mt-0.5 text-[10px]', over ? 'text-[var(--chart-danger)]' : 'text-[var(--chart-warning)]')}>
+                  <p className={cn('mt-0.5 text-xs', over ? 'text-[var(--negative)]' : 'text-[var(--warning-c)]')}>
                     {over
                       ? t('dashboard.overLimit', { amount: formatCompact(c.balance - c.creditLimit) })
                       : t('dashboard.limitLeft', { amount: formatCompact(c.creditLimit - c.balance) })}
@@ -113,7 +113,7 @@ export function DebtBalanceWidget({ debtorDebt = 0, creditorDebt = 0, loading, c
           </ul>
         )}
         {hidden > 0 && (
-          <p className="mt-2 text-[10px] text-[hsl(var(--text-muted))]">{t('dashboard.moreClients', { count: hidden })}</p>
+          <p className="mt-2 text-xs text-[hsl(var(--text-muted))]">{t('dashboard.moreClients', { count: hidden })}</p>
         )}
       </div>
     </ChartCard>

@@ -1,6 +1,5 @@
 import { describe, it, expect } from 'vitest'
 import { screen, render } from '@testing-library/react'
-import { TrendingUp } from 'lucide-react'
 import { I18nextProvider } from 'react-i18next'
 import i18n from '@/i18n'
 import { MetricCard } from '@/components/dashboard/MetricCard'
@@ -15,36 +14,36 @@ function renderCard(props: Parameters<typeof MetricCard>[0]) {
 
 describe('MetricCard', () => {
   it('отображает title и value', () => {
-    renderCard({ title: 'Выручка', value: '5 000 000', icon: TrendingUp })
+    renderCard({ title: 'Выручка', value: '5 000 000' })
     expect(screen.getByText('Выручка')).toBeInTheDocument()
     expect(screen.getByText('5 000 000')).toBeInTheDocument()
   })
 
   it('отображает положительную дельту со стрелкой вверх', () => {
-    renderCard({ title: 'Выручка', value: '5 000 000', icon: TrendingUp, delta: 12, deltaLabel: 'vs прошлый месяц' })
+    renderCard({ title: 'Выручка', value: '5 000 000', delta: 12, deltaLabel: 'vs прошлый месяц' })
     expect(screen.getByText(/▲/)).toBeInTheDocument()
-    expect(screen.getByText(/12%/)).toBeInTheDocument()
+    expect(screen.getByText(/12\s%/)).toBeInTheDocument()
   })
 
   it('отображает отрицательную дельту со стрелкой вниз', () => {
-    renderCard({ title: 'Выручка', value: '5 000 000', icon: TrendingUp, delta: -5 })
+    renderCard({ title: 'Выручка', value: '5 000 000', delta: -5 })
     expect(screen.getByText(/▼/)).toBeInTheDocument()
-    expect(screen.getByText(/5%/)).toBeInTheDocument()
+    expect(screen.getByText(/5\s%/)).toBeInTheDocument()
   })
 
   it('не показывает дельту когда не передана', () => {
-    renderCard({ title: 'Продукты', value: '200', icon: TrendingUp })
+    renderCard({ title: 'Продукты', value: '200' })
     expect(screen.queryByText(/▲|▼/)).not.toBeInTheDocument()
   })
 
   it('показывает skeleton при loading=true', () => {
-    const { container } = renderCard({ title: 'Выручка', value: '0', icon: TrendingUp, loading: true })
+    const { container } = renderCard({ title: 'Выручка', value: '0', loading: true })
     expect(container.querySelector('.animate-pulse')).toBeInTheDocument()
     expect(screen.queryByText('Выручка')).not.toBeInTheDocument()
   })
 
   it('применяет переданный className', () => {
-    const { container } = renderCard({ title: 'Test', value: '1', icon: TrendingUp, className: 'custom-class' })
+    const { container } = renderCard({ title: 'Test', value: '1', className: 'custom-class' })
     expect(container.firstChild).toHaveClass('custom-class')
   })
 })

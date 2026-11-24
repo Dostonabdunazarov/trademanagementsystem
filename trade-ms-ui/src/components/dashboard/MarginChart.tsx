@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react'
-import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import type { TooltipContentProps } from 'recharts'
 import { useTranslation } from 'react-i18next'
 import type { MonthlySales } from '@/api/hooks/useReports'
@@ -8,11 +8,22 @@ import { cn } from '@/lib/utils'
 import { ChartCard, ChartEmpty, ChartTooltipBox } from './ChartCard'
 import { AXIS_TICK, GRID_STROKE, TOOLTIP_WRAPPER } from './chartStyles'
 
+const MARGIN_COLOR = 'var(--chart-1)'
+
 interface Props {
   monthlySales?: MonthlySales[]
   loading?: boolean
   className?: string
   style?: CSSProperties
+}
+
+function marginDomain(values: number[]): [number, number] {
+  const min = Math.min(...values)
+  const max = Math.max(...values)
+  const lo = min >= 0 ? min * 0.8 : min * 1.1
+  const hi = max >= 0 ? max * 1.1 : max * 0.8
+  if (hi - lo < 2) return [Math.floor(lo - 1), Math.ceil(hi + 1)]
+  return [Math.floor(lo), Math.ceil(hi)]
 }
 
 /** Маржинальность по месяцам (п. 3): прибыль / выручка, %. Месяцы без продаж — разрыв. */
@@ -25,6 +36,8 @@ export function MarginChart({ monthlySales, loading, className, style }: Props) 
   const revenue = data.reduce((s, m) => s + m.revenue, 0)
   const profit = data.reduce((s, m) => s + m.profit, 0)
   const avg = revenue > 0 ? (profit / revenue) * 100 : null
+  const margins = data.flatMap((m) => (m.margin == null ? [] : [m.margin]))
+  const domain = margins.length > 0 ? marginDomain(margins) : undefined
 
   const tooltip = ({ active, payload, label }: TooltipContentProps) => {
     if (!active || !payload?.length) return null
@@ -33,7 +46,7 @@ export function MarginChart({ monthlySales, loading, className, style }: Props) 
       <ChartTooltipBox
         title={label}
         rows={[
-          { color: 'var(--chart-4)', label: t('dashboard.margin'), value: p.margin == null ? '—' : formatPercent(p.margin) },
+          { color: MARGIN_COLOR, label: t('dashboard.margin'), value: p.margin == null ? '—' : formatPercent(p.margin) },
           { label: t('dashboard.profit'), value: formatCurrency(p.profit) },
         ]}
       />
@@ -46,10 +59,10 @@ export function MarginChart({ monthlySales, loading, className, style }: Props) 
       subtitle={t('dashboard.marginHint')}
       aside={avg != null && (
         <div className="text-right">
-          <div className={cn('font-mono text-lg font-semibold tabular-nums', avg >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+          <div className={cn('text-xl font-semibold tabular-nums', avg >= 0 ? 'text-[hsl(var(--text-primary))]' : 'text-[var(--negative)]')}>
             {formatPercent(avg)}
           </div>
-          <div className="text-[10px] text-[hsl(var(--text-muted))]">{t('dashboard.avgMargin')}</div>
+          <div className="text-xs text-[hsl(var(--text-muted))]">{t('dashboard.avgMargin')}</div>
         </div>
       )}
       loading={loading}
@@ -61,30 +74,31 @@ export function MarginChart({ monthlySales, loading, className, style }: Props) 
         <ChartEmpty text={t('dashboard.noSalesInPeriod')} height={180} />
       ) : (
         <ResponsiveContainer width="100%" height={180}>
-          <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-            <defs>
-              <linearGradient id="margin-fill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" style={{ stopColor: 'var(--chart-4)', stopOpacity: 0.4 }} />
-                <stop offset="100%" style={{ stopColor: 'var(--chart-4)', stopOpacity: 0 }} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} stroke={GRID_STROKE} strokeDasharray="3 3" />
+          <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+            <CartesianGrid vertical={false} stroke={GRID_STROKE} />
             <XAxis dataKey="monthLabel" tick={AXIS_TICK} tickLine={false} axisLine={{ stroke: GRID_STROKE }} interval="preserveStartEnd" dy={6} />
-            <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} width={40} tickFormatter={(v: number) => `${v}%`} />
-            <ReferenceLine y={avg} stroke="var(--chart-4)" strokeOpacity={0.5} strokeDasharray="4 4" />
-            <Tooltip wrapperStyle={TOOLTIP_WRAPPER} cursor={{ stroke: 'hsl(var(--text-muted))', strokeDasharray: '3 3' }} content={tooltip} />
-            <Area
-              type="monotone"
-              dataKey="margin"
-              stroke="var(--chart-4)"
-              strokeWidth={2}
-              fill="url(#margin-fill)"
-              connectNulls={false}
-              dot={{ r: 2.5, fill: 'var(--chart-4)', strokeWidth: 0 }}
-              animationDuration={1100}
-              animationEasing="ease-out"
+            <YAxis
+              tick={AXIS_TICK}
+              tickLine={false}
+              axisLine={false}
+              width={44}
+              domain={domain}
+              allowDataOverflow
+              tickFormatter={(v: number) => formatPercent(v)}
             />
-          </AreaChart>
+            <ReferenceLine y={avg} stroke="hsl(var(--text-muted))" strokeOpacity={0.6} strokeDasharray="4 4" />
+            <Tooltip wrapperStyle={TOOLTIP_WRAPPER} cursor={{ stroke: 'hsl(var(--text-muted))', strokeDasharray: '3 3' }} content={tooltip} />
+            <Line
+              type="linear"
+              dataKey="margin"
+              stroke={MARGIN_COLOR}
+              strokeWidth={2}
+              connectNulls={false}
+              dot={{ r: 3, fill: MARGIN_COLOR, strokeWidth: 0 }}
+              activeDot={{ r: 5, strokeWidth: 2, stroke: 'hsl(var(--card))' }}
+              animationDuration={900}
+            />
+          </LineChart>
         </ResponsiveContainer>
       )}
     </ChartCard>

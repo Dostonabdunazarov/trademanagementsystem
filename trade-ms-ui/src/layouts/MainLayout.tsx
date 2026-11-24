@@ -117,7 +117,7 @@ export function MainLayout() {
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-40 flex flex-col transition-all duration-300 md:relative md:z-auto bg-[hsl(var(--background))]',
-          sidebarOpen ? 'w-60' : 'w-16',
+          sidebarOpen ? 'w-64' : 'w-16',
           mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
         )}
       >
@@ -149,13 +149,9 @@ export function MainLayout() {
           {NAV_SECTIONS.map((section, i) => (
             <div key={section.label} className={cn('mb-1', i > 0 && 'mt-4')}>
               {sidebarOpen ? (
-                <div className="mb-1.5 flex items-center gap-2 px-4">
-                  <span className="h-1 w-1 shrink-0 rounded-full bg-gradient-to-br from-brand-500 to-brand-500" />
-                  <p className="text-[11px] font-bold uppercase tracking-[0.12em] bg-gradient-to-r from-[hsl(var(--text-primary))] to-[hsl(var(--text-muted))] bg-clip-text text-transparent">
-                    {section.label}
-                  </p>
-                  <span className="h-px flex-1 bg-gradient-to-r from-[hsl(var(--border))] to-transparent" />
-                </div>
+                <p className="mb-1.5 px-5 text-[11px] font-semibold uppercase tracking-[0.08em] text-[hsl(var(--text-muted))]">
+                  {section.label}
+                </p>
               ) : (
                 i > 0 && <div className="mx-3 mb-2 h-px bg-[hsl(var(--border))]" />
               )}
@@ -177,18 +173,18 @@ export function MainLayout() {
                     cn(
                       'group relative flex items-center gap-3 px-3 py-2 mx-2 rounded-lg text-sm transition-all duration-150',
                       isActive
-                        ? 'bg-gradient-to-r from-brand-500/15 to-brand-500/10 text-brand-400 light:text-brand-600 font-semibold shadow-sm shadow-brand-500/10'
-                        : 'nav-link-idle text-[hsl(var(--text-muted))] hover:font-semibold',
+                        ? 'bg-brand-500/15 light:bg-brand-50 text-brand-400 light:text-brand-500 font-semibold'
+                        : 'nav-link-idle text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-2))]',
                     )
                   }
                 >
                   {({ isActive }) => (
                     <>
                       {isActive && (
-                        <span className="absolute inset-y-1 left-0 w-0.5 rounded-r bg-gradient-to-b from-brand-500 to-brand-500" />
+                        <span className="absolute inset-y-1 left-0 w-0.5 rounded-r bg-brand-500" />
                       )}
-                      <Icon className={cn('nav-link-icon h-4 w-4 shrink-0 transition-colors', isActive ? 'text-brand-400 light:text-brand-600' : 'text-[hsl(var(--text-muted))]')} strokeWidth={1.8} />
-                      {sidebarOpen && <span className="truncate transition-all duration-150 group-hover:text-[0.9375rem]">{label}</span>}
+                      <Icon className={cn('nav-link-icon h-4 w-4 shrink-0 transition-colors', isActive ? 'text-brand-400 light:text-brand-500' : 'text-[hsl(var(--text-muted))]')} strokeWidth={1.8} />
+                      {sidebarOpen && <span className="truncate">{label}</span>}
                     </>
                   )}
                 </NavLink>

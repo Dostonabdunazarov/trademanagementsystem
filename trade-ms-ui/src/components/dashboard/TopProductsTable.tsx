@@ -49,16 +49,16 @@ export function TopProductsTable({ className }: { className?: string }) {
             const badge = qty == null
               ? null
               : qty <= 0
-                ? { label: t('dashboard.outOfStock'), cls: 'bg-red-500/10 text-red-400' }
+                ? { label: t('dashboard.outOfStock'), cls: 'bg-[var(--negative)]/10 text-[var(--negative)]' }
                 : qty <= LOW_STOCK_THRESHOLD
-                  ? { label: t('reports.lowStock'), cls: 'bg-orange-500/10 text-orange-400' }
-                  : { label: t('dashboard.inStock'), cls: 'bg-emerald-500/10 text-emerald-400' }
+                  ? { label: t('reports.lowStock'), cls: 'bg-[var(--warning-c)]/10 text-[var(--warning-c)]' }
+                  : { label: t('dashboard.inStock'), cls: 'bg-[var(--positive)]/10 text-[var(--positive)]' }
             return (
               <div key={productId} className="anim-rise flex items-center gap-3" style={{ '--delay': `${500 + idx * 80}ms` } as CSSProperties}>
                 <span
                   className={cn(
-                    'flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold',
-                    rank === 1 ? 'bg-orange-500/20 text-orange-400' : 'bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))]',
+                    'flex h-5 w-5 shrink-0 items-center justify-center rounded text-[11px] font-bold',
+                    rank === 1 ? 'bg-brand-500/15 text-brand-500' : 'bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))]',
                   )}
                 >
                   {rank}
@@ -67,7 +67,7 @@ export function TopProductsTable({ className }: { className?: string }) {
                   <div className="flex items-center justify-between">
                     <p className="truncate text-xs text-[hsl(var(--text-primary))]">{productName}</p>
                     {badge && (
-                      <span className={cn('ml-2 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium', badge.cls)}>
+                      <span className={cn('ml-2 shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium', badge.cls)}>
                         {badge.label}
                       </span>
                     )}
@@ -79,7 +79,7 @@ export function TopProductsTable({ className }: { className?: string }) {
                         style={{ width: `${progress}%`, '--delay': `${600 + idx * 80}ms` } as CSSProperties}
                       />
                     </div>
-                    <span className="shrink-0 font-mono text-[10px] tabular-nums text-[hsl(var(--text-muted))]">
+                    <span className="shrink-0 text-[11px] tabular-nums text-[hsl(var(--text-muted))]">
                       {quantitySold.toLocaleString('ru-RU')}
                     </span>
                   </div>

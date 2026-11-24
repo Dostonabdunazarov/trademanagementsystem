@@ -53,7 +53,7 @@ export function PeriodFilter({ value, onChange, className }: PeriodFilterProps) 
 
       <div className="flex items-end gap-2">
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">
+          <label className="text-[11px] font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">
             {t('dashboard.from')}
           </label>
           <DatePicker
@@ -64,7 +64,7 @@ export function PeriodFilter({ value, onChange, className }: PeriodFilterProps) 
           />
         </div>
         <div className="flex flex-col gap-1">
-          <label className="text-[10px] font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">
+          <label className="text-[11px] font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">
             {t('dashboard.to')}
           </label>
           <DatePicker

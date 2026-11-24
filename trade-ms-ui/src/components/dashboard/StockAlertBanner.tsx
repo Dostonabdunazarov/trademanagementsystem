@@ -22,29 +22,29 @@ export function StockAlertBanner({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-xl border border-orange-500/20 bg-orange-500/5 p-4 light:border-orange-300 light:bg-orange-50',
+        'flex items-start gap-3 rounded-xl border border-[var(--warning-c)]/30 bg-[var(--warning-c)]/5 p-4',
         className,
       )}
       role="alert"
     >
-      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-orange-400 light:text-orange-600" />
+      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--warning-c)]" />
       <div className="flex-1">
-        <p className="text-sm font-medium text-orange-300 light:text-orange-800">{t('dashboard.stockAlerts')}</p>
+        <p className="text-sm font-medium text-[hsl(var(--text-primary))]">{t('dashboard.stockAlerts')}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {lowItems.map(({ productId, productName, quantity, unit, branchId, branchName }) => (
             <span
               key={`${productId}:${branchId}`}
-              className="rounded-full border border-orange-500/20 bg-orange-500/10 px-2.5 py-0.5 text-xs text-orange-300 light:border-orange-300 light:bg-orange-100 light:text-orange-900"
+              className="rounded-full border border-[hsl(var(--border))] bg-card px-2.5 py-0.5 text-xs text-[hsl(var(--text-primary))]"
             >
               {productName}{showBranch && branchName ? ` (${branchName})` : ''} —{' '}
-              <span className="font-mono font-semibold">{quantity} {t(`products.units.${unit}`, { defaultValue: unit })}</span>
+              <span className="font-semibold">{quantity} {t(`products.units.${unit}`, { defaultValue: unit })}</span>
             </span>
           ))}
         </div>
       </div>
       <button
         onClick={() => setDismissed(true)}
-        className="shrink-0 rounded-md p-1 text-orange-500 hover:bg-orange-500/10 hover:text-orange-300 light:text-orange-700 light:hover:bg-orange-100 light:hover:text-orange-900 transition-colors"
+        className="shrink-0 rounded-md p-1 text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-2))] hover:text-[hsl(var(--text-primary))] transition-colors"
         aria-label={t('common.close')}
       >
         <X className="h-3.5 w-3.5" />

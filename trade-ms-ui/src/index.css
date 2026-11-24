@@ -93,10 +93,6 @@
     --chart-revenue: #2b8ba8;
     /* Прибыль — тёмно-зелёный: читается на navy-фоне и не спорит с циановой выручкой. */
     --chart-profit: #1f9466;
-    /* Риск на графиках: долг сверх лимита, критичный остаток, отрицательная маржа. */
-    --chart-danger: #d9656e;
-    /* Предупреждение на графиках: близко к лимиту, остаток на 8–14 дней. */
-    --chart-warning: #c99a55;
     /* Категориальная палитра диаграмм (доли, группы, серии) — в тон navy-фону. */
     --chart-1: #2b8ba8;
     --chart-2: #d4b06a;
@@ -104,56 +100,77 @@
     --chart-4: #10b981;
     --chart-5: #f472b6;
     --chart-6: #64748b;
+    --chart-other: #64748b;
+    --chart-grid: hsl(232 100% 79% / 0.08);
+    --chart-axis: hsl(229 15% 60%);
+    --positive: hsl(160 84% 39%);
+    --negative: #d9656e;
+    --warning-c: #c99a55;
+    --chart-danger: var(--negative);
+    --chart-warning: var(--warning-c);
+    --debt-bar: #64748b;
+    --track: hsl(229 40% 15%);
   }
 
   /* Светлая тема — белые панели, тёмно-синий текст, тёмный циан. */
   html.light {
     /* На белом яркий циан нечитаем: вся шкала сдвинута в тёмную сторону. */
-    --color-brand-300: #0891b2;
-    --color-brand-400: #0e7490;
-    --color-brand-500: #0e7490;
-    --color-brand-600: #155e75;
-    --color-brand-700: #164e63;
+    --color-brand-50: #e6f4f2;
+    --color-brand-100: #cdeae6;
+    --color-brand-200: #9fd5ce;
+    --color-brand-300: #2a9d8f;
+    --color-brand-400: #0f766e;
+    --color-brand-500: #0f766e;
+    --color-brand-600: #0b5f59;
+    --color-brand-700: #0a4f4a;
     --color-brand-fg: #ffffff;
 
-    --background: 0 0% 100%;
-    --foreground: 229 55% 13%;
+    --background: 210 20% 96%;
+    --foreground: 221 39% 11%;
     --surface: 0 0% 100%;
-    --surface-2: 230 30% 96%;
-    --border: 230 30% 20% / 0.09;
-    --accent: 192 82% 31%;
-    --accent-glow: 192 82% 31% / 0.1;
-    --success: 161 94% 30%;
-    --warning: 21 90% 48%;
-    --danger: 347 77% 50%;
-    --text-primary: 229 55% 13%;
-    --text-muted: 230 17% 44%;
+    --surface-2: 220 23% 97%;
+    --border: 213 18% 90%;
+    --accent: 175 77% 26%;
+    --accent-glow: 175 77% 26% / 0.1;
+    --success: 142 72% 29%;
+    --warning: 22 92% 37%;
+    --danger: 4 76% 40%;
+    --text-primary: 221 39% 11%;
+    --text-muted: 217 11% 40%;
 
     --card: 0 0% 100%;
-    --card-foreground: 229 55% 13%;
+    --card-foreground: 221 39% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 229 55% 13%;
-    --primary: 192 82% 31%;
+    --popover-foreground: 221 39% 11%;
+    --primary: 175 77% 26%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 230 30% 94%;
-    --secondary-foreground: 229 55% 13%;
-    --muted: 230 30% 94%;
-    --muted-foreground: 230 17% 44%;
-    --destructive: 347 77% 50%;
+    --secondary: 171 39% 93%;
+    --secondary-foreground: 221 39% 11%;
+    --muted: 210 21% 95%;
+    --muted-foreground: 217 11% 40%;
+    --destructive: 4 76% 40%;
     --destructive-foreground: 0 0% 100%;
-    --input: 230 30% 94%;
-    --ring: 192 82% 31%;
+    --input: 213 18% 90%;
+    --ring: 173 58% 39%;
 
-    --chart-revenue: #1f7f99;
-    --chart-profit: #157a52;
-    --chart-danger: #c2464f;
-    --chart-warning: #a87a2e;
-    --chart-1: #1f7f99;
-    --chart-2: #a8833a;
-    --chart-3: #6d5ce8;
-    --chart-4: #059669;
-    --chart-5: #db2777;
-    --chart-6: #94a3b8;
+    --chart-revenue: #2a9d8f;
+    --chart-profit: #15803d;
+    --chart-1: #2a9d8f;
+    --chart-2: #4f5bd5;
+    --chart-3: #e0a030;
+    --chart-4: #c2417a;
+    --chart-5: #3a8fd0;
+    --chart-6: #a3adb8;
+    --chart-other: #a3adb8;
+    --chart-grid: #eef1f4;
+    --chart-axis: #5b6472;
+    --positive: #15803d;
+    --negative: #b42318;
+    --warning-c: #b54708;
+    --chart-danger: var(--negative);
+    --chart-warning: var(--warning-c);
+    --debt-bar: #94a3b8;
+    --track: #eef1f4;
   }
 
   html {
@@ -176,7 +193,7 @@
 
   /* Light theme body */
   html.light body {
-    background-color: #ffffff;
+    background-color: hsl(var(--background));
     background-image: none;
   }
 
@@ -202,45 +219,44 @@ header {
 /* Sidebar */
 html.light aside {
   background-color: #ffffff !important;
-  border-right-color: rgba(14, 116, 144, 0.22) !important;
-  box-shadow: 4px 0 20px rgba(14, 116, 144, 0.06) !important;
+  border-right-color: hsl(var(--border)) !important;
+  box-shadow: none !important;
 }
 
 /* Topbar */
 html.light header {
   background-color: #ffffff !important;
-  border-bottom-color: rgba(14, 116, 144, 0.2) !important;
-  box-shadow: 0 4px 20px rgba(14, 116, 144, 0.05) !important;
+  border-bottom-color: hsl(var(--border)) !important;
+  box-shadow: none !important;
 }
 
 /* Table header row */
 html.light thead tr:not(.rdp-weekdays) {
-  background-image: linear-gradient(90deg, #ecfeff 0%, #f5f6fb 100%);
+  background-color: #f7f8fa;
 }
 
 /* Table row hover */
 html.light tbody tr:hover {
-  background-color: rgba(14, 116, 144, 0.04) !important;
+  background-color: #f7f8fa !important;
 }
 
 /* Toolbar / card areas */
 html.light .bg-card {
-  background-color: rgba(255, 255, 255, 0.88) !important;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 1px 3px rgba(15, 22, 51, 0.04), 0 4px 16px rgba(15, 22, 51, 0.04);
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
 }
 
 /* Primary gradient button */
 html.light .btn-primary-gradient {
-  background-image: linear-gradient(135deg, #0e7490 0%, #0f7f9c 50%, #0891b2 100%) !important;
-  background-color: #0e7490 !important;
-  box-shadow: 0 4px 14px rgba(14, 116, 144, 0.3) !important;
+  background-image: none !important;
+  background-color: #0f766e !important;
+  box-shadow: none !important;
   border: none !important;
 }
 html.light .btn-primary-gradient:hover {
-  background-image: linear-gradient(135deg, #155e75 0%, #12698a 50%, #0e7490 100%) !important;
-  box-shadow: 0 6px 20px rgba(14, 116, 144, 0.38) !important;
-  transform: translateY(-1px);
+  background-image: none !important;
+  background-color: #0b5f59 !important;
+  box-shadow: none !important;
 }
 
 /* Inputs */
@@ -249,12 +265,12 @@ html.light input[type="number"],
 html.light input[type="email"],
 html.light input[type="password"],
 html.light input:not([type]) {
-  background-color: #f7f8fc !important;
-  border-color: rgba(15, 22, 51, 0.12) !important;
+  background-color: #ffffff !important;
+  border-color: #cdd3da !important;
 }
 html.light input:focus {
-  border-color: #0e7490 !important;
-  box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.15) !important;
+  border-color: #2a9d8f !important;
+  box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.18) !important;
   outline: none !important;
 }
 
@@ -271,8 +287,8 @@ html.light ::-webkit-scrollbar-thumb:hover {
 
 /* Selection */
 html.light ::selection {
-  background: rgba(34, 211, 238, 0.25);
-  color: #155e75;
+  background: rgba(42, 157, 143, 0.2);
+  color: #0b5f59;
 }
 
 /* Sidebar nav links — hover effect (theme-aware, overrides utility colors) */
@@ -287,7 +303,7 @@ html.light ::selection {
 /* Light theme: text turns black on hover */
 html.light .nav-link-idle:hover,
 html.light .nav-link-idle:hover .nav-link-icon {
-  color: #0f1633 !important;
+  color: #111827 !important;
 }
 
 /* Появление dropdown-меню (замена tailwindcss-animate). */
