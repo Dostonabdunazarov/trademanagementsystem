@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using TradeMS.Application.Common.Exceptions;
 using TradeMS.Application.Common.Interfaces;
 using TradeMS.Application.Features.Auth.DTOs;
@@ -7,11 +8,21 @@ using TradeMS.Domain.Entities;
 
 namespace TradeMS.Application.Features.Auth.Commands.Login;
 
-public class LoginCommandHandler(IAppDbContext db, IJwtService jwtService, IAuditLogger auditLogger)
+public class LoginCommandHandler(
+    IAppDbContext db,
+    IJwtService jwtService,
+    IAuditLogger auditLogger,
+    ICurrentUserService currentUser,
+    IMemoryCache cache)
     : IRequestHandler<LoginCommand, LoginResponse>
 {
     private const int MaxFailedAttempts = 5;
     private const int LockoutMinutes = 15;
+
+    private sealed class FailureCounter
+    {
+        public int Count;
+    }
 
     // Хэш заведомо неверного пароля: для несуществующего email тоже выполняем BCrypt,
     // чтобы по времени ответа нельзя было понять, есть ли такой пользователь.
@@ -20,6 +31,8 @@ public class LoginCommandHandler(IAppDbContext db, IJwtService jwtService, IAudi
     public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         var email = request.Email.Trim().ToLowerInvariant();
+
+        var lockoutKey = $"login-failures:{email}:{currentUser.IpAddress ?? "unknown"}";
 
         var user = await db.Users
             .Include(u => u.Company)
@@ -47,12 +60,12 @@ public class LoginCommandHandler(IAppDbContext db, IJwtService jwtService, IAudi
             throw InvalidCredentials();
         }
 
-        if (user.LockoutUntil.HasValue && user.LockoutUntil > DateTime.UtcNow)
+        if (cache.TryGetValue(lockoutKey, out FailureCounter? counter) && counter!.Count >= MaxFailedAttempts)
         {
             await auditLogger.LogAsync(AuditActions.LoginLocked, success: false,
                 overrideUserId: user.Id, overrideEmail: user.Email,
                 overrideCompanyId: user.CompanyId,
-                errorMessage: $"Locked until {user.LockoutUntil:u}",
+                errorMessage: "Too many failed attempts from this address",
                 cancellationToken: cancellationToken);
             throw InvalidCredentials();
         }
@@ -67,10 +80,12 @@ public class LoginCommandHandler(IAppDbContext db, IJwtService jwtService, IAudi
                 .ExecuteUpdateAsync(s => s.SetProperty(u => u.FailedLoginCount, u => u.FailedLoginCount + 1),
                     cancellationToken);
 
-            var lockoutUntil = DateTime.UtcNow.AddMinutes(LockoutMinutes);
-            await db.Users
-                .Where(u => u.Id == userId && u.FailedLoginCount >= MaxFailedAttempts)
-                .ExecuteUpdateAsync(s => s.SetProperty(u => u.LockoutUntil, lockoutUntil), cancellationToken);
+            var failures = cache.GetOrCreate(lockoutKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(LockoutMinutes);
+                return new FailureCounter();
+            })!;
+            Interlocked.Increment(ref failures.Count);
 
             await auditLogger.LogAsync(AuditActions.LoginFail, success: false,
                 overrideUserId: user.Id, overrideEmail: user.Email,
@@ -80,6 +95,7 @@ public class LoginCommandHandler(IAppDbContext db, IJwtService jwtService, IAudi
             throw InvalidCredentials();
         }
 
+        cache.Remove(lockoutKey);
         user.FailedLoginCount = 0;
         user.LockoutUntil = null;
         var accessToken = jwtService.GenerateAccessToken(user);

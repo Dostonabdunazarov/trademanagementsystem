@@ -427,7 +427,10 @@ public class AuditFixTests : SeededIntegrationTestBase
 
         var manager = await Db.Users.AsNoTracking().FirstAsync(u => u.Id == TestDataSeeder.UserManagerId);
         manager.FailedLoginCount.Should().Be(8);
-        manager.LockoutUntil.Should().NotBeNull();
+
+        var locked = await Client.PostAsJsonAsync("/api/auth/login",
+            new { email = TestDataSeeder.ManagerEmail, password = TestDataSeeder.ManagerPassword });
+        locked.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
     }
 
     // BIZ-5 — базовую валюту нельзя сменить после проводок

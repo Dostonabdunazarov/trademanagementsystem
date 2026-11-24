@@ -69,8 +69,8 @@
 Логика в `LoginCommandHandler` ([`Features/Auth/Commands/Login`](../TradeMS/TradeMS.Application/Features/Auth/Commands/Login)):
 
 - Пароли проверяются через **BCrypt**.
-- **Rate limiting:** все `/api/auth/*` — не больше `RateLimit:AuthPerMinute` (по умолчанию 20) запросов в минуту с одного IP, сверх — `429`. Реальный IP клиента берётся через `UseForwardedHeaders` (доверены только частные сети docker, 2 прокси-хопа: Caddy → nginx), поэтому поддельный `X-Forwarded-For` не помогает.
-- **5** неудачных попыток → блокировка на **15 минут** (`LockoutUntil`). Счётчик увеличивается атомарно (`ExecuteUpdate`), параллельные попытки его не обходят.
+- **Rate limiting:** все `/api/auth/*` — не больше `RateLimit:AuthPerMinute` (по умолчанию 20) запросов в минуту с одного IP, сверх — `429`. Цепочка: Cloudflare → Caddy → nginx → API. Caddy доверяет только диапазонам Cloudflare (`trusted_proxies` в `corpdev/infra/Caddyfile`), берёт IP клиента из `CF-Connecting-IP` и записывает его в `X-Forwarded-For`; при обращении к серверу в обход Cloudflare заголовок игнорируется. API разбирает `X-Forwarded-For` через `UseForwardedHeaders` (доверены только частные сети docker, 2 прокси-хопа: Caddy → nginx), поэтому поддельный `X-Forwarded-For` не помогает.
+- **5** неудачных попыток с одного IP для одного email → блокировка этой пары на **15 минут** (счётчик в `IMemoryCache`, сбрасывается при успешном входе и при перезапуске API). Ключ по паре email + IP не даёт заблокировать чужой аккаунт с другого адреса. `FailedLoginCount` в БД увеличивается атомарно (`ExecuteUpdate`) и служит для аудита.
 - Неактивные (`IsActive = false`) и удалённые аккаунты отклоняются.
 - Любой отказ (нет пользователя, неактивен, заблокирован, неверный пароль) — одинаковый `401` с кодом `invalidCredentials`; для несуществующего email тоже выполняется BCrypt (нет утечки по времени). Причина видна только в аудите.
 - Все попытки входа и ключевые действия пишутся в `audit_logs` через `IAuditLogger` (константы — [`AuditActions.cs`](../TradeMS/TradeMS.Domain/Entities/AuditActions.cs)).

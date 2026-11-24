@@ -70,7 +70,7 @@
 ## Critical
 
 ### SEC-1. Захардкоженный JWT-секрет и пароль БД в git-tracked `appsettings.json`
-- `TradeMS.Api/appsettings.json:13` — `"Secret": "super-secret-key-change-in-production-minimum-32-chars"`
+- `TradeMS.Api/appsettings.json:13` — `"Secret": "<redacted>"`
 - `TradeMS.Api/appsettings.json:10` — `Password=postgres` в `DefaultConnection`
 - Ключ читается в `JwtService.cs:16` и `DependencyInjection.cs:42` через `config["Jwt:Secret"]`. В проде docker-compose переопределяет через `Jwt__Secret=${JWT_SECRET}`, **но** если переменная пуста/не задана — приложение молча падает на захардкоженный секрет.
 - **Импакт:** любой, у кого есть доступ к репо (или кто знает этот общеизвестный placeholder), может подделать валидный JWT для любого пользователя/роли/компании → полный обход аутентификации.
@@ -215,7 +215,7 @@
 - **Фикс:** добавить non-root `USER app` (.NET) и nginx-unprivileged; `no-new-privileges:true` на все 3 сервиса.
 
 ## Medium
-- **INFRA-5.** `.env:3-4` (`ADMIN_PASSWORD=test-password`) и `appsettings.Development.json:10` (`AdminPassword: CHANGE_ME`) — слабые/placeholder креды засевают реального admin-пользователя (`Program.cs:45-49`). Проверить, что прод-значение сильное.
+- **INFRA-5.** `.env:3-4` (`ADMIN_PASSWORD=<redacted>`) и `appsettings.Development.json:10` (`AdminPassword: <redacted>`) — слабые/placeholder креды засевают реального admin-пользователя (`Program.cs:45-49`). Проверить, что прод-значение сильное.
 - **INFRA-6.** Плавающие теги базовых образов (`node:22-alpine`, `nginx:alpine`, `aspnet:10.0`) → невоспроизводимые сборки. Нет `mem_limit`/`cpus` → возможна перегрузка хоста.
 - **INFRA-7.** `deploy.yml:26-30` — деплой через SSH делает `git reset --hard origin/main` + `docker compose up -d --build` от root в `/root/...`. Инъекций нет (все значения из `secrets.*`), но сборка на проде, без registry/rollback, root-уровень.
 

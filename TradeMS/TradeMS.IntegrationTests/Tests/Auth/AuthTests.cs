@@ -67,6 +67,14 @@ public class AuthTests : SeededIntegrationTestBase
 
     // 2.1 — обновление токена
     [Fact]
+    public async Task RefreshToken_WithNullToken_ReturnsUnauthorized()
+    {
+        var resp = await Client.PostAsJsonAsync("/api/auth/refresh", new { refreshToken = (string?)null });
+
+        resp.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
     public async Task RefreshToken_WithValidToken_ReturnsNewAccessToken()
     {
         var loginResp = await Client.PostAsJsonAsync("/api/auth/login", new

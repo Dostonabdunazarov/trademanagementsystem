@@ -23,7 +23,7 @@ if (!string.IsNullOrEmpty(databaseUrl))
 }
 
 builder.Services.AddApplication();
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 builder.Services.AddOpenApi();
 builder.Services.ConfigureHttpJsonOptions(o =>
 {
@@ -90,11 +90,18 @@ using (var scope = app.Services.CreateScope())
     adminEmail = adminEmail.Trim().ToLowerInvariant();
 
     var adminPassword = builder.Configuration["Seed:AdminPassword"];
+    string[] weakAdminPasswords = ["change_me", "changeme", "change-me", "password", "test-password", "qwerty", "123456", "12345678"];
     if (string.IsNullOrWhiteSpace(adminPassword) || adminPassword.Length < 8)
         throw new InvalidOperationException("Seed:AdminPassword is not configured or is shorter than 8 characters.");
 
     if (!db.Users.Any(u => u.Email.ToLower() == adminEmail))
     {
+        if (!app.Environment.IsDevelopment() &&
+            (adminPassword.Length < 12 ||
+             weakAdminPasswords.Any(w => adminPassword.Contains(w, StringComparison.OrdinalIgnoreCase))))
+            throw new InvalidOperationException(
+                "Seed:AdminPassword is a placeholder or weak value. Use at least 12 characters and no common words.");
+
         var companyId = Guid.NewGuid();
         db.Companies.Add(new TradeMS.Domain.Entities.Company
         {

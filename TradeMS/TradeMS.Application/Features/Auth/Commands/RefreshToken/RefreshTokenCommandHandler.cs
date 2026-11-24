@@ -10,6 +10,9 @@ public class RefreshTokenCommandHandler(IAppDbContext db, IJwtService jwtService
 {
     public async Task<LoginResponse> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.RefreshToken))
+            throw new AuthenticationFailedException("Invalid or expired refresh token", ErrorCodes.SessionExpired);
+
         var tokenHash = jwtService.HashRefreshToken(request.RefreshToken);
 
         var user = await db.Users
@@ -26,9 +29,17 @@ public class RefreshTokenCommandHandler(IAppDbContext db, IJwtService jwtService
         var newRefreshToken = jwtService.GenerateRefreshToken();
 
         // Rotate: persist only the hash of the new token.
-        user.RefreshToken = jwtService.HashRefreshToken(newRefreshToken);
-        user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
-        await db.SaveChangesAsync(cancellationToken);
+        var userId = user.Id;
+        var newHash = jwtService.HashRefreshToken(newRefreshToken);
+        var newExpiry = DateTime.UtcNow.AddDays(7);
+        var rotated = await db.Users
+            .Where(u => u.Id == userId && u.RefreshToken == tokenHash)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(u => u.RefreshToken, newHash)
+                .SetProperty(u => u.RefreshTokenExpiry, newExpiry),
+                cancellationToken);
+        if (rotated == 0)
+            throw new AuthenticationFailedException("Invalid or expired refresh token", ErrorCodes.SessionExpired);
 
         var userDto = new AuthUserDto(user.Id, user.FullName, user.Email, user.Role.ToString(), user.CompanyId, user.Company.Name, user.BranchId);
         return new LoginResponse(accessToken, newRefreshToken, userDto);

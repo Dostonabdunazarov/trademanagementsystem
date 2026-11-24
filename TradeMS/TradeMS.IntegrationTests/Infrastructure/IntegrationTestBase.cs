@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using TradeMS.Infrastructure.Persistence;
 
@@ -22,6 +23,8 @@ public abstract class IntegrationTestBase : IAsyncLifetime
     public async Task InitializeAsync()
     {
         await Factory.ResetDatabaseAsync();
+        if (Factory.Services.GetService<IMemoryCache>() is MemoryCache cache)
+            cache.Compact(1.0);
         await SeedAsync();
     }
 
