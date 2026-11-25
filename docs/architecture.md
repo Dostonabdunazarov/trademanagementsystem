@@ -37,7 +37,7 @@ Features/<Область>/
 - [`Persistence/AppDbContext.cs`](../TradeMS/TradeMS.Infrastructure/Persistence/AppDbContext.cs) — EF Core `DbContext`, реализует `IAppDbContext`. Вся конфигурация модели (таблицы, индексы, точность decimal, конвертация enum→string, row-version) в `OnModelCreating`.
 - [`Persistence/AppDbContextFactory.cs`](../TradeMS/TradeMS.Infrastructure/Persistence/AppDbContextFactory.cs) — design-time фабрика для `dotnet ef`.
 - [`Migrations/`](../TradeMS/TradeMS.Infrastructure/Migrations) — миграции EF Core.
-- [`Services/`](../TradeMS/TradeMS.Infrastructure/Services) — `JwtService`, `CurrentUserService`, `AuditLogger`.
+- [`Services/`](../TradeMS/TradeMS.Infrastructure/Services) — `JwtService`, `CurrentUserService`, `AuditLogger`, `AuditLogRetentionService` (фоновая очистка `audit_logs`).
 - [`DependencyInjection.cs`](../TradeMS/TradeMS.Infrastructure/DependencyInjection.cs) — регистрация `DbContext` + `DbContextFactory`, JWT-аутентификации и политик авторизации.
 
 ### TradeMS.Api

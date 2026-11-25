@@ -68,6 +68,8 @@
 
 **`audit_logs`** — `Id` (bigint), `CompanyId`, `UserId?`, `UserEmail?`, `Action`, `EntityType?`, `EntityId?`, `Details?`, `Success` (по умолч. true), `ErrorMessage?`, `IpAddress?`, `UserAgent?`, `CreatedAt`. Индексы: `CreatedAt`, `Action`, `(CompanyId, CreatedAt)`. При удалении пользователя `UserId` → `SetNull`.
 
+Хранение: записи старше `AuditLog:RetentionMonths` месяцев (по умолчанию 3) удаляет фоновый `AuditLogRetentionService` — первый проход через минуту после старта API, затем раз в сутки, порциями по 5000 строк. `0` отключает очистку.
+
 > В домене есть класс `LoginAuditLog`, но он **не зарегистрирован** как `DbSet` и в БД не пишется. Все события входа фиксируются через `audit_logs` (константы действий — в [`AuditActions.cs`](../TradeMS/TradeMS.Domain/Entities/AuditActions.cs)).
 
 ## Точность decimal

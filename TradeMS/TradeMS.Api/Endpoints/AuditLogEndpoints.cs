@@ -26,7 +26,7 @@ public static class AuditLogEndpoints
             var result = await mediator.Send(new GetAuditLogsQuery(
                 companyId, userId, action, dateFrom, dateTo, success,
                 page < 1 ? 1 : page,
-                pageSize < 1 ? 20 : pageSize > 500 ? 500 : pageSize));
+                pageSize < 1 ? 20 : Math.Min(pageSize, 200)));
             return Results.Ok(result);
         })
         .WithSummary("Get audit logs (Admin only)");

@@ -32,6 +32,7 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IAuditLogger, AuditLogger>();
+        services.AddHostedService<AuditLogRetentionService>();
 
         var jwtSecret = config["Jwt:Secret"];
         if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.Length < 32)

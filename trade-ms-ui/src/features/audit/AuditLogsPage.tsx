@@ -7,7 +7,7 @@ import { fetchAuditLogs, type AuditLogsParams } from '@/api/auditLogs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DatePicker } from '@/components/ui/date-picker'
 
-const PAGE_SIZE = 500
+const PAGE_SIZE = 200
 
 export function AuditLogsPage() {
   const { t } = useTranslation()

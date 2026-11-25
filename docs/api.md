@@ -120,4 +120,4 @@ REST API на ASP.NET Core Minimal API. Все прикладные эндпои
 
 | Метод | Маршрут | Назначение | Доступ |
 |---|---|---|---|
-| GET | `/api/audit-logs` | Журнал аудита. Параметры: `userId`, `action`, `dateFrom`, `dateTo`, `success`, `page`, `pageSize` (≤ 500) | Admin |
+| GET | `/api/audit-logs` | Журнал аудита. Параметры: `userId`, `action`, `dateFrom`, `dateTo`, `success`, `page`, `pageSize` (≤ 200) | Admin |
