@@ -55,6 +55,7 @@ export function DashboardPage() {
   const vsPrev = data?.comparedFrom && data?.comparedTo
     ? t('dashboard.vsRange', { range: comparedRange(data.comparedFrom, data.comparedTo) })
     : t('dashboard.vsPrevPeriod')
+  const periodLabel = comparedRange(period.dateFrom, period.dateTo)
 
   // Helper: convert nullable delta (number | null) to MetricCard's optional prop
   const delta = (value: number | null | undefined) => (value == null ? undefined : value)
@@ -62,7 +63,7 @@ export function DashboardPage() {
   // Row 1 — primary period metrics with deltas vs the previous comparable period
   const metrics = [
     {
-      title: t('dashboard.revenueMonth'),
+      title: `${t('dashboard.revenueMonth')} · ${periodLabel}`,
       value: '…',
       amount: isLoading ? undefined : (data?.revenue ?? 0),
       delta: delta(data?.revenueDelta),
@@ -71,7 +72,7 @@ export function DashboardPage() {
       iconColor: 'text-[var(--chart-1)]',
     },
     {
-      title: t('dashboard.profitMonth'),
+      title: `${t('dashboard.profitMonth')} · ${periodLabel}`,
       value: '…',
       amount: isLoading ? undefined : (data?.profit ?? 0),
       delta: delta(data?.profitDelta),
