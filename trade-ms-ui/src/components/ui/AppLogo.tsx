@@ -1,9 +1,12 @@
+import { useId } from 'react'
+
 interface AppLogoProps {
   size?: number
   className?: string
 }
 
 export function AppLogoIcon({ size = 32, className }: AppLogoProps) {
+  const gradId = useId()
   return (
     <svg
       width={size}
@@ -12,38 +15,20 @@ export function AppLogoIcon({ size = 32, className }: AppLogoProps) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
+      aria-hidden
     >
       <defs>
-        <linearGradient id="logo-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#67e8f9" />
-          <stop offset="100%" stopColor="#06b6d4" />
-        </linearGradient>
-        <linearGradient id="logo-grad-glow" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#a5f3fc" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.1" />
+        <linearGradient id={gradId} x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="var(--logo-from)" />
+          <stop offset="1" stopColor="var(--logo-to)" />
         </linearGradient>
       </defs>
-      {/* Diamond shape */}
-      <path
-        d="M16 2L30 16L16 30L2 16Z"
-        fill="url(#logo-grad-glow)"
-        stroke="url(#logo-grad)"
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      {/* Letter Т */}
-      <text
-        x="16"
-        y="21"
-        textAnchor="middle"
-        fontFamily="Inter, system-ui, sans-serif"
-        fontSize="13"
-        fontWeight="600"
-        fill="url(#logo-grad)"
-        letterSpacing="-0.5"
-      >
-        Т
-      </text>
+      <rect width="32" height="32" rx="8" fill={`url(#${gradId})`} />
+      <g fill="var(--color-brand-fg)">
+        <path d="M16 5.5L25.5 10.8L16 16.1L6.5 10.8Z" />
+        <path d="M6.5 12.6L15.1 17.4V27L6.5 22.2Z" fillOpacity={0.78} />
+        <path d="M25.5 12.6V22.2L16.9 27V17.4Z" fillOpacity={0.55} />
+      </g>
     </svg>
   )
 }

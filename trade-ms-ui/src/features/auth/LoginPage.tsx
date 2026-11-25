@@ -74,9 +74,7 @@ export function LoginPage() {
       <div className="relative w-full max-w-md px-4">
         {/* Logo / brand */}
         <div className="mb-8 flex flex-col items-center gap-3">
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-500/10 ring-1 ring-brand-500/30 shadow-lg shadow-brand-500/20">
-            <AppLogoIcon size={40} />
-          </div>
+          <AppLogoIcon size={52} className="rounded-[13px] shadow-lg shadow-brand-500/25" />
           <div className="text-center">
             <h1 className="text-2xl font-semibold tracking-tight text-[hsl(var(--text-primary))]">{t('auth.title')}</h1>
             <p className="mt-1 text-sm text-[hsl(var(--text-muted))]">{t('auth.subtitle')}</p>

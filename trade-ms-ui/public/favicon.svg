@@ -3,12 +3,10 @@
     .s0 { stop-color: #2a9d8f; }
     .s1 { stop-color: #0b5f59; }
     .g { fill: #ffffff; }
-    .d { stroke: #ffffff; }
     @media (prefers-color-scheme: dark) {
       .s0 { stop-color: #67e8f9; }
       .s1 { stop-color: #0891b2; }
-      .g { fill: #050816; }
-      .d { stroke: #050816; }
+      .g { fill: #03222b; }
     }
   </style>
   <defs>
@@ -18,7 +16,7 @@
     </linearGradient>
   </defs>
   <rect width="32" height="32" rx="8" fill="url(#tile)"/>
-  <path class="d" d="M16 4.5L27.5 16L16 27.5L4.5 16Z" stroke-width="2.2" stroke-linejoin="round"/>
-  <rect class="g" x="11" y="11" width="10" height="2.6" rx="0.6"/>
-  <rect class="g" x="14.7" y="11" width="2.6" height="10.5" rx="0.6"/>
+  <path class="g" d="M16 5.5L25.5 10.8L16 16.1L6.5 10.8Z"/>
+  <path class="g" d="M6.5 12.6L15.1 17.4V27L6.5 22.2Z" fill-opacity="0.78"/>
+  <path class="g" d="M25.5 12.6V22.2L16.9 27V17.4Z" fill-opacity="0.55"/>
 </svg>
