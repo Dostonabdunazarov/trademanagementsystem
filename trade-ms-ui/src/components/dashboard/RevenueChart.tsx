@@ -18,6 +18,7 @@ import { AXIS_TICK, GRID_STROKE, TOOLTIP_WRAPPER } from './chartStyles'
 // Цвета из темы (index.css): для светлой и тёмной свои оттенки.
 const REVENUE_COLOR = 'var(--chart-revenue)'
 const PROFIT_COLOR = 'var(--chart-profit)'
+const BAR_OPACITY = 0.55
 
 /** Компактный формат оси Y: 57 000 000 → «57 млн» (на языке интерфейса). */
 const formatAxis = formatCompact
@@ -74,7 +75,7 @@ export function RevenueChart({ className, loading, monthlySales }: Props) {
         <h3 className="text-sm font-semibold text-[hsl(var(--text-primary))]">{t('dashboard.revenueAndProfit')}</h3>
         <div className="flex items-center gap-4 text-xs text-[hsl(var(--text-muted))]">
           <span className="flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: REVENUE_COLOR }} />
+            <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: REVENUE_COLOR, opacity: BAR_OPACITY }} />
             {revenueLabel}
           </span>
           <span className="flex items-center gap-1.5">
@@ -112,6 +113,8 @@ export function RevenueChart({ className, loading, monthlySales }: Props) {
           <Bar
             dataKey="revenue"
             fill={REVENUE_COLOR}
+            fillOpacity={BAR_OPACITY}
+            activeBar={{ fillOpacity: 0.9 }}
             radius={[4, 4, 0, 0]}
             maxBarSize={36}
             // Столбцы вырастают снизу; линия прибыли рисуется следом.

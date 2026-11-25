@@ -10,6 +10,7 @@ import { AXIS_TICK, GRID_STROKE, TOOLTIP_WRAPPER } from './chartStyles'
 
 const REVENUE_COLOR = 'var(--chart-daily)'
 const PROFIT_COLOR = 'var(--chart-profit)'
+const BAR_OPACITY = 0.55
 
 interface Props {
   dailySales?: DailySales[]
@@ -24,7 +25,16 @@ export function DailyRevenueChart({ dailySales, loading, className, style }: Pro
   const today = todayIso()
   const data = (dailySales ?? [])
     .filter((d) => d.date <= today)
-    .map((d) => ({ ...d, day: format(parseISO(d.date), 'd'), label: format(parseISO(d.date), 'dd.MM.yyyy') }))
+    .map((d) => {
+      const profitPart = Math.max(d.profit, 0)
+      return {
+        ...d,
+        costPart: Math.max(d.revenue - profitPart, 0),
+        profitPart,
+        day: format(parseISO(d.date), 'd'),
+        label: format(parseISO(d.date), 'dd.MM.yyyy'),
+      }
+    })
   const total = data.reduce((s, d) => s + d.revenue, 0)
   const totalProfit = data.reduce((s, d) => s + d.profit, 0)
   const activeDays = data.filter((d) => d.revenue > 0).length
@@ -48,7 +58,8 @@ export function DailyRevenueChart({ dailySales, loading, className, style }: Pro
       <ChartTooltipBox
         title={p.label}
         rows={[
-          { color: REVENUE_COLOR, label: t('dashboard.revenue'), value: formatCurrency(p.revenue) },
+          { label: t('dashboard.revenue'), value: formatCurrency(p.revenue) },
+          { color: REVENUE_COLOR, label: t('reports.cost'), value: formatCurrency(p.revenue - p.profit) },
           { color: PROFIT_COLOR, label: t('dashboard.profit'), value: formatCurrency(p.profit) },
         ]}
       />
@@ -56,8 +67,8 @@ export function DailyRevenueChart({ dailySales, loading, className, style }: Pro
   }
 
   const legend = [
-    { color: REVENUE_COLOR, label: t('dashboard.revenue') },
-    { color: PROFIT_COLOR, label: t('dashboard.profit') },
+    { color: REVENUE_COLOR, label: t('reports.cost'), opacity: BAR_OPACITY },
+    { color: PROFIT_COLOR, label: t('dashboard.profit'), opacity: 1 },
   ]
 
   return (
@@ -70,7 +81,7 @@ export function DailyRevenueChart({ dailySales, loading, className, style }: Pro
           <div className="flex gap-3 text-[11px] text-[hsl(var(--text-muted))]">
             {legend.map((l) => (
               <span key={l.label} className="flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: l.color }} />
+                <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: l.color, opacity: l.opacity }} />
                 {l.label}
               </span>
             ))}
@@ -90,19 +101,25 @@ export function DailyRevenueChart({ dailySales, loading, className, style }: Pro
               <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }} barCategoryGap="20%">
                 <CartesianGrid vertical={false} stroke={GRID_STROKE} />
                 <XAxis dataKey="day" tick={AXIS_TICK} tickLine={false} axisLine={{ stroke: GRID_STROKE }} interval="preserveStartEnd" minTickGap={12} dy={6} />
-                <XAxis dataKey="day" xAxisId="profit" hide />
                 <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} width={56} tickFormatter={formatCompact} />
                 <Tooltip wrapperStyle={TOOLTIP_WRAPPER} cursor={{ fill: 'hsl(var(--surface-2))' }} content={tooltip} />
-                <Bar dataKey="revenue" fill={REVENUE_COLOR} radius={[3, 3, 0, 0]} maxBarSize={28} animationDuration={700} />
                 <Bar
-                  dataKey="profit"
-                  xAxisId="profit"
+                  dataKey="costPart"
+                  stackId="revenue"
+                  fill={REVENUE_COLOR}
+                  fillOpacity={BAR_OPACITY}
+                  activeBar={{ fillOpacity: 0.8 }}
+                  maxBarSize={28}
+                  animationDuration={700}
+                />
+                <Bar
+                  dataKey="profitPart"
+                  stackId="revenue"
                   fill={PROFIT_COLOR}
-                  stroke="hsl(var(--card))"
-                  strokeWidth={1}
-                  radius={[2, 2, 0, 0]}
-                  barSize={6}
-                  animationBegin={300}
+                  fillOpacity={0.85}
+                  activeBar={{ fillOpacity: 1 }}
+                  radius={[3, 3, 0, 0]}
+                  maxBarSize={28}
                   animationDuration={700}
                 />
               </BarChart>
