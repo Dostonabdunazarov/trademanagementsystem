@@ -5,6 +5,7 @@ import { useStockBalance } from '@/api/hooks/useReports'
 import { formatNumber } from '@/utils/format'
 import { cn } from '@/lib/utils'
 import { useUiStore } from '@/store/ui.store'
+import { HeadUnit, ReportStat } from './ReportStat'
 
 const LOW_STOCK_THRESHOLD = 5
 
@@ -74,14 +75,8 @@ export function StockBalanceReport() {
       {/* Summary */}
       {data && (
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl border border-[hsl(var(--border))] bg-card px-5 py-4">
-            <p className="text-xs text-[hsl(var(--text-muted))] mb-1">{t('reports.sellValue')}</p>
-            <p className="font-mono text-xl font-semibold tabular-nums text-[hsl(var(--text-primary))]">{formatNumber(data.totalSellValue)}</p>
-          </div>
-          <div className="rounded-xl border border-[hsl(var(--border))] bg-card px-5 py-4">
-            <p className="text-xs text-[hsl(var(--text-muted))] mb-1">{t('reports.buyValue')}</p>
-            <p className="font-mono text-xl font-semibold tabular-nums text-[hsl(var(--text-primary))]">{formatNumber(data.totalBuyValue)}</p>
-          </div>
+          <ReportStat label={t('reports.sellValue')} value={formatNumber(data.totalSellValue)} unit={t('dashboard.sum')} />
+          <ReportStat label={t('reports.buyValue')} value={formatNumber(data.totalBuyValue)} unit={t('dashboard.sum')} />
         </div>
       )}
 
@@ -95,9 +90,9 @@ export function StockBalanceReport() {
               <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('products.group')}</th>
               <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('settings.branch')}</th>
               <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.stockBalance')}</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.priceSellShort')}</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.priceBuyShort')}</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.sellSumShort')}</th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.priceSellShort')}<HeadUnit unit={t('dashboard.sum')} /></th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.priceBuyShort')}<HeadUnit unit={t('dashboard.sum')} /></th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.sellSumShort')}<HeadUnit unit={t('dashboard.sum')} /></th>
             </tr>
           </thead>
           <tbody>

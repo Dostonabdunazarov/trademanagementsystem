@@ -4,6 +4,7 @@ import { RefreshCw, Search, ArrowUpRight, ArrowDownRight } from 'lucide-react'
 import { useCounterpartyBalance } from '@/api/hooks/useReports'
 import { formatNumber } from '@/utils/format'
 import { cn } from '@/lib/utils'
+import { HeadUnit, ReportStat } from './ReportStat'
 
 // type=Customer/Supplier на сервере включает и контрагентов с типом Both.
 const TYPE_OPTIONS = [
@@ -78,21 +79,26 @@ export function CounterpartyBalanceReport() {
       {/* Summary row */}
       {data && (
         <div className="grid grid-cols-3 gap-3">
-          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] px-5 py-4">
-            <p className="text-xs text-emerald-500/70 mb-1">{t('reports.debtorsOwe')}</p>
-            <p className="font-mono text-xl font-semibold tabular-nums text-emerald-400">{formatNumber(data.totalDebit)}</p>
-            <p className="text-xs text-[hsl(var(--text-muted))] mt-0.5">{t('reports.counterpartiesCount', { count: debtors.length })}</p>
-          </div>
-          <div className="rounded-xl border border-red-500/20 bg-red-500/[0.04] px-5 py-4">
-            <p className="text-xs text-red-500/70 mb-1">{t('reports.creditorsOwe')}</p>
-            <p className="font-mono text-xl font-semibold tabular-nums text-red-400">{formatNumber(data.totalCredit)}</p>
-            <p className="text-xs text-[hsl(var(--text-muted))] mt-0.5">{t('reports.counterpartiesCount', { count: creditors.length })}</p>
-          </div>
-          <div className="rounded-xl border border-[hsl(var(--border))] bg-card px-5 py-4">
-            <p className="text-xs text-[hsl(var(--text-muted))] mb-1">{t('reports.zeroBalance')}</p>
-            <p className="font-mono text-xl font-semibold tabular-nums text-[hsl(var(--text-muted))]">{zeroes.length}</p>
-            <p className="text-xs text-[hsl(var(--text-muted))] mt-0.5">{t('reports.counterpartiesWord')}</p>
-          </div>
+          <ReportStat
+            tone="positive"
+            label={t('reports.debtorsOwe')}
+            value={formatNumber(data.totalDebit)}
+            unit={t('dashboard.sum')}
+            sub={t('reports.counterpartiesCount', { count: debtors.length })}
+          />
+          <ReportStat
+            tone="negative"
+            label={t('reports.creditorsOwe')}
+            value={formatNumber(data.totalCredit)}
+            unit={t('dashboard.sum')}
+            sub={t('reports.counterpartiesCount', { count: creditors.length })}
+          />
+          <ReportStat
+            tone="muted"
+            label={t('reports.zeroBalance')}
+            value={zeroes.length}
+            sub={t('reports.counterpartiesWord')}
+          />
         </div>
       )}
 
@@ -104,9 +110,9 @@ export function CounterpartyBalanceReport() {
               <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.counterparty')}</th>
               <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('common.type')}</th>
               <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('counterparties.phone')}</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.debit')}</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.credit')}</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('counterparties.balance')}</th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.debit')}<HeadUnit unit={t('dashboard.sum')} /></th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.credit')}<HeadUnit unit={t('dashboard.sum')} /></th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('counterparties.balance')}<HeadUnit unit={t('dashboard.sum')} /></th>
             </tr>
           </thead>
           <tbody>

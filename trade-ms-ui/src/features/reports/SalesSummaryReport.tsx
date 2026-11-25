@@ -1,28 +1,18 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { format, subDays } from 'date-fns'
 import { TrendingUp, TrendingDown, RefreshCw } from 'lucide-react'
 import { useSalesSummary } from '@/api/hooks/useReports'
 import { formatNumber } from '@/utils/format'
 import { cn } from '@/lib/utils'
 import { useUiStore } from '@/store/ui.store'
-import { DatePicker } from '@/components/ui/date-picker'
-
-function MetricBadge({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return (
-    <div className="rounded-xl border border-[hsl(var(--border))] bg-card px-5 py-4">
-      <p className="text-xs text-[hsl(var(--text-muted))] mb-1">{label}</p>
-      <p className="font-mono text-xl font-semibold tabular-nums text-[hsl(var(--text-primary))]">{value}</p>
-      {sub && <p className="text-xs text-[hsl(var(--text-muted))] mt-0.5">{sub}</p>}
-    </div>
-  )
-}
+import { PeriodFilter } from '@/components/dashboard/PeriodFilter'
+import { defaultPeriod, type PeriodRange } from '@/components/dashboard/period'
+import { HeadUnit, ReportStat } from './ReportStat'
 
 export function SalesSummaryReport() {
   const { t } = useTranslation()
-  const today = new Date()
-  const [dateFrom, setDateFrom] = useState(format(subDays(today, 29), 'yyyy-MM-dd'))
-  const [dateTo, setDateTo] = useState(format(today, 'yyyy-MM-dd'))
+  const [period, setPeriod] = useState<PeriodRange>(defaultPeriod)
+  const { dateFrom, dateTo } = period
   const { activeBranch } = useUiStore()
 
   const { data, isLoading, isFetching, refetch, isError } = useSalesSummary({ dateFrom, dateTo, branchId: activeBranch?.id })
@@ -32,15 +22,8 @@ export function SalesSummaryReport() {
   return (
     <div className="space-y-5">
       {/* Filters */}
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">{t('dashboard.from')}</label>
-          <DatePicker value={dateFrom} max={dateTo} onChange={setDateFrom} className="h-9 bg-card text-sm" />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-medium text-[hsl(var(--text-muted))] uppercase tracking-wider">{t('dashboard.to')}</label>
-          <DatePicker value={dateTo} min={dateFrom} onChange={setDateTo} className="h-9 bg-card text-sm" />
-        </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <PeriodFilter value={period} onChange={setPeriod} />
         <button
           onClick={() => refetch()}
           disabled={isFetching}
@@ -53,18 +36,20 @@ export function SalesSummaryReport() {
 
       {/* KPI row */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <MetricBadge
+        <ReportStat
           label={t('reports.revenue')}
           value={data ? formatNumber(data.totalRevenue) : '—'}
-          sub={t('reports.inBaseCurrency')}
+          unit={data ? t('dashboard.sum') : undefined}
         />
-        <MetricBadge
+        <ReportStat
           label={t('reports.cost')}
           value={data ? formatNumber(data.totalCost ?? 0) : '—'}
+          unit={data ? t('dashboard.sum') : undefined}
         />
-        <MetricBadge
+        <ReportStat
           label={t('reports.profit')}
           value={data ? formatNumber(data.totalProfit ?? 0) : '—'}
+          unit={data ? t('dashboard.sum') : undefined}
         />
       </div>
 
@@ -75,9 +60,9 @@ export function SalesSummaryReport() {
             <tr className="border-b border-[hsl(var(--border))]">
               <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.product')}</th>
               <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.qty')}</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.revenue')}</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.costShort')}</th>
-              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.profit')}</th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.revenue')}<HeadUnit unit={t('dashboard.sum')} /></th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.costShort')}<HeadUnit unit={t('dashboard.sum')} /></th>
+              <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.profit')}<HeadUnit unit={t('dashboard.sum')} /></th>
               <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">{t('reports.marginShort')}</th>
             </tr>
           </thead>
