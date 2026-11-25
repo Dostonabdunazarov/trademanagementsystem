@@ -127,7 +127,7 @@ export function DashboardPage() {
       </div>
 
       {/* Row 3: выручка по дням + баланс долгов */}
-      <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-12">
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
         <DailyRevenueChart className="anim-rise lg:col-span-8" style={delay(420)} dailySales={data?.dailySales} loading={isLoading} />
         <DebtBalanceWidget
           className="anim-rise lg:col-span-4"
