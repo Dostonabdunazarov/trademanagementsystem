@@ -11,6 +11,7 @@ interface MetricCardProps {
   /** Числовое значение: если задано, показывается с анимацией счёта (value тогда не нужен). */
   amount?: number
   formatAmount?: (n: number) => string
+  unit?: string
   delta?: number
   deltaLabel?: string
   icon?: LucideIcon
@@ -30,6 +31,7 @@ export function MetricCard({
   value,
   amount,
   formatAmount = (n) => n.toLocaleString('ru-RU'),
+  unit,
   delta,
   deltaLabel,
   icon: Icon,
@@ -59,8 +61,9 @@ export function MetricCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-xs font-medium text-[hsl(var(--text-muted))]">{title}</p>
-          <p className="mt-1.5 text-[28px] font-semibold leading-tight tabular-nums tracking-tight text-[hsl(var(--text-primary))]">
+          <p className="mt-1.5 text-[28px] font-normal leading-tight tabular-nums tracking-tight text-[hsl(var(--text-primary))]">
             {amount !== undefined ? <AnimatedAmount amount={amount} format={formatAmount} /> : value}
+            {unit && <span className="ml-1.5 text-sm font-normal tracking-normal text-[hsl(var(--text-muted))]">{unit}</span>}
           </p>
           {delta !== undefined && (
             <p className="mt-1.5 text-xs tabular-nums text-[hsl(var(--text-muted))]">

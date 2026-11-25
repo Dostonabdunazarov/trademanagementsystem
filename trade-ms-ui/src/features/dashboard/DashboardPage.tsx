@@ -114,6 +114,7 @@ export function DashboardPage() {
             key={m.title}
             {...m}
             formatAmount={formatNumber}
+            unit={t('dashboard.sum')}
             className="anim-rise"
             style={{ '--delay': `${i * 70}ms` } as CSSProperties}
           />
