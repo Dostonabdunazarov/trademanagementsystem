@@ -61,7 +61,7 @@ export function BranchSelector({ className }: { className?: string }) {
         onClick={() => canChangeBranch && hasBranches && setOpen((v) => !v)}
         disabled={isLoading || !canChangeBranch}
         className={cn(
-          'flex items-center gap-2 rounded-lg border border-border bg-white/[0.04] px-3 py-1.5 text-sm text-[hsl(var(--text-primary))] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
+          'flex h-9 items-center gap-2 rounded-lg border border-border bg-white/[0.04] px-3 text-sm text-[hsl(var(--text-primary))] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',
           canChangeBranch && hasBranches && 'hover:border-white/[0.15] hover:bg-white/[0.07]',
           !canChangeBranch && 'cursor-default opacity-60',
           isLoading && 'opacity-60',

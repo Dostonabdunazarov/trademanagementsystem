@@ -259,7 +259,7 @@ export function MainLayout() {
             {/* Theme toggle */}
             <button
               onClick={toggleTheme}
-              className="rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface-2))] p-2 text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))] transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))] hover:text-[hsl(var(--text-primary))] transition-colors"
               aria-label={theme === 'dark' ? t('theme.light') : t('theme.dark')}
               title={theme === 'dark' ? t('theme.light') : t('theme.dark')}
             >
@@ -272,7 +272,7 @@ export function MainLayout() {
             <CurrencyRateTicker />
 
             {user?.companyName && (
-              <div className="flex items-center gap-1.5 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface-2))] px-3 py-1.5">
+              <div className="flex h-9 items-center gap-1.5 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface-2))] px-3">
                 <Building2 className="h-3.5 w-3.5 shrink-0 text-brand-400" />
                 <span className="text-xs font-medium text-[hsl(var(--text-primary))] max-w-[160px] truncate">{user.companyName}</span>
               </div>

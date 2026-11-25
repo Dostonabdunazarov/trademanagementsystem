@@ -49,7 +49,7 @@ export function LanguageSelect({ className }: { className?: string }) {
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
         className={cn(
-          'flex items-center gap-1.5 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface-2))]/60 px-2.5 py-1.5',
+          'flex h-9 items-center gap-1.5 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface-2))]/60 px-2.5',
           'text-xs font-semibold uppercase text-[hsl(var(--text-primary))] backdrop-blur-md transition-colors',
           'hover:bg-[hsl(var(--surface-2))]',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500',

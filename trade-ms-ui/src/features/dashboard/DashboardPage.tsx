@@ -100,8 +100,8 @@ export function DashboardPage() {
   return (
     <div className="relative min-h-full p-6">
       {/* Period filter — applies to revenue & profit */}
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <span className="text-xs font-medium uppercase tracking-wider text-[hsl(var(--text-muted))]">
+      <div className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <span className="text-[11px] font-semibold uppercase tracking-wider text-[hsl(var(--text-muted))]">
           {t('dashboard.period')}
         </span>
         <PeriodFilter value={period} onChange={setPeriod} />

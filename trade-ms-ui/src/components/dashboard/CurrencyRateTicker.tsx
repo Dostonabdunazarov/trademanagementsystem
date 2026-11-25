@@ -50,7 +50,7 @@ export function CurrencyRateTicker({ className }: { className?: string }) {
         return (
           <div
             key={Ccy}
-            className="hidden items-center gap-1.5 rounded-lg border border-[hsl(var(--border))] px-2.5 py-1 text-xs sm:flex"
+            className="hidden h-9 items-center gap-1.5 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--surface-2))] px-3 text-xs sm:flex"
           >
             <span className="font-semibold text-[hsl(var(--text-muted))]">{Ccy}</span>
             <span className="font-semibold tabular-nums text-[hsl(var(--text-primary))]">{formatRate(Rate)}</span>
